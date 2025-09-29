@@ -1,0 +1,28 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Umicom Studio — Sidecar Chat</title>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Umicom Studio — Sidecar</h1>
+    <div class="row">
+      <input id="model" placeholder="model (blank = default)"/>
+      <select id="backend">
+        <option value="openai">openai</option>
+        <option value="ollama" selected>ollama</option>
+      </select>
+      <button id="clear">Clear</button>
+    </div>
+    <div id="log"></div>
+    <div class="row">
+      <input id="prompt" placeholder="Type your prompt..."/>
+      <button id="send">Send</button>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

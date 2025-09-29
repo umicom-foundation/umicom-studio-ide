@@ -1,0 +1,11 @@
+
+body { font-family: system-ui, Segoe UI, Arial; background:#101216; color:#e7e7e7; }
+.wrap { max-width: 900px; margin: 40px auto; padding: 16px; background:#1b1f27; border-radius:12px; }
+h1 { margin-top:0 }
+.row { display:flex; gap:8px; margin:8px 0; }
+input, select { flex:1; padding:10px; border-radius:8px; border:1px solid #2a2f3a; background:#0f1217; color:#e7e7e7; }
+button { padding:10px 16px; border-radius:8px; border:1px solid #2a2f3a; background:#0f1217; color:#e7e7e7; cursor:pointer;}
+#log { border:1px solid #2a2f3a; min-height:300px; max-height:500px; overflow:auto; padding:10px; border-radius:8px; background:#0f1217; }
+#log .you { color:#a5d6ff; margin:6px 0; }
+#log .ai  { color:#9be49b; margin:6px 0; white-space:pre-wrap; }
+#log .err { color:#ff8a80; margin:6px 0; }
