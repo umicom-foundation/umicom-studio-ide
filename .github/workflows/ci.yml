@@ -1,0 +1,85 @@
+# =========================================================================================
+# Umicom Common CI Template: C/C++ (CMake)
+# Author: Sammy Hegab (Umicom Foundation)  |  Co-pilot: "Sarah" (AI assistant)
+# Purpose: Standard CI for C/C++ repos using CMake on Ubuntu.
+# Policy: main-only workflow. Keep code heavily commented.
+# Usage: copy this file into: .github/workflows/ci.yml
+# =========================================================================================
+name: ci-c-cpp
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build clang-format
+
+      - name: Configure (CMake)
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Run unit tests (ctest, if present)
+        run: |
+          if [ -f build/CTestTestfile.cmake ]; then ctest --test-dir build --output-on-failure; else echo "No tests."; fi
+
+      - name: clang-format (dry-run)
+        run: |
+          # Check formatting without changing files; fail if diffs are found
+          if git ls-files '*.c' '*.h' '*.cpp' '*.hpp' | xargs -r clang-format -n --Werror; then
+            echo "Formatting OK"
+          else
+            echo "Formatting violations found"; exit 1
+          fi
+        # To auto-fix formatting, replace the above with:
+        # run: git ls-files '*.c' '*.h' '*.cpp' '*.hpp' | xargs -r clang-format -i && git diff  || echo "No formatting changes"
+        # Note: The above auto-fix step will modify files but not commit them. Consider adding a commit step if desired.
+        # This CI is intended to enforce formatting on PRs; auto-fixing is optional and should be used with caution.
+        # Uncomment the following line to fail the job if formatting issues are found:
+        # continue-on-error: false
+        continue-on-error: true
+        # The job will not fail on formatting issues, but the message will indicate violations.
+        # To enforce formatting strictly, set continue-on-error to false.
+        # This allows developers to see formatting issues without blocking the CI.
+        # Adjust according to your team's workflow preferences.
+        # End of clang-format step
+        # =========================================================================================
+        # End of job steps
+        # =========================================================================================
+# End of workflow file
+# =========================================================================================
+# Note: This template is designed for simplicity and clarity.
+# Adjust as needed for your specific project requirements.
+# =========================================================================================
+# =========================================================================================
+# End of file
+# =========================================================================================
+# =========================================================================================
+# Umicom Foundation
+# =========================================================================================
+# https://umicom.foundation
+# ========================================================================================= 
+# License: MIT
+# =========================================================================================
+# (c) 2024 Sammy Hegab
+# =========================================================================================
+# All rights reserved.
+# =========================================================================================
+# This code is provided "as is" without warranty of any kind.
+# =========================================================================================
+# Use at your own risk.
+# =========================================================================================
