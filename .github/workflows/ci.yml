@@ -1,6 +1,6 @@
 # =========================================================================================
 # Umicom Common CI Template: C/C++ (CMake)
-# Author: Sammy Hegab (Umicom Foundation)  |  Co-pilot: "Sarah" (AI assistant)
+# Author: Sammy Hegab (Umicom Foundation)
 # Purpose: Standard CI for C/C++ repos using CMake on Ubuntu.
 # Policy: main-only workflow. Keep code heavily commented.
 # Usage: copy this file into: .github/workflows/ci.yml
