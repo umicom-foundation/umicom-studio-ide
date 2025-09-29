@@ -3,9 +3,8 @@
 UStudio — IDE/editor &amp; plugin host
 
 
-## Umicom Studio IDE — GTK4 Skeleton
-
-A minimal-but-real GTK4 skeleton for **umicom-studio-ide** with Meson as the primary build system.
+## Umicom Studio IDE (Code Editor & Content Creator) - Powered by Umicom Author Engine
+A minimal-but-real GTK4 GUI Desktop Application for **umicom-studio-ide** with Meson as the primary build system.
 It includes:
 
 - `GtkApplication` entry, an application window with a HeaderBar
