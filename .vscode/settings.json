@@ -1,0 +1,7 @@
+{
+  "clangd.path": "C:\\msys64\\mingw64\\bin\\clangd.exe",
+  "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}",
+    "--query-driver=C:\\msys64\\mingw64\\bin\\gcc.exe;C:\\msys64\\mingw64\\bin\\g++.exe;C:\\msys64\\mingw64\\bin\\clang.exe;C:\\msys64\\mingw64\\bin\\clang++.exe"
+  ]
+}

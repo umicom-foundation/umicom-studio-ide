@@ -1,0 +1,16 @@
+﻿project('umicom-studio-ide', 'c', default_options: ['c_std=c17', 'warning_level=2'])
+
+gtk = dependency('gtk4')
+
+srcs = [
+  # keep this tiny at first; add more files after it runs
+  'src/app.c',
+  'src/window.c',
+  'src/logging.c'
+]
+
+executable(
+  'ustudio',
+  srcs,
+  dependencies: [gtk]
+)

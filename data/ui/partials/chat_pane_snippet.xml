@@ -1,0 +1,14 @@
+
+<!-- Insert inside a right-side box container with id='right_box' -->
+<object class="GtkFrame">
+  <property name="label">Chat</property>
+  <property name="hexpand">true</property>
+  <property name="vexpand">true</property>
+  <child>
+    <!-- Will be replaced at runtime by chat_pane_new(); this placeholder keeps layout stable -->
+    <object class="GtkBox">
+      <property name="orientation">vertical</property>
+      <property name="spacing">6</property>
+    </object>
+  </child>
+</object>

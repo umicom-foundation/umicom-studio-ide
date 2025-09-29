@@ -1,0 +1,19 @@
+
+<!-- Bottom log area -->
+<object class="GtkFrame">
+  <property name="label">Log</property>
+  <property name="hexpand">true</property>
+  <property name="vexpand">true</property>
+  <child>
+    <object class="GtkScrolledWindow" id="bottom_log_scroller">
+      <property name="hexpand">true</property>
+      <property name="vexpand">true</property>
+      <child>
+        <object class="GtkTextView" id="log_view">
+          <property name="editable">false</property>
+          <property name="wrap-mode">word-char</property>
+        </object>
+      </child>
+    </object>
+  </child>
+</object>
