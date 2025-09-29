@@ -1,0 +1,43 @@
+﻿# Normalize line endings and mark binaries
+* text=auto
+
+# Windows scripts use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Unixy scripts / code use LF
+*.sh text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+
+# Visual Studio project files typically CRLF
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+*.filters text eol=crlf
+*.props text eol=crlf
+*.targets text eol=crlf
+
+# Binary files
+*.png -text
+*.jpg -text
+*.jpeg -text
+*.gif -text
+*.pdf -text
+*.zip -text
+*.7z -text
+*.exe -text
+*.dll -text
+*.lib -text
+*.pdb -text
+*.mp4 -text
+*.mov -text
