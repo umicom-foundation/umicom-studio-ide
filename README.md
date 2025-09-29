@@ -1,4 +1,4 @@
-# umicom-studio-ide
+# Umicom Studio
 
 UStudio — IDE/editor &amp; plugin host
 
