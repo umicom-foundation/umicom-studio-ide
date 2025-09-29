@@ -1,29 +1,10 @@
-
-project('umicom-studio-ide', 'c',
-  version: '0.1.0',
-  default_options: ['warning_level=3', 'c_std=c17']
-)
-
-gtkdep = dependency('gtk4', version: '>=4.10')
-gio = dependency('gio-2.0')
-glib = dependency('glib-2.0')
-gnome = import('gnome')
-
-gres = gnome.compile_resources(
-  'ustudio-resources',
-  'data/ustudio.gresource.xml',
-  source_dir: 'data',
-  c_name: 'ustudio'
-)
+﻿project("umicom-studio-ide", "c", default_options: ["c_std=c17", "warning_level=2"])
+gtk = dependency("gtk4")
 
 srcs = [
-  'src/main.c',
-  'src/app.c',
-  'src/window.c',
-  gres
+  "src/app.c",
+  "src/window.c",
+  "src/logging.c"
 ]
 
-exe = executable('ustudio', srcs,
-  dependencies: [gtkdep, gio, glib],
-  install: true
-)
+executable("ustudio", srcs, dependencies: [gtk])
