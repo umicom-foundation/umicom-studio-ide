@@ -1,0 +1,12 @@
+# Doxygen configuration for Umicom Studio IDE (C API)
+PROJECT_NAME           = "Umicom Studio IDE"
+OUTPUT_DIRECTORY       = build/doxygen
+GENERATE_HTML          = YES
+HTML_OUTPUT            = ../../docs/reference/api
+GENERATE_LATEX         = NO
+INPUT                  = src include
+FILE_PATTERNS          = *.h *.c
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+QUIET                  = YES
