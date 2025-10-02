@@ -1,0 +1,7 @@
+{
+  "themes": [
+    {"name":"Light", "css":"light.css"},
+    {"name":"Dark",  "css":"dark.css"},
+    {"name":"Solarized", "css":"solarized.css"}
+  ]
+}
