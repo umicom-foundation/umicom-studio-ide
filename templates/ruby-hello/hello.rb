@@ -1,0 +1,1 @@
+puts 'Hello from Ruby in Umicom Studio IDE!'\n

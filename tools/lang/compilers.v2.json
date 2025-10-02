@@ -1,0 +1,691 @@
+{
+  "version": "umicom-compiler-manifest-v2",
+  "updated": "2025-10-02",
+  "languages": [
+    {
+      "id": "c",
+      "name": "GCC/Clang (C)",
+      "kind": "native",
+      "detect": {
+        "cmd": "gcc --version"
+      },
+      "compile": {
+        "cmd": "gcc ${SRC} -O2 -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "cpp",
+      "name": "G++/Clang++ (C++)",
+      "kind": "native",
+      "detect": {
+        "cmd": "g++ --version"
+      },
+      "compile": {
+        "cmd": "g++ ${SRC} -O2 -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "objc",
+      "name": "Objective-C",
+      "kind": "native",
+      "detect": {
+        "cmd": "clang --version"
+      },
+      "compile": {
+        "cmd": "clang ${SRC} -ObjC -O2 -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "fortran",
+      "name": "GFortran",
+      "kind": "native",
+      "detect": {
+        "cmd": "gfortran --version"
+      },
+      "compile": {
+        "cmd": "gfortran ${SRC} -O2 -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "ada",
+      "name": "GNAT Ada",
+      "kind": "native",
+      "detect": {
+        "cmd": "gnat --version"
+      },
+      "compile": {
+        "cmd": "gnatmake ${MAIN} -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "d-ldc",
+      "name": "D (LDC)",
+      "kind": "native",
+      "detect": {
+        "cmd": "ldc2 --version"
+      },
+      "compile": {
+        "cmd": "ldc2 -O3 ${MAIN} -of=${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "kind": "native",
+      "detect": {
+        "cmd": "go version"
+      },
+      "compile": {
+        "cmd": "go build -o ${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "rust",
+      "name": "Rust (rustc)",
+      "kind": "native",
+      "detect": {
+        "cmd": "rustc --version"
+      },
+      "compile": {
+        "cmd": "rustc ${MAIN} -O -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "swift",
+      "name": "Swift",
+      "kind": "native",
+      "detect": {
+        "cmd": "swiftc --version"
+      },
+      "compile": {
+        "cmd": "swiftc ${MAIN} -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "zig",
+      "name": "Zig",
+      "kind": "native",
+      "detect": {
+        "cmd": "zig version"
+      },
+      "compile": {
+        "cmd": "zig build-exe ${MAIN} -O ReleaseSafe -femit-bin=${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "ocaml",
+      "name": "OCaml (ocamlopt)",
+      "kind": "native",
+      "detect": {
+        "cmd": "ocamlopt -vnum"
+      },
+      "compile": {
+        "cmd": "ocamlopt -O3 -o ${OUT} ${SRC}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "ghc",
+      "name": "Haskell (GHC)",
+      "kind": "native",
+      "detect": {
+        "cmd": "ghc --version"
+      },
+      "compile": {
+        "cmd": "ghc -O2 ${MAIN} -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "fpc",
+      "name": "Free Pascal",
+      "kind": "native",
+      "detect": {
+        "cmd": "fpc -iV"
+      },
+      "compile": {
+        "cmd": "fpc ${MAIN} -O2 -o${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "csharp",
+      "name": ".NET C#",
+      "kind": "native",
+      "detect": {
+        "cmd": "dotnet --version"
+      },
+      "compile": {
+        "cmd": "dotnet build -c Release"
+      },
+      "run": {
+        "cmd": "dotnet run --no-build"
+      }
+    },
+    {
+      "id": "java",
+      "name": "Java (JDK)",
+      "kind": "native",
+      "detect": {
+        "cmd": "javac -version"
+      },
+      "compile": {
+        "cmd": "javac -d out ${MAIN}"
+      },
+      "run": {
+        "cmd": "java -cp out Main"
+      }
+    },
+    {
+      "id": "scala",
+      "name": "Scala (scalac)",
+      "kind": "native",
+      "detect": {
+        "cmd": "scalac -version"
+      },
+      "compile": {
+        "cmd": "scalac -d out ${MAIN}"
+      },
+      "run": {
+        "cmd": "scala -cp out Main"
+      }
+    },
+    {
+      "id": "kotlin",
+      "name": "Kotlin (JVM)",
+      "kind": "native",
+      "detect": {
+        "cmd": "kotlinc -version"
+      },
+      "compile": {
+        "cmd": "kotlinc ${MAIN} -include-runtime -d app.jar"
+      },
+      "run": {
+        "cmd": "java -jar app.jar"
+      }
+    },
+    {
+      "id": "scala3",
+      "name": "Scala 3",
+      "kind": "native",
+      "detect": {
+        "cmd": "scala3-compiler -version"
+      },
+      "compile": {
+        "cmd": "scalac -d out ${MAIN}"
+      },
+      "run": {
+        "cmd": "scala -cp out Main"
+      }
+    },
+    {
+      "id": "groovy",
+      "name": "Groovy",
+      "kind": "native",
+      "detect": {
+        "cmd": "groovy -version"
+      },
+      "compile": {
+        "cmd": "groovyc -d out ${MAIN}"
+      },
+      "run": {
+        "cmd": "groovy -cp out Main"
+      }
+    },
+    {
+      "id": "clojure",
+      "name": "Clojure",
+      "kind": "native",
+      "detect": {
+        "cmd": "clj -Sdescribe"
+      },
+      "compile": {
+        "cmd": "clj -M -e \"(compile 'main)\""
+      },
+      "run": {
+        "cmd": "clj -M -m main"
+      }
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "kind": "native",
+      "detect": {
+        "cmd": "python --version"
+      },
+      "compile": {
+        "cmd": "python ${MAIN}"
+      },
+      "run": {
+        "cmd": "python ${MAIN}"
+      }
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "kind": "native",
+      "detect": {
+        "cmd": "node --version"
+      },
+      "compile": {
+        "cmd": "node ${MAIN}"
+      },
+      "run": {
+        "cmd": "node ${MAIN}"
+      }
+    },
+    {
+      "id": "tsc",
+      "name": "TypeScript",
+      "kind": "native",
+      "detect": {
+        "cmd": "tsc -v"
+      },
+      "compile": {
+        "cmd": "tsc && node dist/main.js"
+      },
+      "run": {
+        "cmd": "node dist/main.js"
+      }
+    },
+    {
+      "id": "php",
+      "name": "PHP",
+      "kind": "native",
+      "detect": {
+        "cmd": "php -v"
+      },
+      "compile": {
+        "cmd": "php -l ${MAIN}"
+      },
+      "run": {
+        "cmd": "php ${MAIN}"
+      }
+    },
+    {
+      "id": "ruby",
+      "name": "Ruby",
+      "kind": "native",
+      "detect": {
+        "cmd": "ruby -v"
+      },
+      "compile": {
+        "cmd": "ruby -c ${MAIN}"
+      },
+      "run": {
+        "cmd": "ruby ${MAIN}"
+      }
+    },
+    {
+      "id": "lua",
+      "name": "Lua",
+      "kind": "native",
+      "detect": {
+        "cmd": "lua -v"
+      },
+      "compile": {
+        "cmd": "lua -l ${MAIN}"
+      },
+      "run": {
+        "cmd": "lua ${MAIN}"
+      }
+    },
+    {
+      "id": "perl",
+      "name": "Perl",
+      "kind": "native",
+      "detect": {
+        "cmd": "perl -v"
+      },
+      "compile": {
+        "cmd": "perl -c ${MAIN}"
+      },
+      "run": {
+        "cmd": "perl ${MAIN}"
+      }
+    },
+    {
+      "id": "r",
+      "name": "R",
+      "kind": "native",
+      "detect": {
+        "cmd": "R --version"
+      },
+      "compile": {
+        "cmd": "Rscript ${MAIN}"
+      },
+      "run": {
+        "cmd": "Rscript ${MAIN}"
+      }
+    },
+    {
+      "id": "elixir",
+      "name": "Elixir",
+      "kind": "native",
+      "detect": {
+        "cmd": "elixir -v"
+      },
+      "compile": {
+        "cmd": "elixirc ${MAIN}"
+      },
+      "run": {
+        "cmd": "elixir ${MAIN}"
+      }
+    },
+    {
+      "id": "erlang",
+      "name": "Erlang/OTP",
+      "kind": "native",
+      "detect": {
+        "cmd": "erl -eval 'erlang:display(ok), halt().' -noshell"
+      },
+      "compile": {
+        "cmd": "erlc -o out ${MAIN}"
+      },
+      "run": {
+        "cmd": "erl -pa out -noshell -s main start -s init stop"
+      }
+    },
+    {
+      "id": "bash",
+      "name": "Bash",
+      "kind": "native",
+      "detect": {
+        "cmd": "bash --version"
+      },
+      "compile": {
+        "cmd": "bash -n ${MAIN}"
+      },
+      "run": {
+        "cmd": "bash ${MAIN}"
+      }
+    },
+    {
+      "id": "powershell",
+      "name": "PowerShell",
+      "kind": "native",
+      "detect": {
+        "cmd": "pwsh -v"
+      },
+      "compile": {
+        "cmd": "pwsh -NoProfile -Command \"Get-Content ${MAIN} > $null\""
+      },
+      "run": {
+        "cmd": "pwsh -NoProfile -File ${MAIN}"
+      }
+    },
+    {
+      "id": "nim",
+      "name": "Nim (C backend)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "nim --version"
+      },
+      "compile": {
+        "cmd": "nim c -d:release --cc:gcc -o:${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "vlang",
+      "name": "V language (C backend)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "v version"
+      },
+      "compile": {
+        "cmd": "v -prod -o ${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "ats2",
+      "name": "ATS/PostiATS",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "patscc -v"
+      },
+      "compile": {
+        "cmd": "patscc ${MAIN} -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "gambit",
+      "name": "Gambit Scheme",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "gsc -v"
+      },
+      "compile": {
+        "cmd": "gsc -o ${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "chicken",
+      "name": "CHICKEN Scheme",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "csc -version"
+      },
+      "compile": {
+        "cmd": "csc -O3 ${MAIN} -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "vala",
+      "name": "Vala",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "valac --version"
+      },
+      "compile": {
+        "cmd": "valac ${MAIN} -o ${OUT} ${PKG}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "haxe-cpp",
+      "name": "Haxe (C++ target)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "haxe -version"
+      },
+      "compile": {
+        "cmd": "haxe -cpp build && ${CXX:-g++} build/Main.cpp -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "mercury",
+      "name": "Mercury",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "mmc --version"
+      },
+      "compile": {
+        "cmd": "mmc --make ${MAIN%.*} && mv ${MAIN%.*} ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "mlton",
+      "name": "MLton (SML)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "mlton -version"
+      },
+      "compile": {
+        "cmd": "mlton -output ${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "bigloo",
+      "name": "Bigloo Scheme",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "bigloo -version"
+      },
+      "compile": {
+        "cmd": "bigloo -O3 -o ${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "html",
+      "name": "HTML",
+      "kind": "native",
+      "detect": {
+        "cmd": "echo HTML"
+      },
+      "compile": {
+        "cmd": "echo build-html"
+      },
+      "run": {
+        "cmd": "echo open index.html"
+      }
+    },
+    {
+      "id": "css",
+      "name": "CSS",
+      "kind": "native",
+      "detect": {
+        "cmd": "echo CSS"
+      },
+      "compile": {
+        "cmd": "echo build-css"
+      },
+      "run": {
+        "cmd": "echo open index.html"
+      }
+    },
+    {
+      "id": "javascript-web",
+      "name": "JavaScript (Web)",
+      "kind": "native",
+      "detect": {
+        "cmd": "node --version"
+      },
+      "compile": {
+        "cmd": "echo build-web"
+      },
+      "run": {
+        "cmd": "echo open index.html"
+      }
+    },
+    {
+      "id": "wasm-wasi",
+      "name": "WebAssembly (WASI)",
+      "kind": "native",
+      "detect": {
+        "cmd": "wasm-ld --version || echo 'wasi toolchain?'"
+      },
+      "compile": {
+        "cmd": "clang --target=wasm32-wasi -O2 ${MAIN} -o ${OUT}.wasm"
+      },
+      "run": {
+        "cmd": "wasmtime ${OUT}.wasm"
+      }
+    },
+    {
+      "id": "wasm-wat",
+      "name": "WebAssembly (WAT)",
+      "kind": "native",
+      "detect": {
+        "cmd": "wat2wasm --version"
+      },
+      "compile": {
+        "cmd": "wat2wasm ${MAIN} -o ${OUT}.wasm"
+      },
+      "run": {
+        "cmd": "wasmtime ${OUT}.wasm"
+      }
+    },
+    {
+      "id": "sqlite",
+      "name": "SQLite SQL",
+      "kind": "native",
+      "detect": {
+        "cmd": "sqlite3 -version"
+      },
+      "compile": {
+        "cmd": "sqlite3 :memory: < ${MAIN}"
+      },
+      "run": {
+        "cmd": "sqlite3 :memory: < ${MAIN}"
+      }
+    }
+  ],
+  "android": {
+    "sdk.detect": "adb --version && sdkmanager --version",
+    "ndk.detect": "ndk-build --version || cmake --version",
+    "sdk.build": "gradle assembleDebug",
+    "ndk.build": "cmake -S . -B build -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a && cmake --build build -j"
+  },
+  "web": {
+    "serve": "python -m http.server 8000"
+  },
+  "cpp": {
+    "wt.detect": "wthttpd --help || echo 'Install Wt dev packages'",
+    "wt.cmake": "cmake -S . -B build && cmake --build build -j"
+  }
+}

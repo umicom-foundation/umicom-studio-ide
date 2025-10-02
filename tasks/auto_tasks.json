@@ -1,0 +1,15 @@
+{
+  "version": "umicom-tasks-v1",
+  "notes": "IDE resolves ${SRC}, ${MAIN}, ${OUT} by active project; ${PKG} optional package flags.",
+  "defaults": {
+    "outName": "app"
+  },
+  "bindings": {
+    "build": {
+      "cmdTemplate": "${COMPILER.compile.cmd}"
+    },
+    "run": {
+      "cmdTemplate": "${COMPILER.run.cmd}"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "ts-hello-umicom",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": { "build": "tsc", "start": "node dist/main.js" },
+  "devDependencies": { "typescript": "^5.0.0" }
+}

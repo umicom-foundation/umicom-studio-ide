@@ -1,0 +1,1 @@
+print('Hello from Lua in Umicom Studio IDE!')\n

@@ -1,0 +1,5 @@
+# Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
+# Append to your main CMakeLists.txt:
+#   src/plugins/transpile/transpile.c
+#   src/plugins/transpile/i18n_translate.c
+# Also add 'include/' to the include paths.
