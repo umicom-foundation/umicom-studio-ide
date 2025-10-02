@@ -1,0 +1,3 @@
+#ifndef UMICOM_RECENT_FILES_H
+#define UMICOM_RECENT_FILES_H
+#endif

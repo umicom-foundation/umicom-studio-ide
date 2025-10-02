@@ -1,0 +1,3 @@
+#ifndef UMICOM_BUILD_QUEUE_H
+#define UMICOM_BUILD_QUEUE_H
+#endif

@@ -1,3 +1,10 @@
+umi_inc = include_directories('../include')
+gtk4 = dependency('gtk4')
+glib = dependency('glib-2.0')
+json = dependency('json-glib-1.0')
+curl = dependency('libcurl')
+srcs = files('gui/llm_lab.c','llm/llm_core.c','llm/llm_http.c')
+executable('ustudio', srcs, include_directories: umi_inc, dependencies: [gtk4, glib, json, curl])
 
-# Part 25: compile profiler/crash_guard/rg_runner
-srcs += ['profiler.c','crash_guard.c','rg_runner.c']
+test_exe = executable('t_openai_sse', '../tests/test_llm_openai_sse.c', 'llm/llm_core.c', include_directories: umi_inc, dependencies: [glib, json])
+test('openai_sse', test_exe)

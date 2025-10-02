@@ -1,28 +1,38 @@
-
-cmake_minimum_required(VERSION 3.20)
-project(umicom-studio-ide C)
-
+cmake_minimum_required(VERSION 3.22)
+project(umicom-studio LANGUAGES C VERSION 0.1.0)
 set(CMAKE_C_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(PkgConfig REQUIRED)
-find_package(CURL REQUIRED)
 pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
+pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
+pkg_check_modules(JSONGLIB REQUIRED IMPORTED_TARGET json-glib-1.0)
+pkg_check_modules(CURL REQUIRED IMPORTED_TARGET libcurl)
 
-# GResource (fallback: use glib-compile-resources at build time)
-add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ustudio-resources.c
-  COMMAND glib-compile-resources --generate-source --target=${CMAKE_CURRENT_BINARY_DIR}/ustudio-resources.c ${CMAKE_CURRENT_SOURCE_DIR}/data/ustudio.gresource.xml --sourcedir=${CMAKE_CURRENT_SOURCE_DIR}/data
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data/ustudio.gresource.xml
-)
+file(GLOB_RECURSE SRC_CORE   CONFIGURE_DEPENDS src/core/*.c)
+file(GLOB_RECURSE SRC_GUI    CONFIGURE_DEPENDS src/gui/*.c)
+file(GLOB_RECURSE SRC_EDITOR CONFIGURE_DEPENDS src/editor/*.c)
+file(GLOB_RECURSE SRC_BUILD  CONFIGURE_DEPENDS src/build/*.c)
+file(GLOB_RECURSE SRC_SEARCH CONFIGURE_DEPENDS src/search/*.c)
+file(GLOB_RECURSE SRC_LLM    CONFIGURE_DEPENDS src/llm/*.c)
 
 add_executable(ustudio
+  ${SRC_CORE} ${SRC_GUI} ${SRC_EDITOR} ${SRC_BUILD} ${SRC_SEARCH} ${SRC_LLM}
   src/main.c
-  src/app.c
-  src/window.c
-  src/studio_codestral_fim.c
-  ${CMAKE_CURRENT_BINARY_DIR}/ustudio-resources.c
+)
+target_include_directories(ustudio PRIVATE include src)
+target_link_libraries(ustudio
+  PkgConfig::GTK4 PkgConfig::GLIB PkgConfig::JSONGLIB PkgConfig::CURL
 )
 
-target_include_directories(ustudio PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(ustudio PRIVATE PkgConfig::GTK4)
-target_link_libraries(studio_fim_demo PRIVATE CURL::libcurl)
+enable_testing()
+add_executable(test_llm_body tests/test_llm_body.c)
+target_include_directories(test_llm_body PRIVATE include)
+add_test(NAME test_llm_body COMMAND test_llm_body)
+
+add_executable(test_llm_json tests/test_llm_json.c)
+target_link_libraries(test_llm_json PkgConfig::JSONGLIB)
+add_test(NAME test_llm_json COMMAND test_llm_json)
+
+install(TARGETS ustudio RUNTIME DESTINATION bin)
+install(DIRECTORY include/ DESTINATION include)
