@@ -1,2 +1,3 @@
 # Building
-We use Meson/Ninja. Run `meson setup build && meson compile -C build`.
+
+Use CMake + Ninja: `cmake --preset default && cmake --build --preset default -j`.
