@@ -1,0 +1,48 @@
+﻿{
+  "folders": [
+    { "path": "C:\\dev\\umicom-authorengine-ai" },
+    { "path": "C:\\dev\\umicom-studio-ide" },
+    { "path": "C:\\dev\\umicom-dev" },
+    { "path": "C:\\dev\\umicc" },
+    { "path": "C:\\dev\\umicom-language-uai" },
+    { "path": "C:\\dev\\Bits2Banking" },
+    { "path": "C:\\dev\\website" },
+    { "path": "C:\\dev\\umicom-social-engine" },
+    { "path": "C:\\dev\\umi-uai-extension" },
+    { "path": "C:\\dev\\umicom-voice" },
+    { "path": "C:\\dev\\umicom-exchange" },
+    { "path": "C:\\dev\\umicoin" },
+    { "path": "C:\\dev\\umicom-common" },
+    { "path": "C:\\dev\\umicom-bank" },
+    { "path": "C:\\dev\\umicom-fundme" },
+    { "path": "C:\\dev\\calypso-dev-examples" },
+    { "path": "C:\\dev\\umicom-llm" },
+    { "path": "C:\\dev\\umicom-c-webserver" },
+    { "path": "C:\\dev\\umicom-tms" },
+    { "path": "C:\\dev\\umicom-gpu-riscv-driver" },
+    { "path": "C:\\dev\\sammyhegab-personnel-website" },
+    { "path": "C:\\dev\\custommadeglass-website" },
+    { "path": "C:\\dev\\umicom-enhanced-c" },
+    { "path": "C:\\dev\\umicom-medical-patient-records" },
+    { "path": "C:\\dev\\umicom-weight-loss-tracker" },
+    { "path": "C:\\dev\\umicom-os" },
+    { "path": "C:\\dev\\umicom-framework" },
+    { "path": "C:\\dev\\umicom-office" }
+  ],
+  "settings": {
+    "files.eol": "\n",
+    "files.encoding": "utf8",
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "editor.rulers": [100],
+    "search.useIgnoreFiles": true,
+    "terminal.integrated.cwd": "C:\\dev",
+    "files.exclude": {
+      "**/.git": true,
+      "**/build": true,
+      "**/out": true,
+      "**/dist": true,
+      "**/node_modules": true
+    }
+  }
+}
