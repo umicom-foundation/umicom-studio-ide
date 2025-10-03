@@ -1,0 +1,1 @@
+<template><main><h1>Home</h1><button @click="c.value++">Count: {{ c.value }}</button></main></template><script setup lang="ts">import { useCounter } from '../stores/counter'; const c=useCounter();</script>

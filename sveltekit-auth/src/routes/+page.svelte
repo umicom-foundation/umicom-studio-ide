@@ -1,0 +1,1 @@
+<script>let token=''; function login(){ if(token) alert('logged in'); }</script><main style='font-family: system-ui, sans-serif; margin:2rem;'><h1>SvelteKit Auth Stub</h1><input bind:value={token} placeholder='token'/><button on:click={login}>Login</button></main>

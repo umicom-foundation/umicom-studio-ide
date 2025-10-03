@@ -1,0 +1,27 @@
+<!-- Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
+Purpose: Entry HTML document for vanilla web demo.
+ -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Umicom — Vanilla Web</title>
+    <!-- The stylesheet link below connects CSS to our HTML so the browser can apply styles. -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- A semantic header area with a title for accessibility and clarity. -->
+    <header><h1>Umicom Studio IDE — Vanilla Web</h1></header>
+
+    <!-- The main area holds our demo content. -->
+    <main>
+      <p id="msg">The script will replace this text.</p>
+      <!-- A button wired from app.js to demonstrate interactivity. -->
+      <button id="btn">Click me</button>
+    </main>
+
+    <!-- Load our JS last so DOM elements exist before the code runs. -->
+    <script src="app.js"></script>
+  </body>
+</html>

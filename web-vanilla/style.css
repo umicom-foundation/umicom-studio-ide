@@ -1,0 +1,6 @@
+/* Basic styling to make the demo readable. */
+:root { --brand: #2a5; }
+body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.45; }
+h1 { color: var(--brand); }
+button { padding: .5rem 1rem; border: 1px solid #999; border-radius: .4rem; cursor: pointer; }
+button:hover { background: #f4f4f4; }
