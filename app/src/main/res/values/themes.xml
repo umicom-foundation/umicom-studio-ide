@@ -1,0 +1,6 @@
+<!-- Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.Material3.DayNight.NoActionBar" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+    </style>
+</resources>

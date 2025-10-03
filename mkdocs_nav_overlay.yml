@@ -1,0 +1,30 @@
+<!-- Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT -->
+site_name: Umicom Studio IDE
+theme:
+  name: material
+  features:
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+nav:
+  - Home: index.md
+  - Guides:
+    - Getting Started: guides/getting-started.md
+    - Build & Run: guides/build-run.md
+  - Reference:
+    - Style Guide: reference/STYLE_GUIDE.md
+    - Language Tooling: reference/TopLanguages.md
+    - Templates:
+        - Android: reference/templates-android.md
+        - Web: reference/templates-web.md
+        - Wt C++: reference/templates-wt.md
+  - Project:
+    - Repository Layout: guides/repository-layout.md
+    - Contributing: ../docs/CONTRIBUTING.md
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences

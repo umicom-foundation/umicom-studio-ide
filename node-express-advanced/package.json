@@ -1,0 +1,5 @@
+{
+  "name":"umicom-express-adv","private":true,"version":"0.1.0","type":"module",
+  "scripts":{"start":"node src/index.js","dev":"node --watch src/index.js"},
+  "dependencies":{"express":"^4.18.2","cors":"^2.8.5","dotenv":"^16.4.0"}
+}

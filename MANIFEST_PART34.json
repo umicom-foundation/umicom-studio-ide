@@ -1,0 +1,10 @@
+{
+  "package": "umicom-studio-ide consolidated tooling",
+  "date": "2025-10-02",
+  "bundles_included": [
+    "umicom_studio_part33_top50_tooling.zip",
+    "umicom_studio_part33_translators_overlay.zip",
+    "umicom_android_studio_template.zip",
+    "umicom_kotlin_gradle_wrapper_bootstrap.zip"
+  ]
+}

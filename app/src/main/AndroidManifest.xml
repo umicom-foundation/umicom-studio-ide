@@ -1,0 +1,14 @@
+<!-- Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
+Purpose: Main manifest; flavors can override resources.
+ -->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.umicom.enterprise">
+  <application android:label="@string/app_name" android:theme="@style/Theme.Material3.DayNight.NoActionBar" android:name=".UmicomApp">
+    <activity android:name=".MainActivity" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

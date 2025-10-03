@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.22)
+project(wt_routing CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Wt REQUIRED COMPONENTS Wt WtHttp)
+add_executable(wt_routing main.cpp)
+target_link_libraries(wt_routing PRIVATE Wt::Wt Wt::WtHttp)
