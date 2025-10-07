@@ -39,6 +39,6 @@ bash ./scripts/validate_repo_layout.sh
 
 ## Notes
 
-- **Conflicts**: If `templates/web/react-vite` already exists and you also have `react-vite` at root, default strategy is to **skip** the move and report the conflict so you can diff/merge.
+- **Conflicts**: If `templates/web/templates/web/react-vite` already exists and you also have `templates/web/react-vite` at root, default strategy is to **skip** the move and report the conflict so you can diff/merge.
 - **Safe**: No file contents are edited. Only `git mv` operations + directory creation.
 - **Undo**: Use `git restore --staged -W .` or `git reset --hard HEAD` if you want to revert before committing.

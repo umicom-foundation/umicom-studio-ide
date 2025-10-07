@@ -41,3 +41,32 @@
 *.pdb -text
 *.mp4 -text
 *.mov -text
+* text=auto
+
+# Windows scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Code & web assets as LF
+*.c     text eol=lf
+*.cc    text eol=lf
+*.cpp   text eol=lf
+*.h     text eol=lf
+*.hpp   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.svelte text eol=lf
+*.vue   text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.md    text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+*.scss  text eol=lf

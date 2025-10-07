@@ -3,15 +3,15 @@
 # Web Templates
 
 ## React + Vite (TS/Redux/Router)
-- Location: `templates/web/react-vite-ts` (pro) or `templates/web/react-vite`
+- Location: `templates/web/templates/web/templates/web/react-vite-ts` (pro) or `templates/web/templates/web/react-vite`
 - Run: `npm install && npm run dev`
 
 ## Vue + Vite (TS/Pinia/Router)
-- Location: `templates/web/vue-vite-ts` or `templates/web/vue-vite`
+- Location: `templates/web/templates/web/templates/web/vue-vite-ts` or `templates/web/templates/web/vue-vite`
 - Run: `npm install && npm run dev`
 
-## SvelteKit
-- Location: `templates/web/sveltekit`
+## templates/web/sveltekit
+- Location: `templates/web/templates/web/sveltekit`
 - Run: `npm install && npm run dev`
 
 ## Node / Express
