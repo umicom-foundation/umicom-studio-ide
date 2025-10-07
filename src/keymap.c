@@ -1,56 +1,35 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/keymap.c
- * PURPOSE: Simple keyboard shortcut installation (GTK4 EventControllerKey)
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ * PURPOSE: Centralized keybinding table + callbacks (implementation)
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-07 | MIT
  *---------------------------------------------------------------------------*/
 #include "keymap.h"
 
-typedef struct {
-  UmiKeymapCallbacks km;
-} KeymapCtx;
-
-static gboolean on_key_pressed(GtkEventControllerKey *c, guint keyval, guint keycode,
-                               GdkModifierType state, gpointer user){
-  (void)keycode;
-  KeymapCtx *ctx = (KeymapCtx*)user;
-  if(!ctx) return FALSE;
-  gboolean ctrl  = (state & GDK_CONTROL_MASK) != 0;
-  gboolean shift = (state & GDK_SHIFT_MASK) != 0;
-
-  if(ctrl && shift && (keyval == GDK_KEY_P)){
-    if(ctx->km.palette) ctx->km.palette(ctx->km.user);
-    return TRUE;
+static void bind_key(GtkWindow *win, const char *accel, void (*fn)(gpointer), gpointer user)
+{
+  if (!win || !accel || !*accel || !fn) return;
+  GtkShortcutController *ctl = GTK_SHORTCUT_CONTROLLER(gtk_shortcut_controller_new());
+  gtk_shortcut_controller_set_scope(ctl, GTK_SHORTCUT_SCOPE_GLOBAL);
+  GdkKeyval key = 0;
+  GdkModifierType mods = 0;
+  if (gtk_accelerator_parse(accel, &key, &mods))
+  {
+    GtkShortcut *sc = gtk_shortcut_new(
+        gtk_shortcut_trigger_new_for_gdk_key(key, mods),
+        gtk_callback_action_new((GtkShortcutFunc)fn, user, NULL));
+    gtk_shortcut_controller_add_shortcut(ctl, sc);
+    gtk_widget_add_controller(GTK_WIDGET(win), GTK_EVENT_CONTROLLER(ctl));
   }
-  if(ctrl && !shift && (keyval == GDK_KEY_s || keyval == GDK_KEY_S)){
-    if(ctx->km.save) ctx->km.save(ctx->km.user);
-    return TRUE;
-  }
-  if(ctrl && shift && (keyval == GDK_KEY_S)){
-    if(ctx->km.save_as) ctx->km.save_as(ctx->km.user);
-    return TRUE;
-  }
-  if(!ctrl && !shift && (keyval == GDK_KEY_F5)){
-    if(ctx->km.run) ctx->km.run(ctx->km.user);
-    return TRUE;
-  }
-  if(shift && (keyval == GDK_KEY_F5)){
-    if(ctx->km.stop) ctx->km.stop(ctx->km.user);
-    return TRUE;
-  }
-  if(ctrl && !shift && (keyval == GDK_KEY_f || keyval == GDK_KEY_F)){
-    if(ctx->km.focus_search) ctx->km.focus_search(ctx->km.user);
-    return TRUE;
-  }
-  return FALSE;
 }
 
-void umi_keymap_install(GtkWindow *win, const UmiKeymapCallbacks *km){
-  if(!win || !km) return;
-  KeymapCtx *ctx = g_new0(KeymapCtx,1);
-  ctx->km = *km;
-  GtkEventController *ctl = gtk_event_controller_key_new();
-  g_signal_connect(ctl, "key-pressed", G_CALLBACK(on_key_pressed), ctx);
-  gtk_widget_add_controller(GTK_WIDGET(win), ctl);
-  /* Note: ctx is intentionally leaked for app lifetime simplicity. */
+void umi_keymap_install(GtkWindow *win, const UmiKeymapCallbacks *km)
+{
+  if (!win || !km) return;
+  bind_key(win, "<Control>s", km->save,        km->user);
+  bind_key(win, "<Control><Shift>s", km->save_as, km->user);
+  bind_key(win, "F1", km->palette,   km->user);
+  bind_key(win, "F5", km->run,       km->user);
+  bind_key(win, "<Shift>F5", km->stop, km->user);
+  bind_key(win, "<Control>f", km->focus_search, km->user);
 }

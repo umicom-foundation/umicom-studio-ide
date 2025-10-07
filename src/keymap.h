@@ -1,35 +1,26 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/keymap.h
- * PURPOSE: Simple keyboard shortcut installation (GTK4 EventControllerKey)
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ * PURPOSE: Centralized keybinding table + callbacks
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-07 | MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMICOM_KEYMAP_H
 #define UMICOM_KEYMAP_H
 
 #include <gtk/gtk.h>
 
-typedef void (*UmiActionFn)(gpointer user);
-
-typedef struct {
+/* Callbacks used by the keymap. Keep names stable to avoid churn. */
+typedef struct UmiKeymapCallbacks {
   gpointer user;
-  UmiActionFn palette;
-  UmiActionFn save;
-  UmiActionFn save_as;
-  UmiActionFn run;
-  UmiActionFn stop;
-  UmiActionFn focus_search;
+  void (*palette)(gpointer user);
+  void (*save)(gpointer user);
+  void (*save_as)(gpointer user);
+  void (*run)(gpointer user);
+  void (*stop)(gpointer user);
+  void (*focus_search)(gpointer user);
 } UmiKeymapCallbacks;
 
-/* Install a minimal keymap on a window using GtkEventControllerKey.
-   Default bindings (Windows/Linux style):
-     Ctrl+Shift+P : palette
-     Ctrl+S       : save
-     Ctrl+Shift+S : save_as
-     F5           : run
-     Shift+F5     : stop
-     Ctrl+F       : focus_search
-*/
+/* Install a GtkShortcutController on the window and wire to callbacks. */
 void umi_keymap_install(GtkWindow *win, const UmiKeymapCallbacks *km);
 
 #endif /* UMICOM_KEYMAP_H */

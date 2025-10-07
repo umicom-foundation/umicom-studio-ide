@@ -1,5 +1,5 @@
 # ninja log v7
-13	165	7815741211951765	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
+13	164	7815747564747035	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
 656	1020	7815402674992256	CMakeFiles/ustudio.dir/src/llm/llm_privacy.c.obj	a0bacfea786e6919
 137	1561	7815402669808492	CMakeFiles/ustudio.dir/src/core/json_store.c.obj	7da3b27260d18495
 160	1636	7815402670034340	CMakeFiles/ustudio.dir/src/core/recent_files.c.obj	e637855b960a9705
@@ -19,15 +19,6 @@
 144	706	7815675355945081	CMakeFiles/ustudio.dir/src/build/build_system.c.obj	ff50b35d8c1e45
 147	599	7815684417285371	CMakeFiles/ustudio.dir/src/llm/llm_core.c.obj	666b9921d51cdaa1
 600	790	7815684421824703	CMakeFiles/ustudio.dir/src/main.c.obj	46d13c9d948c7973
-180	298	7815741213625288	CMakeFiles/ustudio.dir/src/ARCH_P17.c.obj	24ef880899e03acd
-300	419	7815741214812297	CMakeFiles/ustudio.dir/src/BUILD_NOTES.c.obj	fb65c983ac9e2c79
-420	497	7815741216020351	CMakeFiles/ustudio.dir/src/DEV_NOTES.c.obj	571755dd04857110
-497	568	7815741216785954	CMakeFiles/ustudio.dir/src/LICENSE.c.obj	98b727be77b15298
-569	2284	7815741217506318	CMakeFiles/ustudio.dir/src/about.c.obj	45b269c457e5b850
-2286	4105	7815741234683535	CMakeFiles/ustudio.dir/src/actions.c.obj	b4d77e965c264292
-4106	5827	7815741252871329	CMakeFiles/ustudio.dir/src/ansi_color.c.obj	25f58ead10797464
-166	2125	7815734813693914	CMakeFiles/ustudio.dir/src/app.c.obj	d3d44908d5e0e537
-13	164	7815747564747035	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
 175	308	7815747566378870	CMakeFiles/ustudio.dir/src/ARCH_P17.c.obj	3324f7d42ca4f073
 309	427	7815747567707390	CMakeFiles/ustudio.dir/src/BUILD_NOTES.c.obj	360ad0dd44402f97
 429	537	7815747568907891	CMakeFiles/ustudio.dir/src/DEV_NOTES.c.obj	b5ccfec1f6196ece
@@ -35,3 +26,11 @@
 642	2505	7815747571039570	CMakeFiles/ustudio.dir/src/about.c.obj	131e03d7857922c7
 2507	4300	7815747589693884	CMakeFiles/ustudio.dir/src/actions.c.obj	2f41f5a04208fc6f
 4301	6305	7815747607636265	CMakeFiles/ustudio.dir/src/ansi_color.c.obj	332fe3f2e3fe66c5
+166	2125	7815734813693914	CMakeFiles/ustudio.dir/src/app.c.obj	d3d44908d5e0e537
+15	119	7815754385691314	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
+128	861	7815754386830649	CMakeFiles/ustudio.dir/src/core/json_store.c.obj	df831b5e13c934f
+863	1736	7815754394177802	CMakeFiles/ustudio.dir/src/core/recent_files.c.obj	9012c6f063e06571
+1737	3759	7815754402920739	CMakeFiles/ustudio.dir/src/gui/app.c.obj	a9484444cd3f3e0d
+3760	5627	7815754423146250	CMakeFiles/ustudio.dir/src/gui/app_menu_llm.c.obj	5ae679ecf0eabf83
+5628	7813	7815754441824286	CMakeFiles/ustudio.dir/src/gui/llm_lab.c.obj	4d8fba199eb6c48d
+7815	9958	7815754463703292	CMakeFiles/ustudio.dir/src/gui/prefs.c.obj	9b6e1f1aa32d2eab
