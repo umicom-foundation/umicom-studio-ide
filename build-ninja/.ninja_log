@@ -1,5 +1,5 @@
 # ninja log v7
-13	143	7815784486876581	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
+14	142	7815806187487461	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
 12922	13165	7815784615974529	CMakeFiles/ustudio.dir/src/llm/llm_privacy.c.obj	516a80f52d8080e8
 128	861	7815754386830649	CMakeFiles/ustudio.dir/src/core/json_store.c.obj	df831b5e13c934f
 863	1736	7815754394177802	CMakeFiles/ustudio.dir/src/core/recent_files.c.obj	9012c6f063e06571
@@ -29,10 +29,11 @@
 19473	21304	7815784681475942	CMakeFiles/ustudio.dir/src/app.c.obj	95859987493705f4
 21306	23107	7815784699808360	CMakeFiles/ustudio.dir/src/app_actions.c.obj	e67a11f3eb784e54
 23109	24925	7815784717833300	CMakeFiles/ustudio.dir/src/app_menu_llm.c.obj	d78c04039bd9dfb1
-14	142	7815806187487461	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
 158	591	7815806188931906	CMakeFiles/ustudio.dir/src/core/umi_log.c.obj	5e542a9da689444f
 592	2354	7815806193265171	CMakeFiles/ustudio.dir/src/argv.c.obj	613670cede7ef6e3
 2356	4252	7815806210904415	CMakeFiles/ustudio.dir/src/build_queue.c.obj	272b15f1dc5d19c9
 4254	6144	7815806229887450	CMakeFiles/ustudio.dir/src/build_runner.c.obj	441f5625279776d5
 6145	6449	7815806248804398	CMakeFiles/ustudio.dir/src/build_system.c.obj	eef8e6bb6bbd36aa
 6449	8254	7815806251839877	CMakeFiles/ustudio.dir/src/build_tasks.c.obj	80b7739465c8035b
+14	158	7815809764962216	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
+168	469	7815809766496652	CMakeFiles/ustudio.dir/src/core/umi_log.c.obj	5e542a9da689444f

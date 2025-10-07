@@ -1,41 +1,37 @@
 /*
- * umi_log.c - Minimal logging shim for Umicom Studio (implementation)
- *
- * See umi_log.h for rationale and usage.
+ * umi_log.c — implementation for tiny logging shim
  */
 #include "umi_log.h"
+#include <glib.h>
+#include <stdarg.h>
+#include <stdio.h>
 
-static int s_min_level = UMI_LOG_INFO; /* default threshold */
+static volatile gint s_level = UMI_LOG_INFO; /* default INFO */
 
 void umi_log_set_level(int level) {
   if (level < UMI_LOG_DEBUG) level = UMI_LOG_DEBUG;
   if (level > UMI_LOG_ERROR) level = UMI_LOG_ERROR;
-  s_min_level = level;
-
-  /* Make GLib print debug messages too when we are in DEBUG mode. */
-  if (s_min_level <= UMI_LOG_DEBUG) {
-    g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-  }
+  g_atomic_int_set(&s_level, level);
 }
 
-static GLogLevelFlags to_glib_level(int level) {
-  switch (level) {
+int umi_log_get_level(void) {
+  return g_atomic_int_get(&s_level);
+}
+
+static GLogLevelFlags to_glib(int lvl){
+  switch (lvl){
     case UMI_LOG_DEBUG: return G_LOG_LEVEL_DEBUG;
     case UMI_LOG_INFO:  return G_LOG_LEVEL_MESSAGE;
     case UMI_LOG_WARN:  return G_LOG_LEVEL_WARNING;
-    case UMI_LOG_ERROR: return G_LOG_LEVEL_CRITICAL;
-    default:            return G_LOG_LEVEL_MESSAGE;
+    default:            return G_LOG_LEVEL_CRITICAL;
   }
 }
 
-void umi_logv(int level, const char *fmt, va_list ap) {
-  if (level < s_min_level) return;
-  g_logv("umicom", to_glib_level(level), fmt, ap);
-}
-
-void umi_log(int level, const char *fmt, ...) {
+void umi_log_log(int level, const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  umi_logv(level, fmt, ap);
+  gchar *msg = g_strdup_vprintf(fmt, ap);
   va_end(ap);
+  g_log("umicom", to_glib(level), "%s", msg);
+  g_free(msg);
 }
