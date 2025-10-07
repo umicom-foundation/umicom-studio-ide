@@ -13,6 +13,12 @@
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\core\\umi_log.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\core\\umi_log.c",
+  "file": "C:/Dev/umicom-studio-ide/src/core/umi_log.c",
+  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/core/umi_log.c.obj"
+},
+{
+  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\gui\\app.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\gui\\app.c",
   "file": "C:/Dev/umicom-studio-ide/src/gui/app.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/gui/app.c.obj"
