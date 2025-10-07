@@ -1,4 +1,4 @@
-/* LLM Lab (GTK) — Token Inspector (entropy + top-k) */
+﻿/* LLM Lab (GTK) — Token Inspector (entropy + top-k) */
 #include "umicom/llm_lab.h"
 #include "umicom/llm.h"
 #include <glib/gi18n.h>
@@ -45,7 +45,7 @@ static void on_stream_token_ex(const gchar *frag, const UmiLlmTokenAlt *alts, gu
     }
     show_entropy(lab->alts_buf, alts, alts_n);
   }
-  while(gtk_events_pending()) gtk_main_iteration();
+  while (g_main_context_pending(NULL)) g_main_context_iteration(NULL, FALSE);
 }
 
 static void on_send(GtkButton *btn, gpointer user_data){

@@ -1,0 +1,20 @@
+# ninja log v7
+11	137	7815669577752854	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
+656	1020	7815402674992256	CMakeFiles/ustudio.dir/src/llm/llm_privacy.c.obj	a0bacfea786e6919
+137	1561	7815402669808492	CMakeFiles/ustudio.dir/src/core/json_store.c.obj	7da3b27260d18495
+160	1636	7815402670034340	CMakeFiles/ustudio.dir/src/core/recent_files.c.obj	e637855b960a9705
+929	2337	7815402677734993	CMakeFiles/test_llm_json.dir/tests/test_llm_json.c.obj	773beddef771d336
+231	3555	7815402670752507	CMakeFiles/ustudio.dir/src/gui/app_menu_llm.c.obj	f1f2a82c7628584a
+305	3720	7815402671496965	CMakeFiles/ustudio.dir/src/gui/prefs.c.obj	6081bdb343b57356
+335	3730	7815402671791070	CMakeFiles/ustudio.dir/src/editor/editor.c.obj	41ec4ef1923f4dd7
+368	3757	7815402672118201	CMakeFiles/ustudio.dir/src/build/build_queue.c.obj	7801c7d39c539298
+450	3822	7815402672940444	CMakeFiles/ustudio.dir/src/build/diagnostic_parsers.c.obj	2a41a0cabbebe97e
+498	3839	7815402673424244	CMakeFiles/ustudio.dir/src/search/search_panel.c.obj	25369bd09b4b7120
+604	4390	7815402674480996	CMakeFiles/ustudio.dir/src/llm/llm_http.c.obj	bddf4f54e77f9029
+298	672	7815426612474582	CMakeFiles/test_llm_body.dir/tests/test_llm_body.c.obj	9106f23b496e3c05
+336	699	7815426612860467	test_llm_json.exe	bbcf440a43fbbe20
+231	808	7815489701748401	CMakeFiles/ustudio.dir/src/llm/providers/llm_zai.c.obj	58c651ac6b064e95
+161	3008	7815489701051317	CMakeFiles/ustudio.dir/src/gui/llm_lab.c.obj	c41fa52121240b6c
+158	3037	7815659127267623	CMakeFiles/ustudio.dir/src/gui/app.c.obj	50c4051bd5406803
+10	128	7815675354609029	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
+144	706	7815675355945081	CMakeFiles/ustudio.dir/src/build/build_system.c.obj	ff50b35d8c1e45

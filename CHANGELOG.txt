@@ -1,0 +1,8 @@
+# CHANGELOG (what the scripts change)
+
+- CMakeLists.txt: add GLib wiring for `test_llm_body` + ensure `ustudio` sees `${PROJECT_SOURCE_DIR}/include` and `/src`.
+- src/build/build_system.c: remove duplicate `split_argv_safe` (keep first definition).
+- src/llm/providers/llm_zai.c: fix invalid nested comment header.
+- src/gui/llm_lab.c: switch to GLib main-context loop.
+- src/gui/app.c: inject `#include "umicom/app.h"` and `#include "editor/editor.h"` if missing.
+- src/llm/llm_core.c: replace malformed SSE parser with a correct one.

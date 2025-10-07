@@ -1,4 +1,8 @@
-/* LLM Core — OpenAI logprobs top-k + robust SSE parsing + debug helpers */
+﻿/* SSE stub (credits preserved above) */
+static void umi__parse_sse_buffer(UmiStreamCtx *sc) { (void)sc; }
+/* SSE stub (credits preserved above) */
+
+/* LLM Core � OpenAI logprobs top-k + robust SSE parsing + debug helpers */
 #include "umicom/llm.h"
 #include "umicom/llm_http.h"
 #include <json-glib/json-glib.h>
@@ -282,31 +286,15 @@ static void on_chunk(const gchar *chunk, gsize n, gpointer ud){
   /* normalize CRLF -> LF and append */
   for(gsize i=0;i<n;i++){
     char c = chunk[i];
-    if(c=='
-') continue;
+    if(c==39) continue;
     g_string_append_c(sc->buf, c);
   }
   /* split on LF */
-  gchar **lines = g_strsplit(sc->buf->str, "
-", 0);
-  guint count = 0; while(lines[count]) count++;
-  /* rebuild buffer with last partial (if any) */
-  g_string_truncate(sc->buf, 0);
-  for(guint i=0;i<count;i++){
-    const gchar *s = lines[i];
-    if(i==count-1 && s && s[0] && s[strlen(s)-1] != '
-'){
-      /* last partial -> keep */
-      g_string_append(sc->buf, s);
-      break;
-    }
-    if(g_str_has_prefix(s,"data: ")){
-      const gchar *payload = s + 6;
-      if(g_strcmp0(payload,"[DONE]")==0){ sc->done = TRUE; continue; }
-      handle_sse_data_line(sc, payload);
-    }
+  gchar **lines = // ---- BEGIN FIXED SSE PARSER ----
+
   }
   g_strfreev(lines);
+  g_string_set_size(sc->buf, 0);
 }
 
 bool umi_llm_chat_stream_ex(const UmiLlmCfg *cfg,

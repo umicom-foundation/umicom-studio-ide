@@ -1,4 +1,4 @@
-﻿#include <gtk/gtk.h>
+#include <gtk/gtk.h>
 static void on_activate(GtkApplication *app, gpointer user_data) {
   GtkWidget *win = gtk_application_window_new(app);
   gtk_window_set_title(GTK_WINDOW(win), "UStudio  Smoke Test");
