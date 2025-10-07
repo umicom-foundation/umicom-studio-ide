@@ -1,5 +1,5 @@
 # ninja log v7
-14	142	7815806187487461	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
+14	158	7815809764962216	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
 12922	13165	7815784615974529	CMakeFiles/ustudio.dir/src/llm/llm_privacy.c.obj	516a80f52d8080e8
 128	861	7815754386830649	CMakeFiles/ustudio.dir/src/core/json_store.c.obj	df831b5e13c934f
 863	1736	7815754394177802	CMakeFiles/ustudio.dir/src/core/recent_files.c.obj	9012c6f063e06571
@@ -29,11 +29,27 @@
 19473	21304	7815784681475942	CMakeFiles/ustudio.dir/src/app.c.obj	95859987493705f4
 21306	23107	7815784699808360	CMakeFiles/ustudio.dir/src/app_actions.c.obj	e67a11f3eb784e54
 23109	24925	7815784717833300	CMakeFiles/ustudio.dir/src/app_menu_llm.c.obj	d78c04039bd9dfb1
-158	591	7815806188931906	CMakeFiles/ustudio.dir/src/core/umi_log.c.obj	5e542a9da689444f
+168	469	7815809766496652	CMakeFiles/ustudio.dir/src/core/umi_log.c.obj	5e542a9da689444f
 592	2354	7815806193265171	CMakeFiles/ustudio.dir/src/argv.c.obj	613670cede7ef6e3
 2356	4252	7815806210904415	CMakeFiles/ustudio.dir/src/build_queue.c.obj	272b15f1dc5d19c9
 4254	6144	7815806229887450	CMakeFiles/ustudio.dir/src/build_runner.c.obj	441f5625279776d5
 6145	6449	7815806248804398	CMakeFiles/ustudio.dir/src/build_system.c.obj	eef8e6bb6bbd36aa
 6449	8254	7815806251839877	CMakeFiles/ustudio.dir/src/build_tasks.c.obj	80b7739465c8035b
-14	158	7815809764962216	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
-168	469	7815809766496652	CMakeFiles/ustudio.dir/src/core/umi_log.c.obj	5e542a9da689444f
+12	144	7815812895578760	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
+160	938	7815812897053660	CMakeFiles/ustudio.dir/src/core/json_store.c.obj	7da3b27260d18495
+939	1709	7815812904853904	CMakeFiles/ustudio.dir/src/core/recent_files.c.obj	e637855b960a9705
+1710	2122	7815812912558389	CMakeFiles/ustudio.dir/src/core/umi_log.c.obj	ff1b4107cd65f3bf
+2123	3915	7815812916689070	CMakeFiles/ustudio.dir/src/gui/app.c.obj	50c4051bd5406803
+3916	5738	7815812934621365	CMakeFiles/ustudio.dir/src/gui/app_menu_llm.c.obj	f1f2a82c7628584a
+5740	7616	7815812952859326	CMakeFiles/ustudio.dir/src/gui/llm_lab.c.obj	c41fa52121240b6c
+7618	9499	7815812971643625	CMakeFiles/ustudio.dir/src/gui/prefs.c.obj	6081bdb343b57356
+9501	11354	7815812990465774	CMakeFiles/ustudio.dir/src/editor/editor.c.obj	41ec4ef1923f4dd7
+11355	12928	7815813008992024	CMakeFiles/ustudio.dir/src/build/build_queue.c.obj	7801c7d39c539298
+12930	13333	7815813024758493	CMakeFiles/ustudio.dir/src/build/build_system.c.obj	ff50b35d8c1e45
+13334	14850	7815813028804735	CMakeFiles/ustudio.dir/src/build/diagnostic_parsers.c.obj	2a41a0cabbebe97e
+14851	16097	7815813043954422	CMakeFiles/ustudio.dir/src/search/search_panel.c.obj	25369bd09b4b7120
+16098	16426	7815813056431641	CMakeFiles/ustudio.dir/src/llm/llm_core.c.obj	666b9921d51cdaa1
+16427	17984	7815813059724935	CMakeFiles/ustudio.dir/src/llm/llm_http.c.obj	bddf4f54e77f9029
+17985	18183	7815813075312018	CMakeFiles/ustudio.dir/src/llm/llm_privacy.c.obj	a0bacfea786e6919
+18185	18431	7815813077296509	CMakeFiles/ustudio.dir/src/llm/providers/llm_zai.c.obj	58c651ac6b064e95
+18432	18561	7815813079767795	CMakeFiles/ustudio.dir/src/umi_log.c.obj	bac36275cccf252e

@@ -1,37 +1,43 @@
-/*
- * umi_log.h — tiny logging shim for Umicom Studio
- *
- * Provides runtime-configurable log levels and simple macros:
- *   UMI_LOGD, UMI_LOGI, UMI_LOGW, UMI_LOGE
- *
- * This header is intentionally lightweight and GLib-only.
- * It maps to g_log() with domain "umicom".
- */
-#pragma once
-#include <glib.h>
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * File: include/umi_log.h
+ * PURPOSE: Lightweight logging interface (shim) used by CLI and other modules
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ *---------------------------------------------------------------------------*/
+
+#ifndef UMI_LOG_H
+#define UMI_LOG_H
+
+#include <stdio.h>
 #include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* Minimal logging levels (match names used by cli_entry.c) */
 typedef enum {
-  UMI_LOG_DEBUG = 0,
-  UMI_LOG_INFO  = 1,
-  UMI_LOG_WARN  = 2,
-  UMI_LOG_ERROR = 3
+    UMI_LOG_ERROR = 0,
+    UMI_LOG_WARN  = 1,
+    UMI_LOG_INFO  = 2,
+    UMI_LOG_DEBUG = 3
 } UmiLogLevel;
 
-void umi_log_set_level(int level);
-int  umi_log_get_level(void);
-void umi_log_log(int level, const char *fmt, ...) G_GNUC_PRINTF(2,3);
+/* Runtime control of verbosity */
+void umi_log_set_level(UmiLogLevel lvl);
+UmiLogLevel umi_log_get_level(void);
 
-/* Convenience macros */
-#define UMI_LOGD(...) do { if (umi_log_get_level() <= UMI_LOG_DEBUG) umi_log_log(UMI_LOG_DEBUG, __VA_ARGS__); } while(0)
-#define UMI_LOGI(...) do { if (umi_log_get_level() <= UMI_LOG_INFO)  umi_log_log(UMI_LOG_INFO,  __VA_ARGS__); } while(0)
-#define UMI_LOGW(...) do { if (umi_log_get_level() <= UMI_LOG_WARN)  umi_log_log(UMI_LOG_WARN,  __VA_ARGS__); } while(0)
-#define UMI_LOGE(...) do { if (umi_log_get_level() <= UMI_LOG_ERROR) umi_log_log(UMI_LOG_ERROR, __VA_ARGS__); } while(0)
+/* Internal helper; prefer the UMI_LOG* macros below */
+void umi_log_log(UmiLogLevel lvl, const char *file, int line, const char *fmt, ...);
+
+/* Convenience macros expected by existing code */
+#define UMI_LOGE(fmt, ...) umi_log_log(UMI_LOG_ERROR, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define UMI_LOGW(fmt, ...) umi_log_log(UMI_LOG_WARN,  __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define UMI_LOGI(fmt, ...) umi_log_log(UMI_LOG_INFO,  __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define UMI_LOGD(fmt, ...) umi_log_log(UMI_LOG_DEBUG, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* UMI_LOG_H */
