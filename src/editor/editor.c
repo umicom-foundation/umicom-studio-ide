@@ -1,77 +1,133 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/editor.c
- * PURPOSE: Implementation of the editor widget
+ * File: src/editor/editor.c
+ * PURPOSE: Implementation of the editor shell (editor area + status/output/problems)
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
+#include <gtk/gtk.h>
+#include <glib.h>
 
+/* Project headers */
 #include "editor.h"
 
-static void goto_pos(GtkTextView *view, int line, int col){
-  GtkTextBuffer *b = gtk_text_view_get_buffer(view);
-  GtkTextIter it;
-  gtk_text_buffer_get_iter_at_line_offset(b, &it, (line>0?line-1:0), (col>0?col-1:0));
-  gtk_text_buffer_place_cursor(b, &it);
-  gtk_text_view_scroll_to_iter(view, &it, 0.1, FALSE, 0, 0);
-}
+/* Use the central status/output/problem modules instead of local stubs.
+ * We conditionally include headers if they exist; otherwise we forward-declare
+ * the minimal API so this file can still compile.
+ */
+#if __has_include("status_util.h")
+  #include "status_util.h"
+#else
+  typedef struct _UmiStatus UmiStatus;
+  GtkWidget *umi_status_widget(UmiStatus *s);
+  UmiStatus *umi_status_new(void);
+  void umi_status_set(UmiStatus *s, const char *text);
+  void umi_status_flash(UmiStatus *s, const char *text, guint msec);
+#endif
 
-static void on_problem_activate(gpointer user, const char *file, int line, int col){
-  UmiEditor *ed = (UmiEditor*)user;
-  if(!ed) return;
-  if(file && *file){
-    GError *e=NULL;
-    /* This uses editor_actions, but if not linked yet we can inline open. */
-    gchar *txt=NULL; gsize len=0;
-    if(g_file_get_contents(file,&txt,&len,&e)){
-      gtk_text_buffer_set_text(ed->buffer, txt, (gint)len);
-      g_free(ed->current_file);
-      ed->current_file = g_strdup(file);
-      if(ed->status) umi_status_set(ed->status, file);
-      g_free(txt);
-    }else if(e){
-      if(ed->out) umi_output_pane_append_line_err(ed->out, e->message);
-      g_error_free(e);
-    }
-  }
-  goto_pos(ed->view, line, col);
-}
+#if __has_include("output_pane.h")
+  #include "output_pane.h"
+#else
+  typedef struct _UmiOutputPane UmiOutputPane;
+  UmiOutputPane *umi_output_pane_new(void);
+  GtkWidget *umi_output_pane_widget(UmiOutputPane *op);
+  void umi_output_pane_append_line(UmiOutputPane *op, const char *line);
+  void umi_output_pane_append_line_err(UmiOutputPane *op, const char *line);
+#endif
 
-UmiEditor *umi_editor_new(void){
-  UmiEditor *ed = g_new0(UmiEditor,1);
-  ed->root = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#if __has_include("problem_list.h")
+  #include "problem_list.h"
+#else
+  typedef struct _UmiProblemList UmiProblemList;
+  UmiProblemList *umi_problem_list_new(void);
+  GtkWidget *umi_problem_list_widget(UmiProblemList *pl);
+#endif
 
-  /* Text view */
-  ed->view = GTK_TEXT_VIEW(gtk_text_view_new());
-  ed->buffer = gtk_text_view_get_buffer(ed->view);
-  ed->scroller = gtk_scrolled_window_new();
-  gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(ed->scroller), GTK_WIDGET(ed->view));
-  gtk_box_append(GTK_BOX(ed->root), ed->scroller);
+/* Public (but simple) editor object.
+ * Keep it lightweight: it just composes existing widgets.
+ */
+typedef struct _UmiEditor {
+  GtkWidget      *root;      /* container we expose */
+  GtkWidget      *paned;     /* vertical paned: top editor, bottom tabs */
+  GtkTextBuffer  *buf;       /* simple text buffer for now */
+  GtkWidget      *textview;  /* editing area placeholder */
 
-  /* Status line (simple) */
-  ed->status = umi_status_new();
-  gtk_box_append(GTK_BOX(ed->root), umi_status_widget(ed->status));
+  UmiStatus      *status;
+  UmiOutputPane  *out;
+  UmiProblemList *problems;
+} UmiEditor;
 
-  /* Bottom notebook */
-  ed->bottom = GTK_NOTEBOOK(gtk_notebook_new());
-  gtk_notebook_set_tab_pos(ed->bottom, GTK_POS_BOTTOM);
+/* Local helpers */
+static GtkWidget* build_bottom_tabs(UmiEditor *ed){
+  GtkWidget *tabs = gtk_notebook_new();
+  gtk_notebook_set_tab_pos(GTK_NOTEBOOK(tabs), GTK_POS_BOTTOM);
 
-  /* Output pane */
-  ed->out = umi_output_pane_new();
+  /* Output */
   GtkWidget *outw = umi_output_pane_widget(ed->out);
-  gtk_notebook_append_page(ed->bottom, outw, gtk_label_new("Output"));
+  GtkWidget *lab1 = gtk_label_new("Output");
+  gtk_notebook_append_page(GTK_NOTEBOOK(tabs), outw, lab1);
 
-  /* Problems list */
-  ed->problems = umi_problem_list_new(on_problem_activate, ed);
-  GtkWidget *plw = umi_problem_list_widget(ed->problems);
-  gtk_notebook_append_page(ed->bottom, plw, gtk_label_new("Problems"));
+  /* Problems */
+  GtkWidget *probw = umi_problem_list_widget(ed->problems);
+  GtkWidget *lab2 = gtk_label_new("Problems");
+  gtk_notebook_append_page(GTK_NOTEBOOK(tabs), probw, lab2);
 
-  gtk_box_append(GTK_BOX(ed->root), GTK_WIDGET(ed->bottom));
+  /* Status (as a separate page makes it visible on Windows where statusbars are subtle) */
+  GtkWidget *statw = umi_status_widget(ed->status);
+  GtkWidget *lab3 = gtk_label_new("Status");
+  gtk_notebook_append_page(GTK_NOTEBOOK(tabs), statw, lab3);
+
+  return tabs;
+}
+
+/* API --------------------------------------------------------------------- */
+UmiEditor* umi_editor_new(void){
+  UmiEditor *ed = g_new0(UmiEditor, 1);
+
+  ed->status   = umi_status_new();
+  ed->out      = umi_output_pane_new();
+  ed->problems = umi_problem_list_new();
+
+  /* Top editor area: a simple GtkTextView for now */
+  ed->buf      = gtk_text_buffer_new(NULL);
+  ed->textview = gtk_text_view_new_with_buffer(ed->buf);
+  gtk_text_view_set_monospace(GTK_TEXT_VIEW(ed->textview), TRUE);
+
+  /* Root container: vertical paned (editor on top, tabs bottom) */
+  ed->paned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+  gtk_widget_set_vexpand(ed->paned, TRUE);
+  gtk_paned_set_start_child(GTK_PANED(ed->paned), ed->textview);
+
+  GtkWidget *tabs = build_bottom_tabs(ed);
+  gtk_widget_set_vexpand(tabs, TRUE);
+  gtk_paned_set_end_child(GTK_PANED(ed->paned), tabs);
+
+  /* Expose a simple box to allow docking in the main window */
+  ed->root = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_append(GTK_BOX(ed->root), ed->paned);
+
+  /* Friendly initial status */
+  umi_status_set(ed->status, "Ready");
+
   return ed;
 }
 
-GtkWidget *umi_editor_widget(UmiEditor *ed){ return ed?ed->root:NULL; }
-
-void umi_editor_jump(UmiEditor *ed, int line, int col){
-  if(!ed) return;
-  goto_pos(ed->view, line, col);
+GtkWidget* umi_editor_widget(UmiEditor *ed){
+  return ed ? ed->root : NULL;
 }
+
+/* Convenience helpers other modules might use */
+void umi_editor_flash_status(UmiEditor *ed, const char *text, guint ms){
+  if(!ed) return;
+  umi_status_flash(ed->status, text ? text : "Done", ms ? ms : 1100);
+}
+
+void umi_editor_append_output(UmiEditor *ed, const char *line){
+  if(!ed || !line) return;
+  umi_output_pane_append_line(ed->out, line);
+}
+
+void umi_editor_append_error(UmiEditor *ed, const char *line){
+  if(!ed || !line) return;
+  umi_output_pane_append_line_err(ed->out, line);
+}
+/*---------------------------------------------------------------------------*/
