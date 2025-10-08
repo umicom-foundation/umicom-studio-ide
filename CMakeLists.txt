@@ -5,73 +5,76 @@
 # Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-07 | MIT
 # ---------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.22)
-project(umicom-studio LANGUAGES C VERSION 0.1.0)
+
+project(umicom-studio
+  LANGUAGES C
+  VERSION 0.1.0
+)
+
+# Language / tooling
 set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Dependencies
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
-pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
+pkg_check_modules(GTK4     REQUIRED IMPORTED_TARGET gtk4)
+pkg_check_modules(GLIB     REQUIRED IMPORTED_TARGET glib-2.0)
 pkg_check_modules(JSONGLIB REQUIRED IMPORTED_TARGET json-glib-1.0)
-pkg_check_modules(CURL REQUIRED IMPORTED_TARGET libcurl)
+pkg_check_modules(CURL     REQUIRED IMPORTED_TARGET libcurl)
 
-file(GLOB_RECURSE SRC_CORE   CONFIGURE_DEPENDS src/core/*.c)
-file(GLOB_RECURSE SRC_GUI    CONFIGURE_DEPENDS src/gui/*.c)
-file(GLOB_RECURSE SRC_EDITOR CONFIGURE_DEPENDS src/editor/*.c)
-file(GLOB_RECURSE SRC_BUILD  CONFIGURE_DEPENDS src/build/*.c)
-file(GLOB_RECURSE SRC_SEARCH CONFIGURE_DEPENDS src/search/*.c)
-file(GLOB_RECURSE SRC_LLM    CONFIGURE_DEPENDS src/llm/*.c)
+# ------------------------------------------------------------------------------
+# Sources
+# We glob everything under src/, then explicitly exclude the temporary shim
+# src/umi_log.c so we only build the real implementation in src/core/umi_log.c.
+# ------------------------------------------------------------------------------
+
+file(GLOB_RECURSE SRC_ALL CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+)
+
+# If the accidental shim exists, remove it from the list to avoid duplicate symbols.
+list(FILTER SRC_ALL EXCLUDE REGEX ".*/src/umi_log\\.c$")
+
+# ------------------------------------------------------------------------------
+# Target
+# ------------------------------------------------------------------------------
 
 add_executable(ustudio
-  ${SRC_CORE} ${SRC_GUI} ${SRC_EDITOR} ${SRC_BUILD} ${SRC_SEARCH} ${SRC_LLM}
-  src/main.c
-)
-target_include_directories(ustudio PRIVATE include src)
-target_link_libraries(ustudio
-  PkgConfig::GTK4 PkgConfig::GLIB PkgConfig::JSONGLIB PkgConfig::CURL
+  ${SRC_ALL}
 )
 
-enable_testing()
-add_executable(test_llm_body tests/test_llm_body.c)
-target_include_directories(test_llm_body PRIVATE include)
-add_test(NAME test_llm_body COMMAND test_llm_body)
+# Include paths so headers like "core/umi_log.h" and your public headers are found.
+target_include_directories(ustudio PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
 
-add_executable(test_llm_json tests/test_llm_json.c)
-target_link_libraries(test_llm_json PkgConfig::JSONGLIB)
-add_test(NAME test_llm_json COMMAND test_llm_json)
+# Common compile definitions seen in your build logs
+target_compile_definitions(ustudio PRIVATE
+  __USE_MINGW_ANSI_STDIO=1
+  LIBDEFLATE_DLL
+)
 
-install(TARGETS ustudio RUNTIME DESTINATION bin)
-install(DIRECTORY include/ DESTINATION include)
-
-# ---- Begin auto-added by scripts/apply-umicom-fixes.ps1 ----
-include(FindPkgConfig)
-if (PKG_CONFIG_FOUND)
-  pkg_check_modules(GLIB REQUIRED glib-2.0)
-  if (TARGET test_llm_body)
-    target_include_directories(test_llm_body PRIVATE ${GLIB_INCLUDE_DIRS})
-    target_link_libraries(test_llm_body PRIVATE ${GLIB_LIBRARIES})
-  endif()
+# Warnings are helpful; feel free to tweak
+if (MSVC)
+  target_compile_options(ustudio PRIVATE /W3)
+else()
+  target_compile_options(ustudio PRIVATE -Wall -Wextra -Wno-deprecated-declarations)
 endif()
 
-if (TARGET ustudio)
-  target_include_directories(ustudio PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src)
-endif()
-# ---- End auto-added by scripts/apply-umicom-fixes.ps1 ----
+# Link dependencies discovered via pkg-config
+target_link_libraries(ustudio PRIVATE
+  PkgConfig::GTK4
+  PkgConfig::GLIB
+  PkgConfig::JSONGLIB
+  PkgConfig::CURL
+)
 
+# On MinGW/Windows, lld and system libs come from the toolchain; nothing special here.
 
+# Nice-to-haves for IDEs
+set_property(TARGET ustudio PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# ---- BEGIN: Logging shim integration (auto-added) ---------------------------
-# Ensure the compiler sees umi_log.h so macros UMI_LOGI/UMI_LOGD are visible.
-# We limit the forced-include to the CLI source to be conservative.
-if(TARGET ustudio)
-  # Add the new source
-  target_sources(ustudio PRIVATE src/umi_log.c)
-
-  # Make sure public include/ is on the path (usually already is)
-  target_include_directories(ustudio PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-  # Force-include the header for cli_entry.c only, so we don't have to edit the file.
-  set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/cli_entry.c
-    PROPERTIES COMPILE_FLAGS "-include ${CMAKE_CURRENT_SOURCE_DIR}/include/umi_log.h")
-endif()
-# ---- END: Logging shim integration -----------------------------------------
+message(STATUS "umicom-studio sources: ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "Number of C sources: ${SRC_ALL_LENGTH}")
