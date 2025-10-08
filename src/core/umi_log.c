@@ -1,12 +1,14 @@
-/*
- * umi_log.c — implementation for tiny logging shim
- */
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * File: src/core/umi_log.c
+ * PURPOSE: Implementation for tiny logging shim (see umi_log.h)
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-08 | MIT
+ *---------------------------------------------------------------------------*/
 #include "umi_log.h"
-#include <glib.h>
 #include <stdarg.h>
-#include <stdio.h>
+#include <glib.h>
 
-static volatile gint s_level = UMI_LOG_INFO; /* default INFO */
+static volatile gint s_level = UMI_LOG_INFO;
 
 void umi_log_set_level(int level) {
   if (level < UMI_LOG_DEBUG) level = UMI_LOG_DEBUG;
@@ -27,11 +29,16 @@ static GLogLevelFlags to_glib(int lvl){
   }
 }
 
-void umi_log_log(int level, const char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
+void umi_logv(int level, const char *fmt, va_list ap){
+  if (level < umi_log_get_level()) return;
   gchar *msg = g_strdup_vprintf(fmt, ap);
-  va_end(ap);
   g_log("umicom", to_glib(level), "%s", msg);
   g_free(msg);
+}
+
+void umi_log(int level, const char *fmt, ...){
+  va_list ap;
+  va_start(ap, fmt);
+  umi_logv(level, fmt, ap);
+  va_end(ap);
 }

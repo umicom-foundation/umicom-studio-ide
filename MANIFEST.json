@@ -1,0 +1,15 @@
+{
+  "generated": "2025-10-08",
+  "files": [
+    {
+      "path": "include/gtk_all.h",
+      "bytes": 401,
+      "sha256": "01a90619fcea9a53468cbd9e1a0592136527f598d44ede85a0f1893f4b18b628"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "bytes": 5992,
+      "sha256": "77520a8bb249816f9cc9f2c41c42e2f637c44de3dc13e1642cc2e2a99a16f508"
+    }
+  ]
+}

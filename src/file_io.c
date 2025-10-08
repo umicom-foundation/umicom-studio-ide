@@ -7,6 +7,8 @@
 
 #include "file_io.h"
 
+
+#include <glib/gstdio.h>
 gboolean umi_file_save_atomic(const char *path, const char *data, gssize len, GError **err){
   if(!path) return FALSE;
   gchar *tmp = g_strconcat(path, ".tmp", NULL);

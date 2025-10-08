@@ -12,7 +12,6 @@ cmake_minimum_required(VERSION 3.20)
 # can keep a large tree sane while we finish consolidating modules. If you
 # later want pinned file lists, that’s easy to swap in.
 # ------------------------------------------------------------------------------
-
 project(umicom-studio-ide C)
 
 # C standard / common flags
@@ -54,6 +53,9 @@ pkg_check_modules(GIO         REQUIRED IMPORTED_TARGET gio-2.0)
 pkg_check_modules(JSON_GLIB   REQUIRED IMPORTED_TARGET json-glib-1.0)
 pkg_check_modules(CURL        REQUIRED IMPORTED_TARGET libcurl)
 
+# Networking for chat pane (libsoup 3, GTK4 era)
+pkg_check_modules(SOUP3       REQUIRED IMPORTED_TARGET libsoup-3.0)
+
 # ------------------------------------------------------------------------------
 # Source layout & includes
 # ------------------------------------------------------------------------------
@@ -66,11 +68,11 @@ file(GLOB_RECURSE UMI_SOURCES CONFIGURE_DEPENDS
 
 # Exclude any deprecated root duplicates (safe even if they’re not present)
 set(UMI_EXCLUDE_REGEX
-  ".*/src/umi_log\\.c$"                # legacy duplicate (real one lives in src/core)
-  ".*/src/build_queue\\.c$"            # legacy duplicate (real one lives in src/build)
-  ".*/src/build_system\\.c$"           # legacy duplicate (real one lives in src/build)
-  ".*/src/diagnostic_parsers\\.c$"     # legacy duplicate (real one lives in src/build)
-  ".*/src/app\\.c$"                    # legacy duplicate (real one lives in src/gui)
+  ".*/src/umi_log\.c$"                # legacy duplicate (real one lives in src/core)
+  ".*/src/build_queue\.c$"            # legacy duplicate (real one lives in src/build)
+  ".*/src/build_system\.c$"           # legacy duplicate (real one lives in src/build)
+  ".*/src/diagnostic_parsers\.c$"     # legacy duplicate (real one lives in src/build)
+  ".*/src/app\.c$"                    # legacy duplicate (real one lives in src/gui)
 )
 
 foreach(rx IN LISTS UMI_EXCLUDE_REGEX)
@@ -114,7 +116,17 @@ target_link_libraries(ustudio PRIVATE
   PkgConfig::GIO
   PkgConfig::JSON_GLIB
   PkgConfig::CURL
+  PkgConfig::SOUP3
 )
+
+# Optional feature define if you guard code paths on libsoup presence
+target_compile_definitions(ustudio PRIVATE HAVE_LIBSOUP=1)
+
+# --- Build include shim for GTK widgets --------------------------------------
+# Some files may miss <gtk/gtk.h>; enforce it everywhere without touching sources.
+if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+  target_compile_options(ustudio PRIVATE -include "${CMAKE_SOURCE_DIR}/include/gtk_all.h")
+endif()
 
 # On Windows, ensure Win32 libs are pulled in (lld does this implicitly via implibs,
 # but adding them keeps the link line similar to what you showed earlier).

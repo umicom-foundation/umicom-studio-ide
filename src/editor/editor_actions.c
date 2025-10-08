@@ -1,19 +1,27 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/editor_actions.c
- * PURPOSE: Minimal editor ops (placeholder impl; integrate with GtkSourceView later)
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ * File: src/editor/editor_actions.c
+ * PURPOSE: Minimal editor ops (placeholder; integrate GtkSourceView later)
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-08 | MIT
  *---------------------------------------------------------------------------*/
-
+#include <gtk/gtk.h>
+#include <glib.h>
 #include "editor_actions.h"
 #include "status_util.h"
-#include <stdio.h>
+
+static GtkTextBuffer* ensure_buffer(UmiEditor *ed) { 
+  if (!ed) return NULL;
+  if (!ed->buffer) ed->buffer = gtk_text_buffer_new(NULL);
+  return ed->buffer;
+}
 
 gboolean umi_editor_open_file(UmiEditor *ed, const char *path, GError **err){
   if(!ed || !path) return FALSE;
   gchar *txt=NULL; gsize len=0;
   if(!g_file_get_contents(path,&txt,&len,err)) return FALSE;
-  gtk_text_buffer_set_text(GTK_TEXT_BUFFER(ed->buffer), txt, (gint)len);
+  GtkTextBuffer* buf = ensure_buffer(ed);
+  if (!buf) { g_free(txt); return FALSE; }
+  gtk_text_buffer_set_text(buf, txt, (gint)len);
   g_free(ed->current_file);
   ed->current_file = g_strdup(path);
   if(ed->status) umi_status_set(ed->status, path);
@@ -22,19 +30,21 @@ gboolean umi_editor_open_file(UmiEditor *ed, const char *path, GError **err){
 }
 
 gboolean umi_editor_save(UmiEditor *ed, GError **err){
-  if(!ed || !ed->current_file) return FALSE;
-  GtkTextIter s,e; gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(ed->buffer), &s,&e);
-  gchar *txt = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(ed->buffer), &s, &e, FALSE);
+  GtkTextBuffer* buf = ensure_buffer(ed);
+  if(!ed || !ed->current_file || !buf) return FALSE;
+  GtkTextIter s,e; gtk_text_buffer_get_bounds(buf, &s,&e);
+  gchar *txt = gtk_text_buffer_get_text(buf, &s, &e, FALSE);
   gboolean ok = g_file_set_contents(ed->current_file, txt, -1, err);
   g_free(txt);
   if(ok && ed->status) umi_status_flash(ed->status, "Saved", 1200);
   return ok;
 }
 
-gboolean umi_editor_save_as(UmiEditor *ed, const char *path, GError **err){
-  if(!ed || !path) return FALSE;
-  GtkTextIter s,e; gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(ed->buffer), &s,&e);
-  gchar *txt = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(ed->buffer), &s, &e, FALSE);
+gboolean umi_editor_save_as_path(UmiEditor *ed, const char *path, GError **err){
+  GtkTextBuffer* buf = ensure_buffer(ed);
+  if(!ed || !path || !buf) return FALSE;
+  GtkTextIter s,e; gtk_text_buffer_get_bounds(buf, &s,&e);
+  gchar *txt = gtk_text_buffer_get_text(buf, &s, &e, FALSE);
   gboolean ok = g_file_set_contents(path, txt, -1, err);
   if(ok){ g_free(ed->current_file); ed->current_file = g_strdup(path); }
   g_free(txt);
@@ -42,9 +52,17 @@ gboolean umi_editor_save_as(UmiEditor *ed, const char *path, GError **err){
   return ok;
 }
 
+gboolean umi_editor_save_as(UmiEditor *ed, GError **err){
+  (void)ed;
+  if (err) *err = g_error_new_literal(G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                                      "Save As dialog not implemented yet");
+  return FALSE;
+}
+
 void umi_editor_new_file(UmiEditor *ed){
-  if(!ed) return;
-  gtk_text_buffer_set_text(GTK_TEXT_BUFFER(ed->buffer), "", -1);
+  GtkTextBuffer* buf = ensure_buffer(ed);
+  if(!ed || !buf) return;
+  gtk_text_buffer_set_text(buf, "", -1);
   g_clear_pointer(&ed->current_file, g_free);
   if(ed->status) umi_status_flash(ed->status, "New file", 900);
 }
