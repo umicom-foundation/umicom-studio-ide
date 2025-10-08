@@ -49,6 +49,12 @@
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\editor\\editor_actions.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\editor\\editor_actions.c",
+  "file": "C:/Dev/umicom-studio-ide/src/editor/editor_actions.c",
+  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/editor/editor_actions.c.obj"
+},
+{
+  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\build\\build_queue.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\build\\build_queue.c",
   "file": "C:/Dev/umicom-studio-ide/src/build/build_queue.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/build/build_queue.c.obj"
@@ -97,24 +103,6 @@
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\ARCH_P17.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\ARCH_P17.c",
-  "file": "C:/Dev/umicom-studio-ide/src/ARCH_P17.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/ARCH_P17.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\BUILD_NOTES.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\BUILD_NOTES.c",
-  "file": "C:/Dev/umicom-studio-ide/src/BUILD_NOTES.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/BUILD_NOTES.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\DEV_NOTES.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\DEV_NOTES.c",
-  "file": "C:/Dev/umicom-studio-ide/src/DEV_NOTES.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/DEV_NOTES.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\LICENSE.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\LICENSE.c",
   "file": "C:/Dev/umicom-studio-ide/src/LICENSE.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/LICENSE.c.obj"
@@ -139,21 +127,9 @@
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\app.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\app.c",
-  "file": "C:/Dev/umicom-studio-ide/src/app.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/app.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\app_actions.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\app_actions.c",
   "file": "C:/Dev/umicom-studio-ide/src/app_actions.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/app_actions.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\app_menu_llm.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\app_menu_llm.c",
-  "file": "C:/Dev/umicom-studio-ide/src/app_menu_llm.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/app_menu_llm.c.obj"
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
@@ -163,21 +139,9 @@
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\build_queue.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\build_queue.c",
-  "file": "C:/Dev/umicom-studio-ide/src/build_queue.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/build_queue.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\build_runner.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\build_runner.c",
   "file": "C:/Dev/umicom-studio-ide/src/build_runner.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/build_runner.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\build_system.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\build_system.c",
-  "file": "C:/Dev/umicom-studio-ide/src/build_system.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/build_system.c.obj"
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
@@ -211,27 +175,9 @@
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\diagnostic_parsers.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\diagnostic_parsers.c",
-  "file": "C:/Dev/umicom-studio-ide/src/diagnostic_parsers.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/diagnostic_parsers.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\diagnostics_router.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\diagnostics_router.c",
   "file": "C:/Dev/umicom-studio-ide/src/diagnostics_router.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/diagnostics_router.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\editor.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\editor.c",
-  "file": "C:/Dev/umicom-studio-ide/src/editor.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/editor.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\editor_actions.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\editor_actions.c",
-  "file": "C:/Dev/umicom-studio-ide/src/editor_actions.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/editor_actions.c.obj"
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
@@ -277,27 +223,9 @@
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\json_store.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\json_store.c",
-  "file": "C:/Dev/umicom-studio-ide/src/json_store.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/json_store.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\keymap.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\keymap.c",
   "file": "C:/Dev/umicom-studio-ide/src/keymap.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/keymap.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\log.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\log.c",
-  "file": "C:/Dev/umicom-studio-ide/src/log.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/log.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\menu.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\menu.c",
-  "file": "C:/Dev/umicom-studio-ide/src/menu.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/menu.c.obj"
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
@@ -361,12 +289,6 @@
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\prefs.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\prefs.c",
-  "file": "C:/Dev/umicom-studio-ide/src/prefs.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/prefs.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\prefs_ui.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\prefs_ui.c",
   "file": "C:/Dev/umicom-studio-ide/src/prefs_ui.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/prefs_ui.c.obj"
@@ -403,12 +325,6 @@
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\recent_files.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\recent_files.c",
-  "file": "C:/Dev/umicom-studio-ide/src/recent_files.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/recent_files.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\rg_discovery.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\rg_discovery.c",
   "file": "C:/Dev/umicom-studio-ide/src/rg_discovery.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/rg_discovery.c.obj"
@@ -436,12 +352,6 @@
   "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\run_pipeline.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\run_pipeline.c",
   "file": "C:/Dev/umicom-studio-ide/src/run_pipeline.c",
   "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/run_pipeline.c.obj"
-},
-{
-  "directory": "C:/Dev/umicom-studio-ide/build-ninja",
-  "command": "C:\\PROGRA~1\\LLVM\\bin\\clang.exe -IC:/Dev/umicom-studio-ide/include -IC:/Dev/umicom-studio-ide/src -isystem C:/msys64/mingw64/include/gtk-4.0 -isystem C:/msys64/mingw64/include/pango-1.0 -isystem C:/msys64/mingw64/include/fribidi -isystem C:/msys64/mingw64/include/harfbuzz -isystem C:/msys64/mingw64/include/gdk-pixbuf-2.0 -isystem C:/msys64/mingw64/include/webp -isystem C:/msys64/mingw64/include/cairo -isystem C:/msys64/mingw64/include/freetype2 -isystem C:/msys64/mingw64/include/libpng16 -isystem C:/msys64/mingw64/include/pixman-1 -isystem C:/msys64/mingw64/include/graphene-1.0 -isystem C:/msys64/mingw64/lib/graphene-1.0/include -isystem C:/msys64/mingw64/include/glib-2.0 -isystem C:/msys64/mingw64/lib/glib-2.0/include -isystem C:/msys64/mingw64/include/json-glib-1.0 --target=x86_64-w64-mingw32 --sysroot=C:/msys64/mingw64 -D__USE_MINGW_ANSI_STDIO=1 -O3 -DNDEBUG -std=gnu17 -Wall -Wextra -Wno-deprecated-declarations -DLIBDEFLATE_DLL -mfpmath=sse -msse -msse2 -o CMakeFiles\\ustudio.dir\\src\\search_panel.c.obj -c C:\\Dev\\umicom-studio-ide\\src\\search_panel.c",
-  "file": "C:/Dev/umicom-studio-ide/src/search_panel.c",
-  "output": "C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/ustudio.dir/src/search_panel.c.obj"
 },
 {
   "directory": "C:/Dev/umicom-studio-ide/build-ninja",

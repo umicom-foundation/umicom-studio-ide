@@ -1,6 +1,6 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/json_store.c
+ * File: src/core/json_store.c
  * PURPOSE: Implementation of JSON key-value store with json-glib
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
