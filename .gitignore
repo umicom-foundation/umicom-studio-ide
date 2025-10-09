@@ -8,3 +8,14 @@ CMakeFiles/
 cmake-build-*/
 # Node (if web assets later)
 /node_modules/
+
+# Secrets
+/secrets/*.env
+!/secrets/secrets.env.template
+
+# Build outputs
+/build-*/
+/dist-*/
+# CMake user presets (local-only)
+/CMakeUserPresets.json
+
