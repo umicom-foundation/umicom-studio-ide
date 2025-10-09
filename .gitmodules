@@ -1,0 +1,4 @@
+[submodule "third_party/umicom/uengine"]
+	path = third_party/umicom/uengine
+	url = https://github.com/umicom-foundation/umicom-authorengine-ai.git
+	branch = main
