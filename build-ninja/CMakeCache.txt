@@ -268,6 +268,9 @@ PKG_CONFIG_ARGN:STRING=
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=C:/msys64/mingw64/bin/pkg-config.exe
 
+//Build minimal smoke test instead of the full app
+USTUDIO_SMOKE:BOOL=OFF
+
 //Path to a library.
 pkgcfg_lib_CAIRO_cairo:FILEPATH=C:/msys64/mingw64/lib/libcairo.dll.a
 
