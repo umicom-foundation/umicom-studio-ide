@@ -25,7 +25,6 @@ GtkCssProvider* umi_theme_css(void){
 
 void umi_theme_apply(GtkWindow *win, const char *name){
   if(!win) return;
-  GtkStyleContext *ctx = gtk_widget_get_style_context(GTK_WIDGET(win));
   gtk_style_context_add_provider_for_display(
     gdk_display_get_default(),
     GTK_STYLE_PROVIDER(umi_theme_css()),

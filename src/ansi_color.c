@@ -111,7 +111,7 @@ void umi_ansi_append_line(UmiAnsi *a, const char *ansi_text){
       gtk_text_buffer_get_end_iter(b, &seg_start);
     }else{
       gunichar ch = g_utf8_get_char(p);
-      int len = g_unichar_to_utf8(ch, NULL); /* just get length */
+      /* length computed implicitly; no temp variable needed */ g_unichar_to_utf8(ch, NULL);
       /* append char */
       char tmp[8]; int w = g_unichar_to_utf8(ch, tmp);
       gtk_text_buffer_insert(b, &end, tmp, w);

@@ -12,7 +12,7 @@
 /* Core & GUI headers */
 #include "status_bar.h"          /* UmiStatusBar, umi_status_bar_inner */
 #include "status_util.h"         /* umi_status_flash */
-#include "editor.h"              /* UmiEditor, umi_editor_save, umi_editor_save_as */
+#include "editor/editor.h"              /* UmiEditor, umi_editor_save, umi_editor_save_as */
 
 /* If a search panel API is available, prefer to include it.
    Some branches place it under src/search/, others under src/.

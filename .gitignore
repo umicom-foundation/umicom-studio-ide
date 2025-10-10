@@ -19,3 +19,15 @@ cmake-build-*/
 # CMake user presets (local-only)
 /CMakeUserPresets.json
 
+build-ninja/.ninja_deps
+build-ninja/.ninja_log
+build-ninja/build.ninja
+build-ninja/CMakeCache.txt
+build-ninja/CMakeCache.txt
+build-ninja/CMakeCache.txt
+build-ninja/.ninja_deps
+build-ninja/.ninja_log
+build-ninja/.ninja_deps
+build-ninja/.ninja_log
+build-ninja/build.ninja
+build-ninja/CMakeCache.txt

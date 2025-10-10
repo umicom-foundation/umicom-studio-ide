@@ -1,103 +1,109 @@
-# ---------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Umicom Studio IDE (USIDE)
 # File: CMakeLists.txt
-# PURPOSE: Build system for MSYS2/MinGW (Windows) and other platforms.
+# PURPOSE: Build configuration for MinGW/MSYS2 + GTK4. 
 #
 # Created by: Umicom Foundation (https://umicom.foundation/)
 # Author: Sammy Hegab
 # Date: 15-09-2025
 # License: MIT
-# ---------------------------------------------------------------------------
+#---------------------------------------------------------------------------*/
+
 cmake_minimum_required(VERSION 3.20)
-project(umicom-studio-ide C)
+project(umicom_studio_ide C)
+
+# Require C11 and common warnings
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+add_compile_options(-Wall -Wextra -Wno-missing-field-initializers)
 
-# Option: build without a console (Windows GUI subsystem)
-option(USTUDIO_GUI "Build as a GUI subsystem app (no console window)" OFF)
-
-# Dependencies (via pkg-config on MSYS2)
+# --- Dependencies (MSYS2) ---------------------------------------------------
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTK4 REQUIRED gtk4)
-pkg_check_modules(PANGO REQUIRED pango)
-pkg_check_modules(GDKPIXBUF REQUIRED gdk-pixbuf-2.0)
-pkg_check_modules(CAIRO REQUIRED cairo)
-pkg_check_modules(HARFBUZZ REQUIRED harfbuzz)
-pkg_check_modules(GRAPHENE REQUIRED graphene-1.0)
-pkg_check_modules(GLIB REQUIRED glib-2.0 gobject-2.0 gio-2.0)
-pkg_check_modules(JSONGLIB REQUIRED json-glib-1.0)
-pkg_check_modules(CURL REQUIRED libcurl)
-pkg_check_modules(SOUP3 REQUIRED libsoup-3.0)
+pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
+pkg_check_modules(PANGO REQUIRED IMPORTED_TARGET pango)
+pkg_check_modules(GDKPIXBUF REQUIRED IMPORTED_TARGET gdk-pixbuf-2.0)
+pkg_check_modules(CAIRO REQUIRED IMPORTED_TARGET cairo)
+pkg_check_modules(HARFBUZZ REQUIRED IMPORTED_TARGET harfbuzz)
+pkg_check_modules(GRAPHENE REQUIRED IMPORTED_TARGET graphene-1.0)
+pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
+pkg_check_modules(GOBJECT REQUIRED IMPORTED_TARGET gobject-2.0)
+pkg_check_modules(GIO REQUIRED IMPORTED_TARGET gio-2.0)
+pkg_check_modules(JSONGLIB REQUIRED IMPORTED_TARGET json-glib-1.0)
+pkg_check_modules(CURL REQUIRED IMPORTED_TARGET libcurl)
+pkg_check_modules(SOUP3 REQUIRED IMPORTED_TARGET libsoup-3.0)
 
-# Source files
-file(GLOB_RECURSE UMI_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/src/*.c"
+# --- Sources -----------------------------------------------------------------
+# Grab every .c under src, but ignore accidental duplicate subtree "src/src"
+file(GLOB_RECURSE USTUDIO_SOURCES CONFIGURE_DEPENDS
+     "${CMAKE_SOURCE_DIR}/src/*.c"
 )
+# Filter out any path containing '/src/src/' (accidental duplicates)
+set(USTUDIO_FILTERED_SOURCES "")
+foreach(_f IN LISTS USTUDIO_SOURCES)
+  string(FIND "${_f}" "/src/src/" _has_dup)
+  if(_has_dup EQUAL -1)
+    list(APPEND USTUDIO_FILTERED_SOURCES "${_f}")
+  endif()
+endforeach()
+list(LENGTH USTUDIO_FILTERED_SOURCES NUM_C_SOURCES)
+message(STATUS "umicom-studio sources: ${CMAKE_SOURCE_DIR}")
+message(STATUS "Number of C sources: ${NUM_C_SOURCES}")
 
-# Guard against accidentally added duplicate/backup dirs
-list(FILTER UMI_SOURCES EXCLUDE REGEX ".*/src/src/.*")
-list(FILTER UMI_SOURCES EXCLUDE REGEX ".*/(backup|old|deprecated|experimental)/.*")
+add_executable(ustudio ${USTUDIO_FILTERED_SOURCES})
 
-# Always compile our known-safe Windows launcher (prevents recursion/stack overflow)
-# Ensure we keep the copy under src/win_launcher.c and ignore any duplicates elsewhere.
-set(LAUNCHER_FILE "${CMAKE_SOURCE_DIR}/src/win_launcher.c")
-list(REMOVE_ITEM UMI_SOURCES "${CMAKE_SOURCE_DIR}/src/src/win_launcher.c")
-if(NOT UMI_SOURCES MATCHES "${LAUNCHER_FILE}")
-  list(APPEND UMI_SOURCES "${LAUNCHER_FILE}")
-endif()
-
-# Executable
-add_executable(ustudio ${UMI_SOURCES})
-
-# Include paths
+# --- Include directories (so headers like editor/editor.h resolve) -----------
 target_include_directories(ustudio PRIVATE
-    "${CMAKE_SOURCE_DIR}/src"
-    ${GTK4_INCLUDE_DIRS}
-    ${PANGO_INCLUDE_DIRS}
-    ${GDKPIXBUF_INCLUDE_DIRS}
-    ${CAIRO_INCLUDE_DIRS}
-    ${HARFBUZZ_INCLUDE_DIRS}
-    ${GRAPHENE_INCLUDE_DIRS}
-    ${GLIB_INCLUDE_DIRS}
-    ${JSONGLIB_INCLUDE_DIRS}
-    ${CURL_INCLUDE_DIRS}
-    ${SOUP3_INCLUDE_DIRS}
+  "${CMAKE_SOURCE_DIR}/src"
+  "${CMAKE_SOURCE_DIR}/src/editor"
+  "${CMAKE_SOURCE_DIR}/src/gui"
+  "${CMAKE_SOURCE_DIR}/src/core"
+  "${CMAKE_SOURCE_DIR}/src/panes"
+  "${CMAKE_SOURCE_DIR}/src/plugins"
+  "${CMAKE_SOURCE_DIR}/src/plugins/transpile"
+  "${CMAKE_SOURCE_DIR}/src/build"
+  "${CMAKE_SOURCE_DIR}/src/llm"
+  "${CMAKE_SOURCE_DIR}/src/llm/providers"
+  "${CMAKE_SOURCE_DIR}/src/search"
+  "${CMAKE_SOURCE_DIR}/src/ui"
 )
 
-# Libraries
+# --- Link libraries ----------------------------------------------------------
 target_link_libraries(ustudio PRIVATE
-    ${GTK4_LIBRARIES}
-    ${PANGO_LIBRARIES}
-    ${GDKPIXBUF_LIBRARIES}
-    ${CAIRO_LIBRARIES}
-    ${HARFBUZZ_LIBRARIES}
-    ${GRAPHENE_LIBRARIES}
-    ${GLIB_LIBRARIES}
-    ${JSONGLIB_LIBRARIES}
-    ${CURL_LIBRARIES}
-    ${SOUP3_LIBRARIES}
-    kernel32 user32 gdi32 winspool shell32 ole32 oleaut32 uuid comdlg32 advapi32
+  PkgConfig::GTK4
+  PkgConfig::PANGO
+  PkgConfig::GDKPIXBUF
+  PkgConfig::CAIRO
+  PkgConfig::HARFBUZZ
+  PkgConfig::GRAPHENE
+  PkgConfig::GLIB
+  PkgConfig::GOBJECT
+  PkgConfig::GIO
+  PkgConfig::JSONGLIB
+  PkgConfig::CURL
+  PkgConfig::SOUP3
 )
 
-# Compiler warnings (keep callbacks clean but don't block on benign warnings)
-if(MSVC)
-  target_compile_options(ustudio PRIVATE /W4)
-else()
-  target_compile_options(ustudio PRIVATE -Wall -Wextra -Wno-missing-field-initializers)
-endif()
-
-# Windows entry configuration
-if(MINGW OR WIN32)
-  # Accept UTF-16 argv and forward to UTF-8 main()
+# --- Windows / MinGW launch configuration -----------------------------------
+if (WIN32)
+  # Use UTF-16 entry points (wmain / wWinMain) and convert argv safely.
   target_link_options(ustudio PRIVATE -municode)
 
-  if(USTUDIO_GUI)
-    target_link_options(ustudio PRIVATE -Wl,--subsystem,windows)
-  else()
-    # Console by default during development so stdout/stderr are visible
+  # In Debug/RelWithDebInfo, build as console so stdout/stderr is visible;
+  # In Release/MinSizeRel, build as GUI app.
+  if (CMAKE_BUILD_TYPE MATCHES "Debug|RelWithDebInfo")
     target_link_options(ustudio PRIVATE -Wl,--subsystem,console)
+    if (MINGW)
+      # Explicitly choose the Unicode console entry to avoid WinMain mismatch
+      target_link_options(ustudio PRIVATE -Wl,-e,wmainCRTStartup)
+    endif()
+  else()
+    target_link_options(ustudio PRIVATE -Wl,--subsystem,windows)
+    if (MINGW)
+      # Explicitly choose the Unicode GUI entry to avoid WinMain mismatch
+      target_link_options(ustudio PRIVATE -Wl,-e,wWinMainCRTStartup)
+    endif()
   endif()
 endif()
 
-message(STATUS "umicom-studio sources: ${CMAKE_SOURCE_DIR}")
-message(STATUS "Number of C sources: ${UMI_SOURCES_LENGTH}")
+# --- Install (optional) ------------------------------------------------------
+# install(TARGETS ustudio RUNTIME DESTINATION bin)
