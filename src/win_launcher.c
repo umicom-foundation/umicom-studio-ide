@@ -1,96 +1,67 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
  * File: src/win_launcher.c
- * PURPOSE: Windows entry-point wrapper that converts wide argv to UTF-8 and
- *          calls the real `main(int,char**)` without recursion.
+ * PURPOSE: Windows entry-point shim. Converts UTF-16 argv to UTF-8 and
+ *          forwards to the regular 'main(int,char**)' without recursion.
  *
  * Created by: Umicom Foundation (https://umicom.foundation/)
  * Author: Sammy Hegab
  * Date: 15-09-2025
  * License: MIT
  *---------------------------------------------------------------------------*/
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shellapi.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* Forward declaration of the program's real main */
-int main(int argc, char **argv);
+/* We call the app's real main(). Do NOT define another main() here. */
+extern int main(int argc, char **argv);
 
-/* Utility: convert an argv[] from wide-char to UTF-8. Returns NULL on failure. */
-static char **utf8_argv_from_wargv(int wargc, wchar_t **wargv, int *out_argc) {
-    if (!out_argc) return NULL;
-    *out_argc = 0;
-    if (wargc < 0) return NULL;
+/* Convert wide-char argv[] to freshly-allocated UTF-8 argv[] */
+static int wide_argv_to_utf8(int wargc, wchar_t **wargv, char ***out_argv) {
+    int i, argc = wargc;
+    char **argv = (char**)calloc((size_t)argc + 1, sizeof(char*));
+    if (!argv) return -1;
 
-    /* allocate argv array (+1 for NULL terminator) */
-    char **argv8 = (char**)calloc((size_t)wargc + 1, sizeof(char*));
-    if (!argv8) return NULL;
-
-    for (int i = 0; i < wargc; ++i) {
-        wchar_t *w = wargv[i];
-        if (!w) { argv8[i] = NULL; continue; }
-        /* First get required size (including NUL) */
-        int need = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, w, -1, NULL, 0, NULL, NULL);
-        if (need <= 0) {
-            /* Fallback: try without strict validation */
-            need = WideCharToMultiByte(CP_UTF8, 0, w, -1, NULL, 0, NULL, NULL);
-            if (need <= 0) { need = 1; } /* make it an empty string on hard failure */
-        }
-        char *buf = (char*)malloc((size_t)need);
-        if (!buf) { /* out of memory: clean up and bail */
-            for (int j = 0; j < i; ++j) free(argv8[j]);
-            free(argv8);
-            return NULL;
-        }
-        int wrote = WideCharToMultiByte(CP_UTF8, 0, w, -1, buf, need, NULL, NULL);
-        if (wrote <= 0) { buf[0] = '\0'; }
-        argv8[i] = buf;
+    for (i = 0; i < argc; ++i) {
+        int need = WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, NULL, 0, NULL, NULL);
+        if (need <= 0) { argc = i; break; }
+        argv[i] = (char*)malloc((size_t)need);
+        if (!argv[i]) { argc = i; break; }
+        (void)WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, argv[i], need, NULL, NULL);
     }
-    argv8[wargc] = NULL;
-    *out_argc = wargc;
-    return argv8;
+    argv[argc] = NULL;
+    *out_argv = argv;
+    return argc;
 }
 
-static void free_utf8_argv(char **argv8, int argc8) {
-    if (!argv8) return;
-    for (int i = 0; i < argc8; ++i) free(argv8[i]);
-    free(argv8);
+static void free_utf8_argv(int argc, char **argv) {
+    if (!argv) return;
+    for (int i = 0; i < argc; ++i) free(argv[i]);
+    free(argv);
 }
 
-/* Common runner used by both wmain (console) and wWinMain (GUI). */
-static int run_main_with_utf8_argv_from_w(int wargc, wchar_t **wargv) {
-    int argc8 = 0;
-    char **argv8 = utf8_argv_from_wargv(wargc, wargv, &argc8);
-    if (!argv8) return EXIT_FAILURE;
-    int rc = main(argc8, argv8);
-    free_utf8_argv(argv8, argc8);
+/* Common trampoline: build UTF-8 argv and call real main(). */
+static int run_main_utf8_from_wargv(int wargc, wchar_t **wargv) {
+    char **argv = NULL;
+    int argc = wide_argv_to_utf8(wargc, wargv, &argv);
+    if (argc < 0) return -1;
+    int rc = main(argc, argv);
+    free_utf8_argv(argc, argv);
     return rc;
 }
 
-/* Console subsystem (preferred with -municode): entry is wmain */
+/* Console subsystem + -municode -> CRT looks for wmain(). */
 int wmain(int argc, wchar_t **wargv) {
-    return run_main_with_utf8_argv_from_w(argc, wargv);
+    return run_main_utf8_from_wargv(argc, wargv);
 }
 
-/* GUI subsystem: entry is wWinMain; we synthesize argv from the command line */
-int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR pCmdLine, int nCmdShow) {
-    (void)hInst; (void)hPrev; (void)pCmdLine; (void)nCmdShow;
-    int wargc = 0;
-    wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
-    if (!wargv) {
-        /* Extreme fallback: create a single-arg argv using module path */
-        wchar_t modulePath[MAX_PATH];
-        GetModuleFileNameW(NULL, modulePath, MAX_PATH);
-        wchar_t *tmpv[2] = { modulePath, NULL };
-        return run_main_with_utf8_argv_from_w(1, tmpv);
-    }
-    int rc = run_main_with_utf8_argv_from_w(wargc, wargv);
-    LocalFree(wargv);
+/* GUI subsystem + -municode -> CRT looks for wWinMain(). */
+int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR pCmdLine, int nShow) {
+    (void)hInst; (void)hPrev; (void)pCmdLine; (void)nShow;
+    int argc = 0;
+    LPWSTR *wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    int rc = run_main_utf8_from_wargv(argc, wargv ? wargv : (wchar_t**)NULL);
+    if (wargv) LocalFree(wargv);
     return rc;
 }
-#endif /* _WIN32 */
