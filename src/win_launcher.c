@@ -1,89 +1,50 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
- * File: src/win_launcher.c
- * PURPOSE: Windows launcher that collects UTF‑16 argv and calls run_main()
+ * File: win_launcher.c
+ * PURPOSE: Windows entrypoints (wWinMain for GUI builds) and UTF-8 argv thunk.
  *
  * Created by: Umicom Foundation (https://umicom.foundation/)
  * Author: Sammy Hegab
- * Date: 15-09-2025
+ * Date: 09-10-2025
  * License: MIT
  *---------------------------------------------------------------------------*/
+
 #include <windows.h>
-#include <shellapi.h>    /* CommandLineToArgvW */
-#include <stdlib.h>
-#include <string.h>
+#include <shellapi.h>
+#include <stdio.h>
+#include <glib.h>
 
-/* run_main is implemented in main.c */
-extern int run_main(int argc, char **argv);
+extern int main(int argc, char **argv);
 
-/* Convert wide argv to UTF‑8 argv. Returns heap-allocated array + strings. */
-static int utf16_argv_to_utf8(int wargc, wchar_t **wargv, char ***out_argv){
-    if(!out_argv) return -1;
-    *out_argv = NULL;
-    if(wargc <= 0 || !wargv){
-        *out_argv = (char**)calloc(1, sizeof(char*));
-        return 0;
+/* Convert wide argv to UTF-8 and forward to real main() */
+static int run_main_with_utf8_argv(void) {
+    int argc = 0;
+    LPWSTR *wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    if (!wargv) {
+        fputs("CommandLineToArgvW failed\n", stderr);
+        return -1;
     }
-    char **argv8 = (char**)calloc((size_t)wargc + 1, sizeof(char*));
-    if(!argv8) return -1;
-
-    for(int i=0;i<wargc;i++){
-        wchar_t *w = wargv[i];
-        int need = WideCharToMultiByte(CP_UTF8, 0, w, -1, NULL, 0, NULL, NULL);
-        if(need <= 0){
-            /* Fallback to empty string if conversion fails for this arg */
-            argv8[i] = _strdup("");
-            continue;
-        }
-        argv8[i] = (char*)malloc((size_t)need);
-        if(!argv8[i]){
-            /* free already allocated elements */
-            for(int j=0;j<i;j++) free(argv8[j]);
-            free(argv8);
-            return -1;
-        }
-        WideCharToMultiByte(CP_UTF8, 0, w, -1, argv8[i], need, NULL, NULL);
+    char **argv = g_new0(char*, argc + 1);
+    for (int i = 0; i < argc; ++i) {
+        argv[i] = g_utf16_to_utf8((const gunichar2*)wargv[i], -1, NULL, NULL, NULL);
+        if (!argv[i]) argv[i] = g_strdup("");
     }
-    argv8[wargc] = NULL;
-    *out_argv = argv8;
-    return wargc;
-}
-
-static void free_utf8_argv(int argc, char **argv){
-    (void)argc;
-    if(!argv) return;
-    for(char **p=argv; *p; ++p) free(*p);
-    free(argv);
-}
-
-/* Shared runner used by both console and GUI entry points. */
-static int run_main_with_utf8_argv(void){
-    int argcW = 0;
-    wchar_t **argvW = CommandLineToArgvW(GetCommandLineW(), &argcW);
-    if(!argvW){
-        /* No args; invoke run_main with empty argv */
-        char **argv8 = (char**)calloc(1, sizeof(char*));
-        int rc = run_main(0, argv8);
-        free(argv8);
-        return rc;
-    }
-    char **argv8 = NULL;
-    int argc8 = utf16_argv_to_utf8(argcW, argvW, &argv8);
-    int rc = run_main(argc8, argv8);
-    free_utf8_argv(argc8, argv8);
-    LocalFree(argvW);
+    argv[argc] = NULL;
+    int rc = main(argc, argv);
+    for (int i = 0; i < argc; ++i) g_free(argv[i]);
+    g_free(argv);
+    LocalFree(wargv);
     return rc;
 }
 
-/* Console entry (Debug) */
-#if defined(_CONSOLE) || !defined(NDEBUG)
-int wmain(void){
-    return run_main_with_utf8_argv();
-}
+#ifdef _WIN32
+#ifdef USIDE_DEV_CONSOLE
+/* Console builds: let MinGW provide mainCRTStartup -> main */
 #else
-/* GUI entry (Release) */
-int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nShowCmd){
-    (void)hInst; (void)hPrev; (void)lpCmdLine; (void)nShowCmd;
+/* GUI builds: provide wWinMain and call our UTF-8 thunk */
+int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR pCmdLine, int nCmdShow) {
+    (void)hInst; (void)hPrev; (void)pCmdLine; (void)nCmdShow;
     return run_main_with_utf8_argv();
 }
+#endif
 #endif
