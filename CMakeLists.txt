@@ -1,111 +1,124 @@
-# CMake build for Umicom Studio IDE
 # -----------------------------------------------------------------------------
-# This file is a *complete* and self‑contained CMake configuration intended
-# for MSYS2/MinGW on Windows, but it also works on Linux/macOS with pkg-config.
-#
-# Highlights:
-#   • Option USIDE_DEV_CONSOLE toggles Console vs GUI subsystem on Windows.
-#     - Console is handy during development to see GLib/printf logs.
-#     - GUI uses wWinMain from src/win_launcher.c.
-#   • Adds include paths for all subfolders and pkg‑config dependencies.
-#   • Excludes scratch/test sources (e.g. src/gtk_smoke.c) from the main app.
-#   • Uses -Wall/-Wextra and keeps deprecated GTK warnings visible by default.
-#
-# Usage (MSYS2 MinGW64 shell or PowerShell with PATH set to msys64\mingw64\bin):
-#   cmake -S . -B build-ninja -G Ninja -DCMAKE_BUILD_TYPE=Debug -DUSIDE_DEV_CONSOLE=ON
-#   ninja -C build-ninja -j1
+# Umicom Studio IDE
+# File: CMakeLists.txt
+# PURPOSE: Clean, reproducible build for MSYS2/MinGW (Windows) and Linux.
+#          Fixes prior issues where include directories were incorrectly
+#          added as -D macros (producing errors like 'macro names must be
+#          identifiers'). Also selects Console vs GUI subsystem sanely.
+# Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-09 | MIT
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.20)
-project(ustudio C)
+project(umicom_studio_ide C)
 
-# ---- Options -----------------------------------------------------------------
-option(USIDE_DEV_CONSOLE "Build with a console (helps to see logs during dev)" ON)
-
-# ---- Language / Warnings -----------------------------------------------------
+# --- Options -----------------------------------------------------------------
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS ON)
 
-# ---- Dependencies via pkg-config --------------------------------------------
+option(USIDE_DEV_CONSOLE "Build with console subsystem (stdout/stderr visible)" ON)
+
+# --- Dependencies -------------------------------------------------------------
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(USIDE_PKG REQUIRED
-  gtk4
-  pango
-  gdk-pixbuf-2.0
-  cairo
-  harfbuzz
-  graphene-1.0
-  glib-2.0
-  gobject-2.0
-  gio-2.0
-  json-glib-1.0
-  libsoup-3.0
-  libcurl
+pkg_check_modules(GTK4     REQUIRED gtk4)
+pkg_check_modules(PANGO    REQUIRED pango)
+pkg_check_modules(PIXBUF   REQUIRED gdk-pixbuf-2.0)
+pkg_check_modules(CAIRO    REQUIRED cairo)
+pkg_check_modules(HARFBUZZ REQUIRED harfbuzz)
+pkg_check_modules(GRAPHENE REQUIRED graphene-1.0)
+pkg_check_modules(GLIB     REQUIRED glib-2.0 gobject-2.0 gio-2.0)
+pkg_check_modules(JSONGLIB REQUIRED json-glib-1.0)
+pkg_check_modules(LIBCURL  REQUIRED libcurl)
+pkg_check_modules(SOUP3    REQUIRED libsoup-3.0)
+
+# --- Sources -----------------------------------------------------------------
+# Keep this glob; it mirrors the repo structure and is easy to maintain.
+file(GLOB_RECURSE USIDE_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/src/*.c"
 )
 
-# ---- Source discovery --------------------------------------------------------
-# Grab all .c files under src/, then *exclude* scratch/test entry points that may
-# define their own main() or are not meant to ship with the IDE.
-file(GLOB_RECURSE USIDE_ALL_C "${CMAKE_SOURCE_DIR}/src/*.c")
+# If you want a *cleaner* build, you can exclude known throwaway/demo files:
+# list(FILTER USIDE_SOURCES EXCLUDE REGEX ".*/gtk_smoke\.c$")
+# list(FILTER USIDE_SOURCES EXCLUDE REGEX ".*/test_scaffold\.c$")
 
-# Remove experimental/demo sources from the main target if present:
-foreach(BAD IN ITEMS
-  "${CMAKE_SOURCE_DIR}/src/gtk_smoke.c"
-)
-  list(REMOVE_ITEM USIDE_ALL_C "${BAD}")
-endforeach()
+message(STATUS "Config type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "USIDE_DEV_CONSOLE: ${USIDE_DEV_CONSOLE}")
+message(STATUS "Number of C sources: ${USIDE_SOURCES}")
 
-# Make sure the Windows launcher is always compiled on Windows to provide
-# wWinMain / wmain shims when we use the GUI subsystem.
-if(WIN32)
-  list(APPEND USIDE_ALL_C "${CMAKE_SOURCE_DIR}/src/win_launcher.c")
-endif()
+add_executable(ustudio ${USIDE_SOURCES})
 
-# ---- Target ------------------------------------------------------------------
-# On Windows, use WIN32 for GUI subsystem when console is OFF; otherwise build a
-# normal console exe. On non-Windows, WIN32 is ignored anyway.
-if(WIN32 AND NOT USIDE_DEV_CONSOLE)
-  add_executable(ustudio WIN32 ${USIDE_ALL_C})
-else()
-  add_executable(ustudio ${USIDE_ALL_C})
-endif()
-
-# Includes: project headers + pkg-config
+# --- Include directories (do NOT treat these as -D macros!) -------------------
 target_include_directories(ustudio PRIVATE
-  "${CMAKE_SOURCE_DIR}/src"
-  "${CMAKE_SOURCE_DIR}/src/editor"
-  "${CMAKE_SOURCE_DIR}/src/gui"
-  "${CMAKE_SOURCE_DIR}/src/core"
-  "${CMAKE_SOURCE_DIR}/src/panes"
-  "${CMAKE_SOURCE_DIR}/src/plugins"
-  "${CMAKE_SOURCE_DIR}/src/plugins/transpile"
-  "${CMAKE_SOURCE_DIR}/src/build"
-  "${CMAKE_SOURCE_DIR}/src/llm"
-  "${CMAKE_SOURCE_DIR}/src/llm/providers"
-  "${CMAKE_SOURCE_DIR}/src/search"
-  "${CMAKE_SOURCE_DIR}/src/ui"
-  ${USIDE_PKG_INCLUDE_DIRS}
+    "${CMAKE_SOURCE_DIR}/src"
+    "${CMAKE_SOURCE_DIR}/src/editor"
+    "${CMAKE_SOURCE_DIR}/src/gui"
+    "${CMAKE_SOURCE_DIR}/src/core"
+    "${CMAKE_SOURCE_DIR}/src/panes"
+    "${CMAKE_SOURCE_DIR}/src/plugins"
+    "${CMAKE_SOURCE_DIR}/src/plugins/transpile"
+    "${CMAKE_SOURCE_DIR}/src/build"
+    "${CMAKE_SOURCE_DIR}/src/llm"
+    "${CMAKE_SOURCE_DIR}/src/llm/providers"
+    "${CMAKE_SOURCE_DIR}/src/search"
+    "${CMAKE_SOURCE_DIR}/src/ui"
+    "${CMAKE_SOURCE_DIR}/SYSTEM"             # for local shim headers
+    ${GTK4_INCLUDE_DIRS}
+    ${PANGO_INCLUDE_DIRS}
+    ${PIXBUF_INCLUDE_DIRS}
+    ${CAIRO_INCLUDE_DIRS}
+    ${HARFBUZZ_INCLUDE_DIRS}
+    ${GRAPHENE_INCLUDE_DIRS}
+    ${GLIB_INCLUDE_DIRS}
+    ${JSONGLIB_INCLUDE_DIRS}
+    ${LIBCURL_INCLUDE_DIRS}
+    ${SOUP3_INCLUDE_DIRS}
 )
 
+# --- Link libraries -----------------------------------------------------------
+target_link_libraries(ustudio PRIVATE
+    ${GTK4_LIBRARIES}
+    ${PANGO_LIBRARIES}
+    ${PIXBUF_LIBRARIES}
+    ${CAIRO_LIBRARIES}
+    ${HARFBUZZ_LIBRARIES}
+    ${GRAPHENE_LIBRARIES}
+    ${GLIB_LIBRARIES}
+    ${JSONGLIB_LIBRARIES}
+    ${LIBCURL_LIBRARIES}
+    ${SOUP3_LIBRARIES}
+)
+
+# --- Compiler & linker flags --------------------------------------------------
 target_compile_options(ustudio PRIVATE
-  -Wall -Wextra -Wno-missing-field-initializers
+    ${GTK4_CFLAGS_OTHER}
+    ${PANGO_CFLAGS_OTHER}
+    ${PIXBUF_CFLAGS_OTHER}
+    ${CAIRO_CFLAGS_OTHER}
+    ${HARFBUZZ_CFLAGS_OTHER}
+    ${GRAPHENE_CFLAGS_OTHER}
+    ${GLIB_CFLAGS_OTHER}
+    ${JSONGLIB_CFLAGS_OTHER}
+    ${LIBCURL_CFLAGS_OTHER}
+    ${SOUP3_CFLAGS_OTHER}
+    -Wall -Wextra -Wno-missing-field-initializers
+    -Wno-deprecated-declarations           # silence known GTK deprecations we still use
 )
 
-# Libraries discovered by pkg-config
-target_link_libraries(ustudio PRIVATE ${USIDE_PKG_LIBRARIES})
+if (MSYS OR MINGW)
+    # Use wide-char entry points; SSE flags match your existing toolchain.
+    target_compile_options(ustudio PRIVATE -municode -mfpmath=sse -msse -msse2)
 
-# Propagate any extra flags from pkg-config (MSYS2 typically needs these)
-target_compile_options(ustudio PRIVATE ${USIDE_PKG_CFLAGS_OTHER})
-target_link_options(ustudio PRIVATE ${USIDE_PKG_LDFLAGS_OTHER})
-
-# Windows specific: make sure we use Unicode entry points and safe defaults.
-if(MINGW)
-  target_compile_definitions(ustudio PRIVATE UNICODE _UNICODE)
-  target_compile_options(ustudio PRIVATE -municode)
-  # Hardened linker flags are generally OK
-  target_link_options(ustudio PRIVATE -Wl,--dynamicbase -Wl,--nxcompat)
+    if (USIDE_DEV_CONSOLE)
+        # Console subsystem -> use main() and see logs in a console window.
+        target_link_options(ustudio PRIVATE -Wl,--subsystem,console)
+    else()
+        # GUI subsystem -> requires WinMain/wWinMain (provided by src/win_launcher.c).
+        target_link_options(ustudio PRIVATE -Wl,--subsystem,windows)
+    endif()
 endif()
 
-# Install (optional)
-install(TARGETS ustudio RUNTIME DESTINATION bin)
+# --- Public feature defines ---------------------------------------------------
+if (USIDE_DEV_CONSOLE)
+    target_compile_definitions(ustudio PRIVATE USIDE_DEV_CONSOLE=1)
+else()
+    target_compile_definitions(ustudio PRIVATE USIDE_GUI_BUILD=1)
+endif()

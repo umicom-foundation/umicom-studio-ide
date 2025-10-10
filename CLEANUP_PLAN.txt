@@ -1,0 +1,43 @@
+Suggested removals / moves (non-functional clean-up)
+==========================================================
+
+Move out of the main build (unless you actively use them)
+---------------------------------------------------------
+- src/gtk_smoke.c            -> move to src/experiments/gtk_smoke.c
+- src/test_scaffold.c        -> move to src/experiments/test_scaffold.c
+- src/palette.c              -> (legacy) move to src/legacy/palette.c  or delete if unused
+
+Notes on warnings fixed conceptually
+------------------------------------
+These are the *source-level* cleanups you may still want to commit in your repo:
+
+- src/run_config.c
+  Replace the one-liner with explicit braces to silence -Wmisleading-indentation:
+    if (!r) return;
+    g_free(r->cwd);
+    g_free(r->argv_line);
+    g_free(r->env_multiline);
+    g_free(r);
+
+  => becomes:
+    if (!r) return;
+    g_free(r->cwd);
+    g_free(r->argv_line);
+    g_free(r->env_multiline);
+    g_free(r);
+
+  (If you want *strictly* one statement after the `if`, brace it.)
+
+- src/ansi_color.c, src/search/search_panel.c, src/theme.c
+  Remove unused locals (e.g., `len`, `ctx`) or cast to void if you keep the call:
+    (void)g_unichar_to_utf8(ch, NULL);
+
+- src/build/build_queue.c, src/output_pipeline.c, src/crash_guard.c, src/msys_env.c
+  Mark unused parameters with `(void)param;` lines, or attribute:
+    static void on_exit(gpointer u, int code) { (void)code; ... }
+
+GTK deprecations (safe to defer)
+--------------------------------
+- GtkTreeView/TreeStore → GtkListView + GtkTreeListModel
+- gtk_dialog_new()/gtk_widget_show() → modern alternatives
+These are warnings only; functional changes can be scheduled later.

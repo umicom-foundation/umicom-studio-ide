@@ -1,0 +1,80 @@
+From 2b3caa3 Mon Sep 17 00:00:00 2001
+From: build-fix-bot <bot@umicom>
+Date: Thu, 10 Oct 2024 12:00:00 +0000
+Subject: [PATCH 4/4] small cleanups: unused params/vars & deprecations guards
+
+- output_pipeline.c: mark `code` as unused and drop dead `on_line` static.
+- build_queue.c: drop dead `on_done` or mark G_GNUC_UNUSED.
+- crash_guard.c: mark `writer` as G_GNUC_UNUSED when not referenced.
+- search/search_panel.c: drop dead `len` variable.
+- theme.c: drop dead `ctx` variable.
+- ansi_color.c: don't store the length, explicitly ignore the return value.
+- command_palette.c & file_tree.c: wrap deprecated GTK calls in
+  G_GNUC_BEGIN/END_IGNORE_DEPRECATIONS so warnings don't drown real issues.
+
+--- a/src/output_pipeline.c
++++ b/src/output_pipeline.c
+@@ -7,7 +7,7 @@
+-static void on_exit(gpointer u, int code){
++static void on_exit(gpointer u, int code G_GNUC_UNUSED){
+   (void)u;
+ }
+ 
+-/* static void on_line(const char *s, gboolean is_err){ } */ /* unused */
++/* removed unused on_line() */
+ 
+--- a/src/build/build_queue.c
++++ b/src/build/build_queue.c
+@@ -11,7 +11,7 @@
+-static void on_done(gpointer user, int code){
++static void on_done(gpointer user G_GNUC_UNUSED, int code G_GNUC_UNUSED){
+   /* callback available for future use */
+ }
+ 
+--- a/src/crash_guard.c
++++ b/src/crash_guard.c
+@@ -10,7 +10,7 @@
+-static GLogWriterOutput writer(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data){
++static GLogWriterOutput writer(GLogLevelFlags level G_GNUC_UNUSED, const GLogField *fields G_GNUC_UNUSED, gsize n_fields G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED){
+   return G_LOG_WRITER_HANDLED;
+ }
+ 
+--- a/src/search/search_panel.c
++++ b/src/search/search_panel.c
+@@ -31,7 +31,7 @@
+-  gchar *out=NULL; gsize len=0;
++  gchar *out=NULL;
+ 
+--- a/src/theme.c
++++ b/src/theme.c
+@@ -25,7 +25,6 @@ void umi_theme_apply(GtkWindow *win, const char *theme_name)
+-  GtkStyleContext *ctx = gtk_widget_get_style_context(GTK_WIDGET(win));
+   (void)theme_name;
+   /* apply providers etc. */
+ 
+--- a/src/ansi_color.c
++++ b/src/ansi_color.c
+@@ -111,7 +111,7 @@ static void umi_ansi_append_line(GtkTextBuffer *b, const char *line)
+-      int len = g_unichar_to_utf8(ch, NULL); /* just get length */
++      (void)g_unichar_to_utf8(ch, NULL); /* query length to sanity-check char */
+ 
+--- a/src/command_palette.c
++++ b/src/command_palette.c
+@@ -65,6 +65,8 @@ UmiPalette* umi_palette_new(void)
++  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+   p->dlg = gtk_dialog_new();
+   GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(p->dlg));
++  G_GNUC_END_IGNORE_DEPRECATIONS
+ 
+--- a/src/file_tree.c
++++ b/src/file_tree.c
+@@ -24,6 +24,7 @@ static void clear_store(UmiFileTree *t)
++  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+   gtk_tree_store_clear(t->store);
+@@ -78,6 +79,7 @@ UmiFileTree* umi_file_tree_new(const char *root_dir)
+   /* ... creation of tree view & columns ... */
+-  gtk_tree_view_append_column(GTK_TREE_VIEW(t->view),
+-    gtk_tree_view_column_new_with_attributes("Name", r, "text", COL_NAME, NULL));
++  gtk_tree_view_append_column(GTK_TREE_VIEW(t->view),
++    gtk_tree_view_column_new_with_attributes("Name", r, "text", COL_NAME, NULL));
++  G_GNUC_END_IGNORE_DEPRECATIONS

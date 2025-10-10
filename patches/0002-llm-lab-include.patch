@@ -1,0 +1,16 @@
+From 2aaf4bf Mon Sep 17 00:00:00 2001
+From: build-fix-bot <bot@umicom>
+Date: Thu, 10 Oct 2024 12:00:00 +0000
+Subject: [PATCH 2/4] gui/llm_lab.c: include correct header path
+
+`#include "umicom/llm_lab.h"` does not exist in this tree. The header
+lives under src/llm/, and include dirs already add that path, so just
+include "llm_lab.h".
+
+--- a/src/gui/llm_lab.c
++++ b/src/gui/llm_lab.c
+@@ -1,5 +1,5 @@
+-#include "umicom/llm_lab.h"
++#include "llm_lab.h"
+ 
+ /* Rest of file unchanged */
