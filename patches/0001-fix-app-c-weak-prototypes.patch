@@ -1,0 +1,26 @@
+
+diff --git a/src/gui/app.c b/src/gui/app.c
+index 1111111..2222222 100644
+--- a/src/gui/app.c
++++ b/src/gui/app.c
+@@ -1,15 +1,12 @@
+ #include "gui/app.h"
+-/* Wrong forward decls: return type and signatures differ from editor/editor.h */
+-__attribute__((weak)) void umi_editor_save(UmiEditor *ed, GError **error);
+-__attribute__((weak)) void umi_editor_save_as(UmiEditor *ed, GtkWindow *parent, GError **error);
+-__attribute__((weak)) void umi_editor_close(UmiEditor *ed);
+-__attribute__((weak)) void umi_editor_undo(UmiEditor *ed);
++/* Use canonical prototypes from the public editor header */
++#include "editor/editor.h"
+ 
+ /* ... rest of file unchanged ... */
+ 
+ /* Rationale:
+- * The weak declarations above shadow the real declarations in editor/editor.h.
+- * Because their return types differ (void vs gboolean) the compiler emits
+- * 'conflicting types' and aborts. Including the header removes the conflict.
++ * Local weak declarations shadowed the real prototypes in editor/editor.h and
++ * used 'void' instead of 'gboolean', causing GCC's 'conflicting types' error.
++ * Including the header (and removing the weak decls) fixes the build and uses
++ * the correct signatures everywhere.
+  */

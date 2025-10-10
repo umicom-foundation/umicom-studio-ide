@@ -1,50 +1,57 @@
+\
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
- * File: win_launcher.c
- * PURPOSE: Windows entrypoints (wWinMain for GUI builds) and UTF-8 argv thunk.
+ * File: src/win_launcher.c
+ * PURPOSE: Windows entrypoint shim (GUI builds). Converts UTF-16 argv to UTF-8
+ *          and forwards to the real main() without recursion.
  *
  * Created by: Umicom Foundation (https://umicom.foundation/)
  * Author: Sammy Hegab
- * Date: 09-10-2025
+ * Date: 15-09-2025
  * License: MIT
  *---------------------------------------------------------------------------*/
-
+#ifdef _WIN32
 #include <windows.h>
-#include <shellapi.h>
-#include <stdio.h>
 #include <glib.h>
 
+/* We only provide a GUI entry when building the Windows GUI subsystem.
+ * For console builds, the regular int main(int,char**) in main.c is used.
+ */
+#ifdef USIDE_GUI_BUILD
 extern int main(int argc, char **argv);
 
-/* Convert wide argv to UTF-8 and forward to real main() */
-static int run_main_with_utf8_argv(void) {
+static char **utf8_argv_from_windows(int *out_argc) {
     int argc = 0;
     LPWSTR *wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
     if (!wargv) {
-        fputs("CommandLineToArgvW failed\n", stderr);
-        return -1;
+        *out_argc = 0;
+        return NULL;
     }
-    char **argv = g_new0(char*, argc + 1);
+
+    char **argv = (char**)g_malloc0_n((size_t)argc + 1, sizeof(char*));
     for (int i = 0; i < argc; ++i) {
-        argv[i] = g_utf16_to_utf8((const gunichar2*)wargv[i], -1, NULL, NULL, NULL);
-        if (!argv[i]) argv[i] = g_strdup("");
+        argv[i] = g_utf16_to_utf8(wargv[i], -1, NULL, NULL, NULL);
+        if (!argv[i]) {
+            // Fallback: empty string if conversion fails
+            argv[i] = g_strdup("");
+        }
     }
     argv[argc] = NULL;
-    int rc = main(argc, argv);
-    for (int i = 0; i < argc; ++i) g_free(argv[i]);
-    g_free(argv);
+    *out_argc = argc;
     LocalFree(wargv);
-    return rc;
+    return argv;
 }
 
-#ifdef _WIN32
-#ifdef USIDE_DEV_CONSOLE
-/* Console builds: let MinGW provide mainCRTStartup -> main */
-#else
-/* GUI builds: provide wWinMain and call our UTF-8 thunk */
-int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR pCmdLine, int nCmdShow) {
-    (void)hInst; (void)hPrev; (void)pCmdLine; (void)nCmdShow;
-    return run_main_with_utf8_argv();
+int APIENTRY wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nShow) {
+    (void)hInst; (void)hPrev; (void)lpCmdLine; (void)nShow;
+    int argc = 0;
+    char **argv = utf8_argv_from_windows(&argc);
+    int code = main(argc, argv);
+    if (argv) {
+        for (int i = 0; i < argc; ++i) g_free(argv[i]);
+        g_free(argv);
+    }
+    return code;
 }
-#endif
-#endif
+#endif /* USIDE_GUI_BUILD */
+#endif /* _WIN32 */

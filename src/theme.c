@@ -1,19 +1,19 @@
+\
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
- * File: theme.c
- * PURPOSE: Theme apply: keep style context but silence unused warning.
+ * File: src/theme.c
+ * PURPOSE: Theme application
  *
  * Created by: Umicom Foundation (https://umicom.foundation/)
  * Author: Sammy Hegab
- * Date: 09-10-2025
+ * Date: 15-09-2025
  * License: MIT
  *---------------------------------------------------------------------------*/
-
 #include <gtk/gtk.h>
 #include "theme.h"
 
 void umi_theme_apply(GtkWindow *win){
-    GtkStyleContext *ctx = gtk_widget_get_style_context(GTK_WIDGET(win));
-    (void)ctx;
-    /* TODO: load CSS provider and apply */
+  /* GtkStyleContext *ctx = gtk_widget_get_style_context(GTK_WIDGET(win)); */
+  /* Currently unused: ctx */
+  (void)win;
 }
