@@ -1,0 +1,16 @@
+C:\dev\umicom-studio-ide\src\build\build_tasks.h
+C:\dev\umicom-studio-ide\src\gui\dialogs\about.h
+C:\dev\umicom-studio-ide\src\include\studio\codestral.h
+C:\dev\umicom-studio-ide\src\include\ueng\common.h
+C:\dev\umicom-studio-ide\src\include\umicom\i18n.h
+C:\dev\umicom-studio-ide\src\include\umicom\llm.h
+C:\dev\umicom-studio-ide\src\include\umicom\llm_http.h
+C:\dev\umicom-studio-ide\src\include\umicom\privacy.h
+C:\dev\umicom-studio-ide\src\include\umicom\trace.h
+C:\dev\umicom-studio-ide\src\include\umicom\transpile.h
+C:\dev\umicom-studio-ide\src\include\gtk_all.h
+C:\dev\umicom-studio-ide\src\panes\chat\chat_pane.h
+C:\dev\umicom-studio-ide\src\ui\window_chat_integration.h
+C:\dev\umicom-studio-ide\src\util\log\logging.h
+C:\dev\umicom-studio-ide\src\util\platform\win_launcher.h
+C:\dev\umicom-studio-ide\src\util\sys\crash_guard.h
