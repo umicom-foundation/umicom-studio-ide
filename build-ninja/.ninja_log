@@ -1,6 +1,0 @@
-# ninja log v7
-4	39	7817874220874349	C:/Dev/umicom-studio-ide/build-ninja/CMakeFiles/cmake.verify_globs	24ea305ccbae6350
-41	96	7817874221245778	CMakeFiles/ustudio.dir/src/LICENSE.c.obj	7e4ad8e3964935c9
-97	614	7817874221792420	CMakeFiles/ustudio.dir/src/about.c.obj	77c434f5b0a93424
-620	1123	7817874227028733	CMakeFiles/ustudio.dir/src/actions.c.obj	ba26247e52a799b0
-1124	1644	7817874232067380	CMakeFiles/ustudio.dir/src/ansi_color.c.obj	fa9e73b52c42aef

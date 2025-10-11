@@ -1,3 +1,0 @@
-Keep the first definition of:
-  static GPtrArray *split_argv_safe(const char *cmd)
-Delete subsequent duplicates (function body included).
