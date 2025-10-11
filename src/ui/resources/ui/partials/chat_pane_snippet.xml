@@ -1,14 +1,20 @@
+<!--
+==============================================================================
+  Umicom Studio IDE
+  File: src/ui/resources/ui/partials/chat_pane_snippet.xml
+  PURPOSE: Small UI fragment representing the "Chat" pane; referenced/included
+           by larger .ui files. Kept as a tiny, composable piece.
+  Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+==============================================================================
+-->
 
-<!-- Insert inside a right-side box container with id='right_box' -->
-<object class="GtkFrame">
-  <property name="label">Chat</property>
-  <property name="hexpand">true</property>
-  <property name="vexpand">true</property>
-  <child>
-    <!-- Will be replaced at runtime by chat_pane_new(); this placeholder keeps layout stable -->
-    <object class="GtkBox">
-      <property name="orientation">vertical</property>
-      <property name="spacing">6</property>
-    </object>
-  </child>
-</object>
+<!--
+  This XML is intentionally minimal so it can be embedded into multiple
+  contexts. The surrounding container (a notebook tab, sidebar, etc.)
+  provides layout constraints. The label is the user-visible title for
+  the pane, and the internal name/id is used by code to locate the widget.
+-->
+<ui>
+  <!-- The 'name' is used by code to look it up; the text is end-user visible. -->
+  <pane name="ChatPane">Chat</pane>
+</ui>

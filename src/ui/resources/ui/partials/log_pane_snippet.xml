@@ -1,19 +1,19 @@
+<!-- 
+==================================================================================
+  Umicom Studio IDE
+  File: src/ui/resources/ui/partials/log_pane_snippet.xml
+  PURPOSE: Small UI fragment representing the "Log"/Output pane.
+  Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+==================================================================================
+-->
 
-<!-- Bottom log area -->
-<object class="GtkFrame">
-  <property name="label">Log</property>
-  <property name="hexpand">true</property>
-  <property name="vexpand">true</property>
-  <child>
-    <object class="GtkScrolledWindow" id="bottom_log_scroller">
-      <property name="hexpand">true</property>
-      <property name="vexpand">true</property>
-      <child>
-        <object class="GtkTextView" id="log_view">
-          <property name="editable">false</property>
-          <property name="wrap-mode">word-char</property>
-        </object>
-      </child>
-    </object>
-  </child>
-</object>
+<!--
+  Like the chat snippet, this fragment is intentionally tiny:
+  - Keeps duplication low.
+  - Lets larger UI definitions include it where appropriate.
+  The code binds to the 'LogPane' name and updates the content accordingly.
+-->
+<ui>
+  <!-- Shown in the UI; the backing code can bind signals/handlers to this pane. -->
+  <pane name="LogPane">Logs</pane>
+</ui>

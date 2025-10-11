@@ -1,3 +1,106 @@
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * File: src/ui/resources/styles/app.css
+ * PURPOSE: Minimal app-wide CSS for GTK CSS theming (GTK 4 supports CSS-like
+ *          styling). This stylesheet is kept small on purpose and meant to be
+ *          extended by theme presets or additional overrides.
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ *---------------------------------------------------------------------------*/
 
-.title { font-weight: 700; }
-.heading { font-weight: 600; padding: 6px 4px; }
+/* Root-level styling applied to the entire application.
+ * If you use CSS variables in future themes, define them on :root here.
+ */
+:root {
+  /* Example: color-scheme placeholder; actual colors may come from theme presets */
+  /* --umi-accent: #4a90e2; */
+}
+
+/* Pane titles or SECTION labels; keeps consistency across embedded views.
+ * The !important flags are avoided to keep this override-friendly.
+ */
+.pane-title {
+  font-weight: bold;           /* Make titles visually distinct                      */
+  letter-spacing: 0.2px;       /* A touch of tracking for readability                */
+}
+
+/* Generic container for pannable/log-like views. Keep it neutral and let
+ * theme presets colorize it.
+ */
+.pane-body {
+  font-family: system-ui, sans-serif; /* Consistent fallback stack for readability */
+  font-size: 0.95rem;                 /* Slightly smaller default text             */
+  line-height: 1.45;                  /* Comfortable line height for logs/chat     */
+}
+.pane-body code {
+  font-family: 'Fira Code', 'Source Code Pro', monospace, monospace; /* Monospace for code */
+  font-size: 0.9rem;                  /* Slightly smaller for code snippets         */
+}
+.pane-body pre {
+  background-color: var(--umi-bg-alt); /* Subtle background for preformatted text */
+  padding: 8px;                        /* Padding for readability                  */
+  border-radius: 4px;                  /* Rounded corners for aesthetics           */
+  overflow-x: auto;                    /* Horizontal scroll if content overflows   */
+}
+.pane-body a {
+  color: var(--umi-accent);            /* Accent color for links                   */
+  text-decoration: underline;          /* Underline links for clarity              */
+}
+.pane-body a:hover {
+  text-decoration: none;               /* Remove underline on hover for subtlety   */
+}
+.pane-body img {
+  max-width: 100%;                     /* Responsive images                        */
+  height: auto;                        /* Maintain aspect ratio                    */
+  border-radius: 4px;                  /* Rounded corners for aesthetics           */
+}
+.pane-body blockquote {
+  border-left: 4px solid var(--umi-accent); /* Accent border for blockquotes       */
+  padding-left: 12px;                       /* Padding for readability              */
+  color: var(--umi-text-secondary);         /* Subtle text color                   */
+  margin: 8px 0;                            /* Vertical spacing                    */
+}
+.pane-body ul, .pane-body ol {
+  margin-left: 20px;                  /* Indent lists for clarity                 */
+  margin-bottom: 8px;                 /* Spacing below lists                      */
+}
+.pane-body li {
+  margin-bottom: 4px;                 /* Spacing between list items               */
+}
+.pane-body hr {
+  border: none;                       /* Remove default border                    */
+  border-top: 1px solid var(--umi-border); /* Subtle horizontal rule              */
+  margin: 16px 0;                     /* Vertical spacing                         */
+}
+.pane-body table {
+  width: 100%;                        /* Full width tables                        */
+  border-collapse: collapse;          /* Collapse borders for cleaner look        */
+  margin-bottom: 16px;                /* Spacing below tables                     */
+}
+.pane-body th, .pane-body td {
+  border: 1px solid var(--umi-border); /* Table cell borders                      */
+  padding: 8px;                        /* Cell padding                            */
+  text-align: left;                    /* Left-align text                         */
+}
+.pane-body th {
+  background-color: var(--umi-bg-alt); /* Subtle background for headers           */
+  font-weight: bold;                   /* Bold headers                            */
+}
+.pane-body td {
+  background-color: var(--umi-bg);     /* Regular background for cells            */
+}
+.pane-body .highlight {
+  background-color: var(--umi-bg-highlight); /* Highlighted text background         */
+  padding: 2px 4px;                          /* Padding for highlighted text        */
+  border-radius: 2px;                        /* Slightly rounded corners            */
+}
+.pane-body .error {
+  color: var(--umi-error);             /* Error text color                        */
+  font-weight: bold;                   /* Bold for emphasis                       */
+}
+.pane-body .warning {
+  color: var(--umi-warning);           /* Warning text color                      */
+  font-weight: bold;                   /* Bold for emphasis                       */
+}
+.pane-body .info {
+  color: var(--umi-info);              /* Info text color                         */
+}
