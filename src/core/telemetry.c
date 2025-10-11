@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/telemetry.c
  * PURPOSE: In-memory counters with GHashTable (no persistence)

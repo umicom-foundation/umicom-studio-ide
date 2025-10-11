@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/console_logger.h
  * PURPOSE: Helper to log messages into UmiOutputConsole with ANSI coloring

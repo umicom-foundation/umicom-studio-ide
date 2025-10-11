@@ -1,12 +1,12 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/about.c
- * PURPOSE: About dialog (GTK4) — non-blocking, modal presentation
+ * PURPOSE: About dialog (GTK4) â€” non-blocking, modal presentation
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 #include <gtk/gtk.h>
 
-/* Public helpers — both names provided to match existing callers */
+/* Public helpers â€” both names provided to match existing callers */
 void umi_about_show(GtkWindow *parent);
 void umi_show_about(GtkWindow *parent);
 
@@ -28,7 +28,7 @@ void umi_about_show(GtkWindow *parent)
   gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(dlg), "dev");
   gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(dlg),
     "An experimental, friendly IDE for Umicom projects.\n"
-    "Copyright © Umicom Foundation."
+    "Copyright Â© Umicom Foundation."
   );
 
   if (parent) {

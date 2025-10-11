@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/project_manager.h
  * PURPOSE: High-level project/open workspace management API
@@ -11,7 +11,7 @@
 #include <gtk/gtk.h>
 #include "workspace.h"
 #include "../../util/fs/include/file_index.h"
-#include <umicom/recent_files.h>
+#include "recent_files.h"
 #include "../../util/log/include/status_util.h"
 
 /* The Project Manager is a tiny facade that collects common actions a contributor

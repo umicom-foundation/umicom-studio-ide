@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+===========================================================================
+ Umicom Studio IDE (USIDE)
+ File: src/ui/resources/ustudio.gresource.xml
+ PURPOSE: GResource manifest for UI, CSS, and preset data
+
+ Created by: Umicom Foundation (https://umicom.foundation/)
+ Author: Sammy Hegab
+ Date: 15-09-2025
+ License: MIT
+
+ NOTES:
+ * This file replaces the old assets/data/ustudio.gresource.xml path.
+ * Keep this manifest synchronized with files under src/ui/resources/.
+===========================================================================
+-->
+
+<gresources>
+  <!-- All resources are served under this prefix -->
+  <gresource prefix="/com/umicom/ustudio">
+
+    <!-- Stylesheets and theme presets -->
+    <file>styles/app.css</file>
+    <file>styles/theme_presets.json</file>
+
+    <!-- UI definition files -->
+    <file>ui/chat.ui</file>
+    <file>ui/main.ui</file>
+    <file>ui/shortcuts.ui</file>
+
+    <!-- UI partial snippets -->
+    <file>ui/partials/chat_pane_snippet.xml</file>
+    <file>ui/partials/log_pane_snippet.xml</file>
+
+  </gresource>
+</gresources>

@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/editor/editor_actions.c
  * PURPOSE: Minimal editor ops (placeholder; integrate GtkSourceView later)

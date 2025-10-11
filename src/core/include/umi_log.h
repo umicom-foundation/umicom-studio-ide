@@ -1,4 +1,4 @@
-/*
+﻿/*
  * umi_log.h - Minimal logging shim for Umicom Studio
  *
  * Purpose:

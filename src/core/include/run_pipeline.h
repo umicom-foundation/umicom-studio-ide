@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/run_pipeline.h
  * PURPOSE: Glue run_config + build_runner + diagnostics router

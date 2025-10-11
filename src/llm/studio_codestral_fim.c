@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/studio_codestral_fim.c
  * PURPOSE: Minimal libcurl client for Mistral Codestral FIM endpoint.

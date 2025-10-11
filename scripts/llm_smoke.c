@@ -1,4 +1,4 @@
-/* -----------------------------------------------------------------------------
+﻿/* -----------------------------------------------------------------------------
  * Umicom Studio IDE
  * PURPOSE: Core sources for Umicom Studio IDE.
  * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT

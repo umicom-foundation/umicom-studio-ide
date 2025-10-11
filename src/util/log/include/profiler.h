@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/profiler.h
  * PURPOSE: Timing utilities (elapsed microseconds/milliseconds)

@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/palette.h
  * PURPOSE: Simple command palette stub (search + execute callbacks)

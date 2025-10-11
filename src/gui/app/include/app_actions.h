@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/app_actions.h
  * PURPOSE: Declarations for high-level application keymap wiring.

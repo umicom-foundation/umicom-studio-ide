@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/app_actions.c
  * PURPOSE: Application-level action callbacks and helpers used by menus & UI

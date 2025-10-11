@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/crash_guard.h
  * PURPOSE: GLib log handler routing to stderr without abort

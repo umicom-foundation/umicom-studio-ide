@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/env.h
  * PURPOSE: Helpers to convert a KEY=VALUE multi-line block into an envp array.

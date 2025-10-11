@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/profiler.c
  * PURPOSE: Dummy TU for build systems that want a .c per module

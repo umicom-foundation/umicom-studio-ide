@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/cli_entry.c
  * PURPOSE: CLI logging setup + light banner (build-safe on all platforms)
@@ -85,7 +85,7 @@ static void configure_logging_level(int log_level, int verbose) {
 }
 
 /* Safe entry used by the app/launcher.  If your tree already has a symbol
- * like umi_cli_run(...) with a different signature, just keep that too –
+ * like umi_cli_run(...) with a different signature, just keep that too â€“
  * having this function present does not clash (distinct name). */
 void umi_cli_entry_run_buildsafe(int headless, const char *workspace, int verbose, int log_level) {
   configure_logging_level(log_level, verbose);

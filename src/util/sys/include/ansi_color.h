@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/ansi_color.h
  * PURPOSE: Minimal ANSI SGR parser that writes into GtkTextBuffer with tags

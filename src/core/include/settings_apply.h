@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/settings_apply.h
  * PURPOSE: Emit settings changes and apply theme live
@@ -10,7 +10,7 @@
 
 #include "settings_bus.h"
 #include "../../gui/theme/include/theme.h"
-#include <umicom/prefs.h>
+#include "prefs.h"
 
 /* After saving preferences, call to emit changes (e.g., theme) */
 void umi_settings_apply_broadcast(const UmiSettings *s, GtkWindow *win);

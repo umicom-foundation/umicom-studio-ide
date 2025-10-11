@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/project_manager.c
  * PURPOSE: Implementation of project manager (step-by-step comments)

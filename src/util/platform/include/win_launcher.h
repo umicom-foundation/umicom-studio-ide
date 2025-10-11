@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/win_launcher.h
  * PURPOSE: Windows/MSYS launcher using PATH hints from msys_env

@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/watcher_recursive.h
  * PURPOSE: Recursive watcher (monitors subdirs and restarts on root change)

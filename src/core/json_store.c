@@ -1,11 +1,11 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/core/json_store.c
  * PURPOSE: Implementation of JSON key-value store with json-glib
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include <umicom/json_store.h>
+#include <json_store.h>
 #include <json-glib/json-glib.h>
 
 static GHashTable *new_table(void){

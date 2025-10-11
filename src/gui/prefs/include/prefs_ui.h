@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/prefs_ui.h
  * PURPOSE: Preferences dialog UI bound to json_store and settings_bus
@@ -9,7 +9,7 @@
 #define UMICOM_PREFS_UI_H
 
 #include <gtk/gtk.h>
-#include <umicom/json_store.h>
+#include "json_store.h"
 #include "../../../core/include/settings_bus.h"
 
 /* The Preferences UI is intentionally tiny and very explicit:

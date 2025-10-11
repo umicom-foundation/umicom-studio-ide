@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/app_menu_llm.h
  * PURPOSE: Application menu bar (/LLM) factory for the main window

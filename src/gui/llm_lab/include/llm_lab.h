@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: SYSTEM/umicom/llm_lab.h
  * PURPOSE: Minimal forward declarations used by gui/llm_lab.c so the file

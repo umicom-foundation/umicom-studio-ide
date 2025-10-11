@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/watcher_integration.h
  * PURPOSE: Glue recursive watcher to file tree refresh

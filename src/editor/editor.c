@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/editor/editor.c
  * PURPOSE: Editor composite widget (Problems + Output) and helpers
@@ -40,7 +40,7 @@ UmiEditor *umi_editor_new(void)
                            umi_output_pane_widget(ed->out),
                            out_tab);
 
-  /* Problems list — pass the correct callback + user pointer */
+  /* Problems list â€” pass the correct callback + user pointer */
   ed->problems = umi_problem_list_new(on_problem_activate, ed);
   GtkWidget *prb_tab = gtk_label_new("Problems");
   gtk_notebook_append_page(GTK_NOTEBOOK(nb),

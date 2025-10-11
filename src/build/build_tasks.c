@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build_tasks.c
  * PURPOSE: Minimal build task runner glue for launching external build tools
@@ -9,7 +9,7 @@
 #include <gtk/gtk.h>
 
 /* Project headers */
-#include <umicom/app.h>            /* UmiApp, umi_app_handle (if you want to use it)   */
+#include <app.h>            /* UmiApp, umi_app_handle (if you want to use it)   */
 #include "include/build_runner.h"   /* UmiBuildRunner, umi_build_runner_new/_run        */
 
 /* Forward declare to avoid dragging UI types if you don't need them yet.
@@ -94,6 +94,6 @@ umi_build_tasks_register_actions(GtkApplication *app)
   (void)app;
   /* Example if you later want actions:
    *   g_action_map_add_action_entries(G_ACTION_MAP(app), entries, G_N_ELEMENTS(entries), app);
-   * For now, this file’s primary purpose is to provide a correct runner call.
+   * For now, this fileâ€™s primary purpose is to provide a correct runner call.
    */
 }

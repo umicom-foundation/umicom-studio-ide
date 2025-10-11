@@ -1,31 +1,48 @@
-/*-----------------------------------------------------------------------------
- * Umicom Studio IDE
- * File: src/app.h
- * PURPOSE: Application-level types and helpers
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+﻿/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE (USIDE)
+ * File: src/gui/theme/include/theme.h
+ * PURPOSE: Public theme APIs (loading CSS, applying theme, reading presets)
+ *
+ * Created by: Umicom Foundation (https://umicom.foundation/)
+ * Author: Sammy Hegab
+ * Date: 15-09-2025
+ * License: MIT
+ *
+ * Plain-English notes:
+ * - This header exposes tiny, easy-to-understand functions that do 2 things:
+ *   (1) apply the app's CSS theme to a GTK window/display, and
+ *   (2) read the embedded JSON preset data as a string.
+ * - We keep this API small so it's easy to use and hard to misuse.
+ * - Resource files are compiled into the app via ustudio.gresource.xml.
  *---------------------------------------------------------------------------*/
-#pragma once
+#ifndef UMICOM_THEME_H
+#define UMICOM_THEME_H
 
 #include <gtk/gtk.h>
-#include <glib.h>
 
-#include <umicom/editor.h>
-#include <umicom/search_panel.h>
-#include "../../../include/status_bar.h"     /* UmiStatusBar, umi_status_bar_* */
+G_BEGIN_DECLS
 
-/* Forward declarations */
-typedef struct _UmiApp UmiApp;
+/**
+ * umi_theme_apply:
+ * @win: (nullable): A window whose display we will style. If NULL, we will
+ *                   style the default display (if available).
+ *
+ * Loads the app CSS from the embedded resource and applies it to the display.
+ * (resources) and tell GTK: style so everything looks
+ * consistent and nice.
+ */
+void umi_theme_apply(GtkWindow *win);
 
-struct _UmiApp {
-  GtkApplication *app;
-  GtkWindow      *win;
-  UmiEditor      *ed;
-  UmiStatusBar   *status;   /* NOTE: This is a UmiStatusBar*, not UmiStatus*. */
-  UmiSearchPanel *search;
-};
+/**
+ * umi_theme_load_presets_json:
+ * @len_out: (out) (nullable): If not NULL, receives the number of bytes.
+ *
+ * Reads the embedded JSON preset file and returns a newly-allocated,
+ * NUL-terminated string with the file contents. Caller must g_free() it.
+ * If anything goes wrong, returns NULL.
+ */
+gchar *umi_theme_load_presets_json(gsize *len_out);
 
-/* Construct the full UI and return the top-level widget. */
-GtkWidget *umi_app_build(UmiApp *ua);
+G_END_DECLS
 
-/* Utility to open a file */
-void umi_app_open_path(UmiApp *ua, const char *path);
+#endif /* UMICOM_THEME_H */

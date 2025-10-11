@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/command_palette.c
  * PURPOSE: Implementation of a minimal, filterable command palette

@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/path_watcher.c
  * PURPOSE: Implementation using a single GFileMonitor (non-recursive)

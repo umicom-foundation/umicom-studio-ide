@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build_queue.h
  * PURPOSE: Queued build/run jobs executed by UmiBuildRunner

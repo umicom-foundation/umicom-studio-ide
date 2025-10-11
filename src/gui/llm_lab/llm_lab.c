@@ -1,10 +1,10 @@
-/* -----------------------------------------------------------------------------
+﻿/* -----------------------------------------------------------------------------
  * Umicom Studio IDE
  * PURPOSE: Core sources for Umicom Studio IDE.
  * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
  * Last updated: 2025-10-11
  * ---------------------------------------------------------------------------*/
-﻿/* LLM Lab (GTK) — Token Inspector (entropy + top-k) */
+ï»¿/* LLM Lab (GTK) â€” Token Inspector (entropy + top-k) */
 #include <umicom/llm_lab.h>
 #include <umicom/llm.h>
 #include <glib/gi18n.h>
@@ -44,7 +44,7 @@ static void on_stream_token_ex(const gchar *frag, const UmiLlmTokenAlt *alts, gu
   LlmLab *lab = (LlmLab*)ud;
   if(frag && *frag) append_text(lab->buf, frag);
   if(gtk_check_button_get_active(lab->show_alts) && alts && alts_n>0){
-    append_text(lab->alts_buf, "— top-k —\n");
+    append_text(lab->alts_buf, "â€” top-k â€”\n");
     for(guint i=0;i<alts_n;i++){
       gchar line[256]; g_snprintf(line,sizeof line,"  %s  (%.3f)\n", alts[i].token, alts[i].logprob);
       append_text(lab->alts_buf, line);
@@ -69,11 +69,11 @@ static void on_send(GtkButton *btn, gpointer user_data){
   gtk_text_buffer_set_text(lab->alts_buf, "", -1);
 
   gchar err[256]={0};
-  append_text(lab->buf, "▶ Streaming…\n");
+  append_text(lab->buf, "â–¶ Streamingâ€¦\n");
   if(!umi_llm_chat_stream_ex(&cfg, "You are a helpful IDE assistant.", q, on_stream_token_ex, lab, err, sizeof err)){
-    append_text(lab->buf, "⚠ "); append_text(lab->buf, err); append_text(lab->buf, "\n");
+    append_text(lab->buf, "âš  "); append_text(lab->buf, err); append_text(lab->buf, "\n");
   } else {
-    append_text(lab->buf, "\n✅ done\n");
+    append_text(lab->buf, "\nâœ… done\n");
   }
 }
 

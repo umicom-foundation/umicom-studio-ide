@@ -1,4 +1,4 @@
-/* ---------------------------------------------------------------------------
+﻿/* ---------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: problem_list_shim.c
  * PURPOSE: Minimal, non-invasive implementations for the problem list API
@@ -93,7 +93,7 @@ int umi_problem_parse_any(const char *line, ...)
 {
     if (!line || !*line) return 0; /* FALSE */
 
-    /* For now, this shim doesn’t mutate the list (keeps behavior neutral) and
-     * reports “not parsed”. The real parser can replace this entirely. */
+    /* For now, this shim doesnâ€™t mutate the list (keeps behavior neutral) and
+     * reports â€œnot parsedâ€. The real parser can replace this entirely. */
     return 0; /* FALSE */
 }

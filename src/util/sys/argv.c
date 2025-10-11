@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/argv.c
  * PURPOSE: Command-line parsing and argument handoff for the application
@@ -112,7 +112,7 @@ umi_argv_apply(GtkApplication *app, int *argc, char ***argv)
       continue; /* consumed */
     }
 
-    /* Unknown argument → keep it so GTK can parse its own flags later. */
+    /* Unknown argument â†’ keep it so GTK can parse its own flags later. */
     av[out++] = av[i];
   }
 

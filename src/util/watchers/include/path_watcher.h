@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/path_watcher.h
  * PURPOSE: Shallow path watcher to trigger refresh callbacks

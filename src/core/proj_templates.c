@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/proj_templates.c
  * PURPOSE: Write tiny Hello World templates for C/C++/Python

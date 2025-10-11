@@ -1,10 +1,10 @@
-/* -----------------------------------------------------------------------------
+﻿/* -----------------------------------------------------------------------------
  * Umicom Studio IDE
  * PURPOSE: Core sources for Umicom Studio IDE.
  * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
  * Last updated: 2025-10-11
  * ---------------------------------------------------------------------------*/
-﻿/*-----------------------------------------------------------------------------
+ï»¿/*-----------------------------------------------------------------------------
  * Umicom AuthorEngine AI (uaengine)
  * File: src/main.c
  * PURPOSE: Command-line front-end (dispatcher + light helpers)

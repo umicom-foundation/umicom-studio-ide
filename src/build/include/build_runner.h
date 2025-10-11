@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build_runner.h
  * PURPOSE: Start/stop a subprocess; stream stdout/stderr to Output pane

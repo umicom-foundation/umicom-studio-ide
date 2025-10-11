@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/git_integration.h
  * PURPOSE: Minimal Git helpers (status/add/commit) via subprocess

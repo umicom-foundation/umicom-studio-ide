@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/watcher_recursive.c
  * PURPOSE: Implementation of recursive watcher using multiple GFileMonitor

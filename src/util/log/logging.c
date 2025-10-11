@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/logging.c
  * PURPOSE: UI-friendly logging helpers (pure C, GTK4) with idle dispatch

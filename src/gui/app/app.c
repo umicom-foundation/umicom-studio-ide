@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/app.c
  * PURPOSE: Implementation of top-level application shell
@@ -8,7 +8,7 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 
-#include <umicom/app.h>
+#include "app.h"
 
 __attribute__((weak)) void umi_run_pipeline_start(gpointer out, gpointer problems, gpointer reserved);
 __attribute__((weak)) void umi_run_pipeline_stop(void);

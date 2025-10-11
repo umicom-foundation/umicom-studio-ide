@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/diagnostic_parsers.h
  * PURPOSE: Parsers for common compiler diagnostics

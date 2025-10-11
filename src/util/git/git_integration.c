@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/git_integration.c
  * PURPOSE: Implementation of Git helpers (child process + capture)

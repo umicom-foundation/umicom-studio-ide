@@ -1,4 +1,4 @@
-/* LLM HTTP helpers (libcurl) + privacy guard */
+﻿/* LLM HTTP helpers (libcurl) + privacy guard */
 
 /* -----------------------------------------------------------------------------
  * Umicom Studio IDE

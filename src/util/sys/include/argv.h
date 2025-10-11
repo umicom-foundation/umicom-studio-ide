@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/argv.h
  * PURPOSE: Simple CLI parsing to set workspace root and open file

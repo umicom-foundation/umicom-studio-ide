@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/ansi_color.c
  * PURPOSE: Implementation of ANSI SGR color parser for GtkTextBuffer

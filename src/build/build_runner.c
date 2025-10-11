@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build_runner.c
  * PURPOSE: GSubprocess-based runner streaming lines to Output pane

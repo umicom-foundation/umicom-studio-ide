@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/open_folder.c
  * PURPOSE: Implementation of open-folder prompt helper (GTK4)

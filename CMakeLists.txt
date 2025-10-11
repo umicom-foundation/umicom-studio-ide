@@ -13,10 +13,11 @@ cmake_minimum_required(VERSION 3.20)
 # Project
 project(umicom_studio_ide LANGUAGES C)
 
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Build options
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 option(USIDE_GUI "Build GUI subsystem on Windows (no console window)" ON)
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
@@ -26,9 +27,9 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "" FORCE)
 endif()
 
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Dependencies (pkg-config)
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 find_package(PkgConfig REQUIRED)
 
 # Core GTK/GLib stack
@@ -45,76 +46,100 @@ pkg_check_modules(GDK_PIXBUF    REQUIRED IMPORTED_TARGET gdk-pixbuf-2.0)
 pkg_check_modules(CAIRO         REQUIRED IMPORTED_TARGET cairo)
 pkg_check_modules(PANGO         REQUIRED IMPORTED_TARGET pango)
 pkg_check_modules(HARFBUZZ      REQUIRED IMPORTED_TARGET harfbuzz)
+
 # Optional (present on many GTK stacks)
 pkg_check_modules(GRAPHENE      QUIET    IMPORTED_TARGET graphene-1.0)
 
-# ---------------------------------------------------------------------------
-# Sources: pick up every .c file under src/**
-# ---------------------------------------------------------------------------
+# glib-compile-resources program (ships with GLib / GIO)
+find_program(GLIB_COMPILE_RESOURCES glib-compile-resources REQUIRED)
+
+# -----------------------------------------------------------------------------
+# Sources
+#  - We glob all .c files, then explicitly choose ONE entry point:
+#    * GUI build:    src/entry/main.c
+#    * Console build:src/entry/cli_entry.c
+#  - This avoids link errors from having two 'main' symbols.
+# -----------------------------------------------------------------------------
 file(GLOB_RECURSE USIDE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
 )
 
-# ---------------------------------------------------------------------------
+# Force-select a single entry file
+set(USIDE_ENTRY_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/src/entry/main.c")
+set(USIDE_ENTRY_CLI  "${CMAKE_CURRENT_SOURCE_DIR}/src/entry/cli_entry.c")
+
+# Remove both (if present) from the big glob, then add the one we want.
+list(REMOVE_ITEM USIDE_SOURCES "${USIDE_ENTRY_MAIN}" "${USIDE_ENTRY_CLI}")
+if(USIDE_GUI)
+  if(EXISTS "${USIDE_ENTRY_MAIN}")
+    list(APPEND USIDE_SOURCES "${USIDE_ENTRY_MAIN}")
+  endif()
+else()
+  if(EXISTS "${USIDE_ENTRY_CLI}")
+    list(APPEND USIDE_SOURCES "${USIDE_ENTRY_CLI}")
+  endif()
+endif()
+
+# -----------------------------------------------------------------------------
 # Headers: add every */include under src/**
-# This matches your “each module has its own include/” convention.
-# ---------------------------------------------------------------------------
+# Matches “each module has its own include/” convention.
+# -----------------------------------------------------------------------------
 file(GLOB_RECURSE USIDE_INCLUDE_DIRS
     LIST_DIRECTORIES TRUE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*/include"
 )
-
-# Third-party public headers you actually include from our code:
-# (adjust if you relocate or trim third_party later)
+# Third-party public headers we include
 list(APPEND USIDE_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/umicom/uengine/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/umicom/uengine/include/ueng"
 )
-
-# De-duplicate include dirs
 list(REMOVE_DUPLICATES USIDE_INCLUDE_DIRS)
 
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Resources (GLib/GResource)
-# Generates C sources from assets/data/ustudio.gresource.xml
-# ---------------------------------------------------------------------------
-set(USIDE_GRESOURCE_XML "${CMAKE_CURRENT_SOURCE_DIR}/assets/data/ustudio.gresource.xml")
+#  - Generates C from src/ui/resources/ustudio.gresource.xml
+#  - Embeds CSS/JSON/UI into the binary
+# -----------------------------------------------------------------------------
+set(USIDE_GRESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources")
+set(USIDE_GRESOURCE_XML "${USIDE_GRESOURCE_DIR}/ustudio.gresource.xml")
+
 if(EXISTS "${USIDE_GRESOURCE_XML}")
-  set(USIDE_GRESOURCE_C   "${CMAKE_CURRENT_BINARY_DIR}/ustudio_gresource.c")
-  set(USIDE_GRESOURCE_H   "${CMAKE_CURRENT_BINARY_DIR}/ustudio_gresource.h")
+  set(USIDE_GRESOURCE_C "${CMAKE_CURRENT_BINARY_DIR}/ustudio_gresource.c")
+  # Header is optional; we include binary dir anyway.
+  set(USIDE_GRESOURCE_H "${CMAKE_CURRENT_BINARY_DIR}/ustudio_gresource.h")
+
   add_custom_command(
     OUTPUT "${USIDE_GRESOURCE_C}" "${USIDE_GRESOURCE_H}"
-    COMMAND glib-compile-resources
+    COMMAND "${GLIB_COMPILE_RESOURCES}"
             --generate-source
             --target="${USIDE_GRESOURCE_C}"
-            --sourcedir="${CMAKE_CURRENT_SOURCE_DIR}/assets/data"
+            --sourcedir="${USIDE_GRESOURCE_DIR}"
             "${USIDE_GRESOURCE_XML}"
     DEPENDS "${USIDE_GRESOURCE_XML}"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/assets/data"
+    WORKING_DIRECTORY "${USIDE_GRESOURCE_DIR}"
     VERBATIM
   )
+
   list(APPEND USIDE_SOURCES "${USIDE_GRESOURCE_C}")
 else()
   message(WARNING "GResource XML not found at ${USIDE_GRESOURCE_XML} — UI may be incomplete.")
 endif()
 
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Target
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 add_executable(umicom-studio-ide ${USIDE_SOURCES})
 
 # Windows subsystem switch
 if(WIN32 AND USIDE_GUI)
   # GUI subsystem (no console window)
-  set_target_properties(umicom-studio-ide PROPERTIES
-    WIN32_EXECUTABLE YES
-  )
+  set_target_properties(umicom-studio-ide PROPERTIES WIN32_EXECUTABLE YES)
 endif()
 
-# Include paths
-target_include_directories(umicom-studio-ide
-  PRIVATE
-    ${USIDE_INCLUDE_DIRS}
+# Include paths (also add binary dir in case generated headers are used later)
+target_include_directories(umicom-studio-ide PRIVATE
+  ${USIDE_INCLUDE_DIRS}
+  "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
 # Compile defs/flags
@@ -122,6 +147,8 @@ if(WIN32)
   target_compile_definitions(umicom-studio-ide PRIVATE
     _CRT_SECURE_NO_WARNINGS
     NOMINMAX
+    UNICODE
+    _UNICODE
   )
 endif()
 
@@ -140,46 +167,24 @@ target_link_libraries(umicom-studio-ide
     PkgConfig::PANGO
     PkgConfig::HARFBUZZ
 )
-
 if(TARGET PkgConfig::GRAPHENE)
   target_link_libraries(umicom-studio-ide PRIVATE PkgConfig::GRAPHENE)
 endif()
 
-# Stricter warnings are helpful while we stabilize includes
+# Stricter warnings while allowing common GTK callback patterns
 if(MSVC)
   target_compile_options(umicom-studio-ide PRIVATE /W4)
 else()
-  target_compile_options(umicom-studio-ide PRIVATE -Wall -Wextra -Wpedantic)
+  target_compile_options(umicom-studio-ide PRIVATE
+    -Wall -Wextra -Wpedantic
+    -Wno-unused-parameter   # usual for signal handlers/callbacks
+  )
 endif()
 
-# ---------------------------------------------------------------------------
-# Install (optional, simple layout)
-# ---------------------------------------------------------------------------
+# Group sources nicely in IDEs (optional)
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${USIDE_SOURCES})
+
+# Install (optional)
 include(GNUInstallDirs)
 install(TARGETS umicom-studio-ide RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-
-# --- Auto-discovered include dirs (do not remove; generated by assistant) ---
-include_directories(
-    ${CMAKE_SOURCE_DIR}/src/build/include
-    ${CMAKE_SOURCE_DIR}/src/core/include
-    ${CMAKE_SOURCE_DIR}/src/editor/include
-    ${CMAKE_SOURCE_DIR}/src/gui/app/include
-    ${CMAKE_SOURCE_DIR}/src/gui/chrome/include
-    ${CMAKE_SOURCE_DIR}/src/gui/dialogs/include
-    ${CMAKE_SOURCE_DIR}/src/gui/llm_lab/include
-    ${CMAKE_SOURCE_DIR}/src/gui/menu/include
-    ${CMAKE_SOURCE_DIR}/src/gui/prefs/include
-    ${CMAKE_SOURCE_DIR}/src/gui/theme/include
-    ${CMAKE_SOURCE_DIR}/src/panes/chat/include
-    ${CMAKE_SOURCE_DIR}/src/panes/output/include
-    ${CMAKE_SOURCE_DIR}/src/panes/problems/include
-    ${CMAKE_SOURCE_DIR}/src/search/include
-    ${CMAKE_SOURCE_DIR}/src/ui/include
-    ${CMAKE_SOURCE_DIR}/src/util/fs/include
-    ${CMAKE_SOURCE_DIR}/src/util/git/include
-    ${CMAKE_SOURCE_DIR}/src/util/log/include
-    ${CMAKE_SOURCE_DIR}/src/util/platform/include
-    ${CMAKE_SOURCE_DIR}/src/util/sys/include
-    ${CMAKE_SOURCE_DIR}/src/util/watchers/include
-)
+# -----------------------------------------------------------------------------

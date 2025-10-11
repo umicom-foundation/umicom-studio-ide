@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include <umicom/build_system.h>
+#include <build_system.h>
 
 static gchar *dup(const char *s){ return g_strdup(s ? s : ""); }
 

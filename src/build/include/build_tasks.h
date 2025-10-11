@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build_tasks.h
  * PURPOSE: Tiny build task facade that uses build_system + output pipeline
@@ -8,7 +8,7 @@
 #ifndef UMICOM_BUILD_TASKS_H
 #define UMICOM_BUILD_TASKS_H
 
-#include <umicom/build_system.h>
+#include "build_system.h"
 #include "../../panes/output/include/output_pipeline.h"
 #include "../../panes/output/include/output_console.h"
 
