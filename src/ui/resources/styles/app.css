@@ -11,8 +11,33 @@
  * If you use CSS variables in future themes, define them on :root here.
  */
 :root {
-  /* Example: color-scheme placeholder; actual colors may come from theme presets */
-  /* --umi-accent: #4a90e2; */
+ /* Example: color-scheme placeholder; actual colors may come from theme presets */
+/* --umi-accent: #4a90e2; */
+    /* --umi-bg: #ffffff; */
+    /* --umi-bg-alt: #f5f5f5; */
+    /* --umi-bg-highlight: #e0f7fa; */
+    /* --umi-text-primary: #111111; */
+    /* --umi-text-secondary: #555555; */
+    /* --umi-border: #dddddd; */
+    /* --umi-error: #e74c3c; */
+    /* --umi-warning: #f39c12; */
+    /* --umi-info: #3498db; */
+    
+    font-family: system-ui, sans-serif; /* Default font family for the app          */
+    font-size: 1rem;                    /* Base font size                          */
+    color: var(--umi-text-primary);     /* Default text color                      */
+    background-color: var(--umi-bg);    /* Default background color                */
+    line-height: 1.5;                   /* Comfortable line height                 */
+    margin: 0;                          /* Remove default margin                   */
+    padding: 0;                         /* Remove default padding                  */
+    box-sizing: border-box;             /* Include padding/border in element size  */
+    -webkit-font-smoothing: antialiased; /* Smoother font rendering on WebKit       */
+    -moz-osx-font-smoothing: grayscale;  /* Smoother font rendering on macOS        */
+    user-select: none;                  /* Disable text selection by default       */
+    -webkit-user-select: none;          /* Disable text selection in WebKit        */
+    -moz-user-select: none;             /* Disable text selection in Firefox       */
+    -ms-user-select: none;              /* Disable text selection in IE/Edge       */
+    overflow: hidden;                   /* Prevent scrollbars on root element      */        
 }
 
 /* Pane titles or SECTION labels; keeps consistency across embedded views.
