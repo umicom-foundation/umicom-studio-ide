@@ -31,3 +31,4 @@ build-ninja/.ninja_deps
 build-ninja/.ninja_log
 build-ninja/build.ninja
 build-ninja/CMakeCache.txt
+src.zip
