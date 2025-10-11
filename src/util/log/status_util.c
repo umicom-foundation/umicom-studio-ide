@@ -1,35 +1,45 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/status_util.c
- * PURPOSE: Implementation of status helpers
+ * File: src/util/log/status_util.c
+ * PURPOSE: Small helper abstraction over GtkStatusbar
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/status_util.h"
+#include "include/status_util.h"  /* UmiStatus API */
 
-static gboolean restore_cb(gpointer d){
-  UmiStatus *s = (UmiStatus*)d;
-  (void)s; /* We restore to current label text already set elsewhere; left as a stub for now. */
-  return G_SOURCE_REMOVE;
+UmiStatus *
+umi_status_new(GtkStatusbar *bar)
+{
+    g_return_val_if_fail(GTK_IS_STATUSBAR(bar), NULL);         /* Validate input */
+
+    UmiStatus *st = g_new0(UmiStatus, 1);                      /* Allocate zeroed struct */
+    st->bar = bar;                                             /* Borrowed UI pointer */
+    st->ctx_id = gtk_statusbar_get_context_id(bar, "umicom");  /* Obtain a context id */
+    return st;                                                 /* Return wrapper */
 }
 
-UmiStatus *umi_status_new(void){
-  UmiStatus *s = g_new0(UmiStatus,1);
-  s->root = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-  s->label = GTK_LABEL(gtk_label_new(""));
-  gtk_box_append(GTK_BOX(s->root), GTK_WIDGET(s->label));
-  return s;
+void
+umi_status_push(UmiStatus *st, const char *msg)
+{
+    if (!st || !st->bar) return;                               /* Nothing to do if not bound */
+
+    /* GtkStatusbar shows the top of a per-context stack; use push()/pop() as needed. */
+    if (!msg || !*msg) {
+        /* Empty: clear by pushing a blank or popping — push blank keeps behavior simple. */
+        gtk_statusbar_push(st->bar, st->ctx_id, "");           /* Show empty text */
+    } else {
+        gtk_statusbar_push(st->bar, st->ctx_id, msg);          /* Show provided message */
+    }
 }
 
-GtkWidget *umi_status_widget(UmiStatus *s){ return s? s->root : NULL; }
-
-void umi_status_set(UmiStatus *s, const char *text){
-  if(!s) return;
-  gtk_label_set_text(s->label, text?text:"");
+void
+umi_status_free(UmiStatus *st)
+{
+    g_free(st);                                                /* Free wrapper (no UI destroy) */
 }
-
-void umi_status_flash(UmiStatus *s, const char *text, guint msec){
-  if(!s) return;
-  gtk_label_set_text(s->label, text?text:"");
-  g_timeout_add(msec?msec:1200, restore_cb, s);
-}
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * File: src/util/git/git_integration.c
+ * PURPOSE: Implementation of Git helpers (child process + capture)
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ *---------------------------------------------------------------------------*/

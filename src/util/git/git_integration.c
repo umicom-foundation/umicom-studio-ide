@@ -1,137 +1,175 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/util/git/git_integration.c
- * PURPOSE: Implementation of Git helpers (child process + capture)
+ * File: src/util/platform/win_launcher.c
+ * PURPOSE: Implementation of Windows GUI entry/thunk and MSYS-aware spawn
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "git_integration.h"   /* Our public declarations */
-#include <string.h>            /* strlen */
-#include <stdio.h>             /* snprintf */
+#include <glib.h>              /* g_autofree, g_strfreev, g_getenv, etc.      */
+#include <gio/gio.h>           /* GSubprocess / GSubprocessLauncher           */
+#include <msys_env.h>          /* umi_msys_path_hint()                        */
 
-/* Internal helper: build argv and spawn a git process synchronously.
+#ifdef _WIN32                   /* The GUI entry + argv conversion is Windows-only */
+  #include <windows.h>         /* HINSTANCE, PWSTR, WideCharToMultiByte       */
+  #include <shellapi.h>        /* CommandLineToArgvW                          */
+#endif
+
+/*-----------------------------------------------------------------------------
+ * INTERNAL: utf16_to_utf8
  *
- * - dir: if non-NULL, run git with "-C dir" to select repo/work-tree.
- * - argv_tail: NULL-terminated vector with the git subcommand and args,
- *              e.g. {"status","--porcelain",NULL}
- * - out_stdout: (optional) receives newly-allocated UTF-8 from child stdout.
- * - err: standard GLib error out.
+ * PURPOSE:
+ *   Convert a Windows UTF-16 string (wide char) to a newly-allocated UTF-8
+ *   C string. This is used when we build a UTF-8 argv for main().
  *
- * Returns TRUE on exit status 0. Even on failure, *out_stdout is set to NULL.
- */
-static gboolean
-run_git (const char   *dir,
-         const char  **argv_tail,
-         char        **out_stdout,
-         GError      **err)
+ * RETURNS:
+ *   Newly allocated UTF-8 string (g_free when done), or NULL on failure.
+ *---------------------------------------------------------------------------*/
+#ifdef _WIN32
+static char *utf16_to_utf8(const wchar_t *w)
 {
-  /* Safety: default outputs */
-  if (out_stdout) *out_stdout = NULL;
+    if (!w) return NULL;                                                   /* Guard: null input -> null output */
 
-  /* Construct the argv vector: ["git", ("-C", dir)? , tail..., NULL] */
-  GPtrArray *argv = g_ptr_array_new_with_free_func (NULL /* items are const */);
-  g_ptr_array_add (argv, (gpointer) "git");
+    /* Query required size (in bytes) for the UTF-8 buffer, not including the
+       terminating NUL (pass 0 length to get the size) */
+    int needed = WideCharToMultiByte(CP_UTF8, 0, w, -1, NULL, 0, NULL, NULL);
+    if (needed <= 0) return NULL;                                          /* Conversion size query failed */
 
-  if (dir && *dir) {
-    g_ptr_array_add (argv, (gpointer) "-C");
-    g_ptr_array_add (argv, (gpointer) dir);
-  }
+    /* Allocate output buffer using GLib allocator so callers can g_free() */
+    char *out = g_malloc((gsize)needed);
+    if (!out) return NULL;                                                 /* Allocation failed (unlikely) */
 
-  for (const char **p = argv_tail; p && *p; ++p)
-    g_ptr_array_add (argv, (gpointer) *p);
+    /* Perform the actual conversion including the trailing NUL */
+    int written = WideCharToMultiByte(CP_UTF8, 0, w, -1, out, needed, NULL, NULL);
+    if (written <= 0) {                                                    /* Conversion failed */
+        g_free(out);
+        return NULL;
+    }
 
-  g_ptr_array_add (argv, NULL); /* NULL-terminate */
-
-  /* Spawn synchronously; capture stdout/stderr. Note:
-   *  - We do not use a shell, so args are not re-parsed (safer).
-   *  - GLib handles Windows process creation under the hood.
-   */
-  gchar  *child_stdout = NULL;
-  gchar  *child_stderr = NULL;
-  gint    exit_status  = 0;
-
-  gboolean ok = g_spawn_sync (/* working_dir */ NULL,
-                              (gchar **) argv->pdata,
-                              /* envp */ NULL,
-                              G_SPAWN_SEARCH_PATH, /* find "git" in PATH */
-                              /* child_setup */ NULL, /* data */ NULL,
-                              &child_stdout,
-                              &child_stderr,
-                              &exit_status,
-                              err);
-
-  g_ptr_array_free (argv, TRUE);
-
-  if (!ok) {
-    /* g_spawn_sync has already filled GError for us. */
-    g_free (child_stdout);
-    g_free (child_stderr);
-    return FALSE;
-  }
-
-  /* Join non-zero exit into a GLib error so callers have context. */
-  if (exit_status != 0) {
-    g_set_error (err,
-                 g_quark_from_static_string ("umi-git"),
-                 exit_status,
-                 "git exited with status %d: %s",
-                 exit_status,
-                 child_stderr ? child_stderr : "no stderr");
-    g_free (child_stdout);
-    g_free (child_stderr);
-    return FALSE;
-  }
-
-  /* Success: hand stdout to caller as-is. */
-  if (out_stdout) *out_stdout = child_stdout; else g_free (child_stdout);
-  g_free (child_stderr);
-  return TRUE;
+    return out;                                                            /* Caller owns */
 }
 
 /*-----------------------------------------------------------------------------
- * Public API
+ * INTERNAL: argv_from_windows
+ *
+ * PURPOSE:
+ *   Build a UTF-8 argv vector from the wide-character command line Windows
+ *   provides to GUI subsystem programs (wWinMain). This allows us to call
+ *   the regular main(int,char**) with UTF-8 arguments, consistent across OSes.
+ *
+ * OUT:
+ *   argc_out - set to argument count on success.
+ *
+ * RETURNS:
+ *   NULL-terminated char** vector on success (free with g_strfreev),
+ *   or NULL on failure.
  *---------------------------------------------------------------------------*/
-
-char *
-umi_git_status (const char *dir, GError **err)
+static char **argv_from_windows(int *argc_out)
 {
-  /* Ask git for a machine-friendly status. */
-  const char *tail[] = { "status", "--porcelain", NULL };
-  char *out = NULL;
+    int argcW = 0;                                                         /* Will receive wide-arg count  */
+    LPWSTR *argvW = CommandLineToArgvW(GetCommandLineW(), &argcW);         /* Parse raw command line       */
+    if (!argvW || argcW < 0) return NULL;                                  /* Parse failed -> no argv      */
 
-  if (!run_git (dir, tail, &out, err)) {
-    /* On failure, out remains NULL. */
-    return NULL;
-  }
+    /* Allocate UTF-8 argv array: +1 for trailing NULL sentinel */
+    char **argv = g_new0(char*, (gsize)argcW + 1);
 
-  /* Ensure UTF-8 (GLib spawns return bytes; Git prints UTF-8 by default). */
-  if (!g_utf8_validate (out, -1, NULL)) {
-    g_set_error (err, g_quark_from_static_string ("umi-git"), 1,
-                 "git output is not valid UTF-8");
-    g_clear_pointer (&out, g_free);
-    return NULL;
-  }
+    for (int i = 0; i < argcW; ++i) {
+        /* Convert each wide string to UTF-8 (empty string if conversion fails) */
+        char *u8 = utf16_to_utf8(argvW[i]);
+        argv[i] = u8 ? u8 : g_strdup("");                                  /* Never leave a NULL hole      */
+    }
+    argv[argcW] = NULL;                                                    /* NUL-terminate the vector     */
 
-  return out; /* Caller must g_free() */
+    LocalFree(argvW);                                                      /* Free Windows buffer          */
+    if (argc_out) *argc_out = argcW;                                       /* Report argc to caller        */
+    return argv;                                                           /* Caller frees with g_strfreev */
+}
+#endif /* _WIN32 */
+
+/*-----------------------------------------------------------------------------
+ * umi_win_spawn_with_msys_env
+ *
+ * See header for full contract. Implementation notes:
+ *   - On Windows, we ask msys_env for a PATH prefix and prepend it (if present).
+ *   - On non-Windows, we just honor 'cwd' and spawn with default environment.
+ *   - We don’t mutate the parent process environment—only the child’s.
+ *---------------------------------------------------------------------------*/
+GSubprocess *umi_win_spawn_with_msys_env(const char *cwd,
+                                         char * const *argv,
+                                         GError **err)
+{
+    g_return_val_if_fail(argv != NULL, NULL);                              /* Must have argv vector        */
+    g_return_val_if_fail(argv[0] != NULL, NULL);                           /* Program to exec is required  */
+
+    /* Launcher controls child environment, cwd, stdio flags, etc.
+       No special flags: caller can set up pipes later if needed. */
+    g_autoptr(GSubprocessLauncher) launcher =
+        g_subprocess_launcher_new(G_SUBPROCESS_FLAGS_NONE);
+
+    if (cwd && *cwd) {                                                     /* If caller requests a cwd, set it */
+        g_subprocess_launcher_set_cwd(launcher, cwd);
+    }
+
+#ifdef _WIN32
+    /* Ask MSYS helper for a PATH hint (e.g., "C:\\msys64\\usr\\bin;..."). */
+    g_autofree gchar *hint = umi_msys_path_hint();                         /* May be NULL or empty string  */
+
+    if (hint && *hint) {
+        /* Compose PATH = <hint>;<existing PATH or empty> */
+        const gchar *old_path = g_getenv("PATH");                          /* Read parent PATH, may be NULL */
+        g_autofree gchar *combined =
+            old_path ? g_strconcat(hint, ";", old_path, NULL)
+                     : g_strdup(hint);
+
+        /* Apply to child environment; overwrite any inherited PATH. */
+        g_subprocess_launcher_setenv(launcher, "PATH", combined, TRUE);
+    }
+#endif
+
+    /* Spawn child using argv vector; GLib resolves argv[0] using PATH if needed. */
+    GSubprocess *proc = g_subprocess_launcher_spawnv(
+        launcher,
+        (const gchar * const *)argv,                                       /* Cast to GLib’s const type    */
+        err
+    );
+
+    return proc;                                                           /* NULL on failure (err set)    */
 }
 
-gboolean
-umi_git_add_all (const char *dir, GError **err)
-{
-  const char *tail[] = { "add", "-A", NULL };
-  return run_git (dir, tail, NULL, err);
-}
+#ifdef _WIN32
+/* Forward declaration of 'main' so we can call it from the GUI entry point.
+   This is legal and avoids pulling in CRT console subsystem. */
+extern int main(int argc, char **argv);
 
-gboolean
-umi_git_commit (const char *dir, const char *message, GError **err)
+/*-----------------------------------------------------------------------------
+ * Windows GUI entry point: wWinMain
+ *
+ * PURPOSE:
+ *   This thunk converts the process command line (UTF-16) to UTF-8 argv,
+ *   then delegates to the normal main(). This keeps behavior across OSes
+ *   consistent and avoids mojibake for non-ASCII arguments on Windows.
+ *---------------------------------------------------------------------------*/
+int APIENTRY wWinMain(HINSTANCE hInstance,
+                      HINSTANCE hPrevInstance,
+                      PWSTR     pCmdLine,
+                      int       nCmdShow)
 {
-  if (!message || !*message) {
-    g_set_error (err, g_quark_from_static_string ("umi-git"), 1,
-                 "commit message is empty");
-    return FALSE;
-  }
+    /* Suppress “unused parameter” warnings: these are provided by the OS
+       but not needed here because we forward to main(). */
+    (void)hInstance;
+    (void)hPrevInstance;
+    (void)pCmdLine;
+    (void)nCmdShow;
 
-  /* We pass message as a single argv token; no shell quoting required. */
-  const char *tail[] = { "commit", "-m", message, NULL };
-  return run_git (dir, tail, NULL, err);
+    int argc = 0;                                                          /* Will receive argc            */
+    g_autofree char **argv = argv_from_windows(&argc);                     /* Build UTF-8 argv             */
+    if (!argv) {
+        /* If conversion fails (extremely rare), run main with no args. */
+        char *fallbackv[] = { "umicom-studio-ide", NULL };
+        return main(1, fallbackv);
+    }
+
+    /* Call the real entry (defined elsewhere in the project). */
+    return main(argc, argv);
 }
+#endif /* _WIN32 */
+/* --- IGNORE --- */

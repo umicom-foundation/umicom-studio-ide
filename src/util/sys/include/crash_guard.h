@@ -1,17 +1,29 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/crash_guard.h
- * PURPOSE: GLib log handler routing to stderr without abort
+ * File: src/util/sys/include/crash_guard.h
+ * PURPOSE: Process-wide crash/SEH signal guard install/uninstall APIs
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
-
 #ifndef UMICOM_CRASH_GUARD_H
 #define UMICOM_CRASH_GUARD_H
 
-#include <glib.h>
+/*-----------------------------------------------------------------------------
+ * crash_guard_install
+ *
+ * PURPOSE:
+ *   Install crash handlers (SEH on Windows, POSIX signals elsewhere) to
+ *   produce a readable diagnostic (log, message box, etc.) instead of a
+ *   silent crash. Idempotent: calling twice is harmless.
+ *---------------------------------------------------------------------------*/
+void crash_guard_install(void);
 
-/* Install a log writer function that demotes fatal logs and prints to stderr.
- * Use only during development to avoid hard-abort on g_warning/g_critical. */
-void umi_crash_guard_install(void);
+/*-----------------------------------------------------------------------------
+ * crash_guard_uninstall
+ *
+ * PURPOSE:
+ *   Remove previously installed crash handlers. Useful in test harnesses or
+ *   for sections that want default behavior restored temporarily.
+ *---------------------------------------------------------------------------*/
+void crash_guard_uninstall(void);
 
 #endif /* UMICOM_CRASH_GUARD_H */

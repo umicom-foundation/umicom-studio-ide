@@ -1,24 +1,50 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/git/include/git_integration.h
- * PURPOSE: Minimal Git helpers used by UI/actions (no libgit2 dependency).
- * NOTE: We intentionally shell out to `git` via GLib to avoid heavy deps.
+ * PURPOSE: Public API for simple Git helpers used by the IDE
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 #pragma once
-
 #ifndef UMICOM_GIT_INTEGRATION_H
 #define UMICOM_GIT_INTEGRATION_H
 
-#include <gio/gio.h>
-#include <glib.h>
+#include <glib.h>   /* GError, gchar, gboolean, NULL, g_free */
 
-/* Run `git status --porcelain` in `dir` and return stdout as newly-allocated
- * string (UTF-8). On error returns NULL and sets GError. */
-char *umi_git_status (const char *dir, GError **err);
+G_BEGIN_DECLS
 
-/* Run `git add -A` in `dir`. Returns TRUE on success, FALSE on error (GError). */
-gboolean umi_git_add_all (const char *dir, GError **err);
+/**
+ * umi_git_status:
+ * @cwd:   Optional working directory to run git in (NULL = current process cwd)
+ * @error: (out) return location for a GError*, or NULL to ignore
+ *
+ * Runs: `git status --porcelain=v1`
+ * Returns a newly-allocated string with the raw porcelain output on success.
+ * The caller must free it with g_free(). Returns NULL on error and sets @error.
+ */
+gchar   *umi_git_status  (const char *cwd, GError **error);
 
-/* Run `git commit -m <message>` in `dir`. Returns TRUE on success. */
-gboolean umi_git_commit (const char *dir, const char *message, GError **err);
+/**
+ * umi_git_add_all:
+ * @cwd:   Optional working directory (NULL = process cwd)
+ * @error: (out) error on failure, NULL to ignore
+ *
+ * Runs: `git add -A`
+ * Returns TRUE on exit-code 0, FALSE otherwise (setting @error).
+ */
+gboolean umi_git_add_all (const char *cwd, GError **error);
+
+/**
+ * umi_git_commit:
+ * @cwd:     Optional working directory
+ * @message: Commit message (must be non-NULL, non-empty)
+ * @error:   (out) error on failure, NULL to ignore
+ *
+ * Runs: `git commit -m <message>`
+ * Returns TRUE on exit-code 0, FALSE otherwise (setting @error).
+ */
+gboolean umi_git_commit  (const char *cwd, const char *message, GError **error);
+
+G_END_DECLS
+
 #endif /* UMICOM_GIT_INTEGRATION_H */
+/* End of src/util/git/include/git_integration.h */

@@ -1,21 +1,28 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/watcher_recursive.h
- * PURPOSE: Recursive watcher (monitors subdirs and restarts on root change)
+ * File: src/util/watchers/include/watcher_recursive.h
+ * PURPOSE: Recursive filesystem watcher API
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
-
+#pragma once
 #ifndef UMICOM_WATCHER_RECURSIVE_H
 #define UMICOM_WATCHER_RECURSIVE_H
 
-#include <gio/gio.h>
+#include <glib.h>  /* GSource, GMainContext, GPtrArray */
+#include <path_watcher.h> /* UmiPathWatch */
 
-typedef void (*UmiWatchEventCb)(gpointer user, const char *path);
+/* Forward-declared opaque types for the watcher implementation. */
+typedef struct _UmiWatcherRec  UmiWatcherRec;
 
-typedef struct _UmiWatchRec UmiWatchRec;
+/* Create/destroy a recursive watcher object. Ownership: caller must free. */
+UmiWatcherRec *umi_watcher_rec_new(void);        /* allocate empty watcher    */
+void            umi_watcher_rec_free(UmiWatcherRec *wr); /* free resources    */
 
-UmiWatchRec *umi_watchrec_new(const char *root, UmiWatchEventCb cb, gpointer user);
-void         umi_watchrec_set_root(UmiWatchRec *w, const char *root);
-void         umi_watchrec_free(UmiWatchRec *w);
+/* Add a watch request to the watcher. Returns FALSE on failure.              */
+gboolean umi_watcher_rec_add(UmiWatcherRec *wr, const UmiPathWatch *req);
+
+/* Integrate with GLib main loop: attach to a context and return a GSource*.   */
+/* The returned source is owned by the caller (unref when no longer needed).    */
+GSource *umi_watcher_rec_attach(UmiWatcherRec *wr, GMainContext *ctx);
 
 #endif /* UMICOM_WATCHER_RECURSIVE_H */

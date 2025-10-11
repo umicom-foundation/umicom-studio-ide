@@ -1,6 +1,6 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/util/logging.c
+ * File:  src/util/log/logging.c
  * PURPOSE: UI-friendly logging helpers (pure C, GTK4) with idle dispatch
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-08 | MIT
  *
@@ -27,116 +27,152 @@
  * - All credits/comments preserved; heavy inline comments added for clarity.
  *---------------------------------------------------------------------------*/
 
-#include <stdarg.h>
-#include <glib.h>
-#include <gtk/gtk.h>
+#include "include/logging.h"        /* Public API we implement */
+#include "include/console_logger.h" /* To mirror into the text console pane  */
+#include "include/status_util.h"    /* For status-bar mirroring              */
 
-/*-----------------------------------------------------------------------------
- * Internal shared state for the UI sink.
- * We keep a single optional GtkTextView target; callers can re-bind by calling
- * ustudio_logging_init() again later with another view (e.g. when UI rebuilds).
- *---------------------------------------------------------------------------*/
-typedef struct {
-    GMutex       mutex;    /* protects the struct (init-on-first-use)       */
-    GtkTextView *view;     /* NULL until bound                              */
-} UStudioLogState;
+#include <stdarg.h>                 /* va_list for fmt helper */
+#include <string.h>                 /* strlen used in comments */
+#include <stdio.h>                  /* vsnprintf (via g_strdup_vprintf)      */
 
-static UStudioLogState g_log_state = { 0 };
+/* Global sinks; guarded by a mutex so worker threads may also log safely. */
+static GMutex        g_log_mutex;        /* Protects sink pointers */
+static GtkTextView  *g_log_view = NULL;  /* Borrowed; owned by UI */
+static UmiStatus    *g_status   = NULL;  /* Borrowed; owned by UI */
 
-/*-----------------------------------------------------------------------------
- * Append a line to the GtkTextView (must run on GTK main thread).
- *---------------------------------------------------------------------------*/
-static void append_to_view(GtkTextView *tv, const char *line) {
-    if (!tv || !line) return;
-    GtkTextBuffer *buf = gtk_text_view_get_buffer(tv);
-    if (!buf) return;
-
-    GtkTextIter end;
-    gtk_text_buffer_get_end_iter(buf, &end);
-    gtk_text_buffer_insert(buf, &end, line, -1);
-    gtk_text_buffer_insert(buf, &end, "\n", -1);
+/* Internal: push a single message into UI + status bar (runs on main thread). */
+static void
+log_to_ui_and_status(const char *msg)
+{
+    /* Mirror to the console text view if bound. */
+    if (g_log_view) {
+        ustudio_console_log_line(msg);          /* Appends to bound view with newline */
+    }
+    /* Also mirror into the status bar if bound (non-destructive). */
+    if (g_status) {
+        umi_status_push(g_status, msg);         /* Show latest message briefly */
+    }
 }
 
-/*-----------------------------------------------------------------------------
- * Idle trampoline: runs on the GTK main loop. The payload is a g_strdup'd
- * string that we free after appending.
- *---------------------------------------------------------------------------*/
+/* Idle payload so worker threads can safely request UI updates. */
 typedef struct {
-    char *line;
+    char *line;                                 /* Owned UTF-8 string */
 } IdleLine;
 
-static gboolean idle_append_line(gpointer data) {
-    IdleLine *p = (IdleLine*)data;
-    /* Snapshot target under lock to avoid races */
-    GtkTextView *tv = NULL;
-    g_mutex_lock(&g_log_state.mutex);
-    tv = g_log_state.view;
-    g_mutex_unlock(&g_log_state.mutex);
-
-    if (p && p->line) {
-        if (tv) append_to_view(tv, p->line);
-        /* Always mirror to GLib log for redundancy */
-        g_message("%s", p->line);
-    }
-    if (p) g_free(p->line);
-    g_free(p);
-    return G_SOURCE_REMOVE;
+static gboolean
+idle_append_line(gpointer data)
+{
+    IdleLine *p = (IdleLine *)data;             /* Take ownership of payload */
+    log_to_ui_and_status(p->line);              /* Update UI sinks from main loop */
+    g_free(p->line);                            /* Free message buffer */
+    g_free(p);                                  /* Free payload */
+    return G_SOURCE_REMOVE;                     /* One-shot idle handler */
 }
 
-/*-----------------------------------------------------------------------------
- * Public: bind a GtkTextView as the UI log target (may be NULL to detach).
- * Safe to call multiple times and from any thread.
- *---------------------------------------------------------------------------*/
-void ustudio_logging_init(GtkTextView *optional_view) {
-    g_mutex_lock(&g_log_state.mutex);
-    g_log_state.view = optional_view;
-    g_mutex_unlock(&g_log_state.mutex);
+/* Public: bind the status bar mirror. */
+void
+ustudio_log_bind(UmiStatus *status)
+{
+    g_mutex_lock(&g_log_mutex);                 /* Serialize updates to sinks */
+    g_status = status;                          /* Borrowed pointer */
+    g_mutex_unlock(&g_log_mutex);
 }
 
-/*-----------------------------------------------------------------------------
- * Public: log a single line. Thread-safe; posts to main loop.
- *---------------------------------------------------------------------------*/
-void ustudio_log_line(const char *line) {
-    if (!line) return;
-    IdleLine *p = g_new0(IdleLine, 1);
-    p->line = g_strdup(line);
-    /* Post to GTK main loop; no C++ lambda here, just a named function. */
-    g_idle_add(idle_append_line, p);
-}
+/* GLib writer: receives log records produced by g_message/g_warning/etc.
+ * We convert fields to a concise single-line message and dispatch it. */
+static GLogWriterOutput
+writer_func(GLogLevelFlags   log_level,
+            const GLogField *fields,
+            gsize            n_fields,
+            gpointer         user_data)
+{
+    (void) user_data;                           /* Unused (required signature) */
 
-/*-----------------------------------------------------------------------------
- * Public: log with printf-style formatting. Thread-safe.
- *---------------------------------------------------------------------------*/
-void ustudio_log_fmt(const char *fmt, ...) {
-    if (!fmt) return;
-    va_list ap;
-    va_start(ap, fmt);
-    char *s = g_strdup_vprintf(fmt, ap);
-    va_end(ap);
-
-    IdleLine *p = g_new0(IdleLine, 1);
-    p->line = s;
-    g_idle_add(idle_append_line, p);
-}
-
-/*-----------------------------------------------------------------------------
- * OPTIONAL: GLib log writer (commented out by default).
- * If you want to capture g_message()/g_warning() streams into the view,
- * uncomment ustudio_install_glib_writer() and call it from startup.
- *---------------------------------------------------------------------------*/
-#if 0
-static GLogWriterOutput writer(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data) {
-    const char *msg = NULL;
-    for (gsize i = 0; i < n_fields; i++) {
+    const char *msg = NULL;                     /* Pointer to message text */
+    const char *dom = NULL;                     /* Optional log domain */
+    for (gsize i = 0; i < n_fields; ++i) {
         if (g_strcmp0(fields[i].key, "MESSAGE") == 0) {
-            msg = (const char*)fields[i].value;
-            break;
+            msg = (const char *)fields[i].value;/* GLib provides MESSAGE as UTF-8 */
+        } else if (g_strcmp0(fields[i].key, "GLIB_DOMAIN") == 0) {
+            dom = (const char *)fields[i].value;/* Optional domain */
         }
     }
-    if (msg) ustudio_log_line(msg);
+
+    if (!msg) msg = "";                         /* Be robust if MESSAGE is missing */
+
+    /* Compose a compact line: "[domain] message" (domain omitted if NULL). */
+    gchar *line = dom && *dom
+                ? g_strdup_printf("[%s] %s", dom, msg)
+                : g_strdup(msg);
+
+    /* Always print to stderr for developers (keeps console logs during CI). */
+    g_printerr("%s\n", line);
+
+    /* If there is a UI sink, dispatch via idle so worker threads are safe. */
+    g_mutex_lock(&g_log_mutex);
+    const gboolean have_ui = (g_log_view != NULL);
+    g_mutex_unlock(&g_log_mutex);
+
+    if (have_ui) {
+        IdleLine *payload = g_new0(IdleLine, 1);   /* Allocate payload */
+        payload->line = line;                      /* Transfer ownership to idle */
+        g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, idle_append_line, payload, NULL);
+    } else {
+        g_free(line);                           /* No UI sink: free locally */
+    }
+
+    /* Let GLib know we handled the record; don't fall back to default. */
     return G_LOG_WRITER_HANDLED;
 }
-void ustudio_install_glib_writer(void) {
-    g_log_set_writer_func(writer, NULL, NULL);
+
+void
+ustudio_logging_init(GtkTextView *output_view)
+{
+    /* Keep both our direct pointer (for status and view checks) and the separate
+     * console_logger binding (used by the console pane implementation). */
+    g_mutex_lock(&g_log_mutex);
+    g_log_view = output_view;                       /* Borrowed pointer */
+    g_mutex_unlock(&g_log_mutex);
+
+    /* Bind the console pane helper so ustudio_console_log_line() knows the view. */
+    if (output_view) {
+        ustudio_console_log_bind(output_view);
+    }
+
+    /* Install our writer so GLib logs are routed to UI/status as well. */
+    g_log_set_writer_func(writer_func, NULL, NULL);
 }
-#endif
+
+void
+ustudio_log_line(const char *msg)
+{
+    if (!msg) return;                                /* Nothing to log */
+
+    /* Mirror to stderr for developers right away. */
+    g_printerr("%s\n", msg);
+
+    /* If we have UI sinks, queue into the GTK main loop so it remains thread-safe. */
+    g_mutex_lock(&g_log_mutex);
+    const gboolean have_ui = (g_log_view != NULL);
+    g_mutex_unlock(&g_log_mutex);
+
+    if (have_ui) {
+        IdleLine *payload = g_new0(IdleLine, 1);
+        payload->line = g_strdup(msg);              /* Copy so caller can free/modify its own string */
+        g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, idle_append_line, payload, NULL);
+    }
+}
+
+void
+ustudio_log_fmt(const char *fmt, ...)
+{
+    if (!fmt) return;                                /* No format, nothing to do */
+
+    va_list ap;
+    va_start(ap, fmt);                               /* Begin var-args */
+    gchar *line = g_strdup_vprintf(fmt, ap);         /* Allocate formatted string */
+    va_end(ap);                                      /* End var-args */
+
+    ustudio_log_line(line);                          /* Reuse single-line pathway */
+    g_free(line);                                    /* Free temporary buffer */
+}

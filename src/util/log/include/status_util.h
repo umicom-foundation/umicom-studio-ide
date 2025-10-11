@@ -1,28 +1,31 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/status_util.h
- * PURPOSE: Minimal status helper used by editor/actions
+ * File: src/util/log/include/status_util.h
+ * PURPOSE: Small helper abstraction over GtkStatusbar
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
-
+#pragma once
 #ifndef UMICOM_STATUS_UTIL_H
 #define UMICOM_STATUS_UTIL_H
 
-#include <gtk/gtk.h>
+#include <gtk/gtk.h>   /* GtkStatusbar, guint */
 
-typedef struct _UmiStatus {
-  GtkWidget *root; /* GtkBox with a single GtkLabel for simplicity */
-  GtkLabel  *label;
-} UmiStatus;
+/* Forward/opaque struct the rest of the code can hold. */
+typedef struct _UmiStatus UmiStatus;
 
-/* Create a small status line widget. */
-UmiStatus *umi_status_new(void);
+struct _UmiStatus {
+  GtkStatusbar *bar;   /* Borrowed; owned by UI */
+  guint         ctx_id;/* Statusbar context id for the app's messages */
+};
 
-/* Access widget for packing. */
-GtkWidget *umi_status_widget(UmiStatus *s);
+/* Create a new UmiStatus bound to @bar. Does not take ownership of @bar. */
+UmiStatus *umi_status_new (GtkStatusbar *bar);
 
-/* Set and flash helpers. */
-void umi_status_set  (UmiStatus *s, const char *text);
-void umi_status_flash(UmiStatus *s, const char *text, guint msec);
+/* Push a formatted message to the status bar. NULL/"" clears it. */
+void       umi_status_push(UmiStatus *st, const char *msg);
+
+/* Free the wrapper (does not destroy the GtkStatusbar). */
+void       umi_status_free(UmiStatus *st);
 
 #endif /* UMICOM_STATUS_UTIL_H */
+/* End of src/util/log/include/status_util.h */
