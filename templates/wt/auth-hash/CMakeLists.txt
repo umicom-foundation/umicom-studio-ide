@@ -1,6 +1,0 @@
-cmake_minimum_required(VERSION 3.22)
-project(wt_auth_hash CXX)
-set(CMAKE_CXX_STANDARD 17)
-find_package(Wt REQUIRED COMPONENTS Wt WtHttp)
-add_executable(wt_auth_hash main.cpp)
-target_link_libraries(wt_auth_hash PRIVATE Wt::Wt Wt::WtHttp)

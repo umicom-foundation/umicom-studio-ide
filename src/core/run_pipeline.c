@@ -5,8 +5,8 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "run_pipeline.h"
-#include "env.h"
+#include "include/run_pipeline.h"
+#include "../util/sys/include/env.h"
 
 static UmiBuildRunner *g_runner = NULL;
 static UmiDiagRouter   g_router = {0};

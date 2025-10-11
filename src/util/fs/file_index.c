@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "file_index.h"
+#include "include/file_index.h"
 
 static void walk_dir(GPtrArray *out, const char *dir){
   GDir *d = g_dir_open(dir, 0, NULL);

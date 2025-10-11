@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "diagnostic_parsers.h"
+#include <umicom/diagnostic_parsers.h>
 
 static UmiDiagSeverity sev_from_token(const char *t){
   if(!t) return UMI_DIAG_ERROR;

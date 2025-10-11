@@ -1,5 +1,11 @@
+/* -----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * PURPOSE: Core sources for Umicom Studio IDE.
+ * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+ * Last updated: 2025-10-11
+ * ---------------------------------------------------------------------------*/
 
-#include "window.h"
+#include "../include/window.h"
 
 static GtkWidget* build_ui(GtkApplication *app) {
   GtkBuilder *builder = gtk_builder_new_from_resource("/com/umicom/ustudio/ui/main.ui");

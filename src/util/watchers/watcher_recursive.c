@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "watcher_recursive.h"
+#include "include/watcher_recursive.h"
 
 typedef struct {
   GFile *dir;

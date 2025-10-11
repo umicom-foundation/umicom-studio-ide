@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "project_manager.h"
+#include "include/project_manager.h"
 
 UmiProjectManager *umi_project_manager_new(UmiWorkspace *ws, UmiRecent *recent, UmiStatus *status){
   /* We *do not* take ownership of ws/recent/status because other parts of the app

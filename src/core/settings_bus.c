@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "settings_bus.h"
+#include "include/settings_bus.h"
 
 struct _UmiSettingsBus {
   GObject parent_instance;

@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "settings_apply.h"
+#include "include/settings_apply.h"
 
 void umi_settings_apply_broadcast(const UmiSettings *s, GtkWindow *win){
   UmiSettingsBus *bus = umi_settings_bus_get();

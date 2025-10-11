@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "telemetry.h"
+#include "include/telemetry.h"
 
 static GHashTable *g_counts = NULL;
 

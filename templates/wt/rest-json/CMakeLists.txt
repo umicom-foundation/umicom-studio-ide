@@ -1,6 +1,0 @@
-cmake_minimum_required(VERSION 3.22)
-project(wt_rest CXX)
-set(CMAKE_CXX_STANDARD 17)
-find_package(Wt REQUIRED COMPONENTS Wt WtHttp)
-add_executable(wt_rest main.cpp)
-target_link_libraries(wt_rest PRIVATE Wt::Wt Wt::WtHttp)

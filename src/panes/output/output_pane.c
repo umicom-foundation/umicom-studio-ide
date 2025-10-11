@@ -4,7 +4,7 @@
  * PURPOSE: Implements a scrollable text console for build/run output
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
-#include "output_pane.h"
+#include "include/output_pane.h"
 #include <string.h>
 
 struct _UmiOutputPane {

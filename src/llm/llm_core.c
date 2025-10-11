@@ -17,7 +17,7 @@
 
 #include <string.h>
 #include <glib.h>
-#include "umicom/llm.h"
+#include <umicom/llm.h>
 
 /*-----------------------------------------------------------------------------
  * Config init from environment (stable defaults + light env overrides)

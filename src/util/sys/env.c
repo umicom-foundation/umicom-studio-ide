@@ -4,7 +4,7 @@
  * PURPOSE: Implementation of multi-line env parsing helpers.
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
-#include "env.h"
+#include "include/env.h"
 
 gchar **umi_env_from_multiline(const char *env_multiline){
   if(!env_multiline || !*env_multiline) return NULL;

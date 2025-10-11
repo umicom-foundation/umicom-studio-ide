@@ -21,6 +21,13 @@
  * License: MIT (same as project)
  * ---------------------------------------------------------------------------
  */
+
+/* -----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * PURPOSE: Core sources for Umicom Studio IDE.
+ * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+ * Last updated: 2025-10-11
+ * ---------------------------------------------------------------------------*/
 #include <gtk/gtk.h>
 #include <glib.h>
 

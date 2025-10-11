@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "util_path.h"
+#include "include/util_path.h"
 
 static gchar *norm_only(const char *p){
   if(!p||!*p) return g_strdup(".");

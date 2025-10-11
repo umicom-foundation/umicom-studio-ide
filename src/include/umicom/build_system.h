@@ -1,3 +1,0 @@
-#ifndef UMICOM_BUILD_SYSTEM_H
-#define UMICOM_BUILD_SYSTEM_H
-#endif

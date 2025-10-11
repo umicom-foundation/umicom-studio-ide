@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "json_store.h"
+#include <umicom/json_store.h>
 #include <json-glib/json-glib.h>
 
 static GHashTable *new_table(void){

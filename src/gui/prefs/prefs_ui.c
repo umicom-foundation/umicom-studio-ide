@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "prefs_ui.h"
+#include "include/prefs_ui.h"
 
 static void load_values(UmiPrefsUI *ui){
   const char *theme = umi_json_get(ui->store, "theme");

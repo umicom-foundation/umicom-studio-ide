@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "options.h"
+#include "include/options.h"
 
 UmiOptions *umi_options_parse(int *argc, char ***argv, GError **err){
   UmiOptions *o = g_new0(UmiOptions,1);

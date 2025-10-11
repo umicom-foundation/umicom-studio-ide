@@ -1,8 +1,15 @@
 /*---------------------------------------------------------------------------
 * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
 *---------------------------------------------------------------------------*/
-#include "umicom/i18n.h"
-#include "umicom/llm.h"
+
+/* -----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * PURPOSE: Core sources for Umicom Studio IDE.
+ * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+ * Last updated: 2025-10-11
+ * ---------------------------------------------------------------------------*/
+#include <umicom/i18n.h>
+#include <umicom/llm.h>
 static const char *SYS = "You are a professional translator. Return only the translated text.";
 bool umi_translate_text(const gchar *input,
                         const UmiI18nOpts *opts,

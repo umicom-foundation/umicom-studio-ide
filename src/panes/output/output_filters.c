@@ -5,8 +5,8 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "output_filters.h"
-#include "timestamp.h"
+#include "include/output_filters.h"
+#include "../../util/sys/include/timestamp.h"
 
 UmiOutChain *umi_out_chain_new(void){
   UmiOutChain *c = g_new0(UmiOutChain,1);

@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "path_watcher.h"
+#include "include/path_watcher.h"
 
 struct _UmiPathWatcher {
   GFile *root;

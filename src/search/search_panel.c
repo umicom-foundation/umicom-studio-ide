@@ -10,7 +10,7 @@
  * License: MIT
  *---------------------------------------------------------------------------*/
 #include <glib.h>
-#include "search_panel.h"
+#include <umicom/search_panel.h>
 
 static void on_clicked(void){
   gchar *out=NULL;

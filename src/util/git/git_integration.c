@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "git_integration.h"
+#include "include/git_integration.h"
 
 static gchar *run(const char *cwd, char * const *argv, GError **err){
   GSubprocess *p = g_subprocess_newv((const gchar * const*)argv,

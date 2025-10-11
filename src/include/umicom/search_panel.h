@@ -1,3 +1,0 @@
-#ifndef UMICOM_SEARCH_PANEL_H
-#define UMICOM_SEARCH_PANEL_H
-#endif

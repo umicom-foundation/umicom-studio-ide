@@ -5,8 +5,8 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "theme_live.h"
-#include "theme.h"
+#include "include/theme_live.h"
+#include "include/theme.h"
 
 static void on_changed(UmiSettingsBus *bus, const char *key, const char *value, gpointer user){
   (void)bus;

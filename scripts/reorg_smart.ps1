@@ -1,3 +1,9 @@
+# -----------------------------------------------------------------------------
+# Umicom Studio IDE
+# PURPOSE: Project automation / helper script.
+# Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+# Last updated: 2025-10-11
+# -----------------------------------------------------------------------------
 <#  -----------------------------------------------------------------------------
   Umicom Studio IDE — Smart Reorg (PowerShell)  v1.2
   - Moves Android/Web/Wt starters into templates/* and tidies single files.

@@ -1,4 +1,10 @@
-#include "umicom/llm.h"
+/* -----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * PURPOSE: Core sources for Umicom Studio IDE.
+ * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+ * Last updated: 2025-10-11
+ * ---------------------------------------------------------------------------*/
+#include <umicom/llm.h>
 #include <glib.h>
 int main() {
   UmiLlmCfg cfg; umi_llm_cfg_init_from_env(&cfg);

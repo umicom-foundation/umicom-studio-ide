@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "output_pane_adapter.h"
+#include "include/output_pane_adapter.h"
 
 UmiOutputPaneAdapter *umi_output_pane_adapter_new(void){
   UmiOutputPaneAdapter *a = g_new0(UmiOutputPaneAdapter,1);

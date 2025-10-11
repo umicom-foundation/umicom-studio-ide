@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "output_console.h"
+#include "include/output_console.h"
 
 struct _UmiOutputConsole {
   GtkWidget *root;

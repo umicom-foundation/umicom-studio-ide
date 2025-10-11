@@ -1,6 +1,13 @@
 /* LLM HTTP helpers (libcurl) + privacy guard */
-#include "umicom/llm_http.h"
-#include "umicom/privacy.h"
+
+/* -----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * PURPOSE: Core sources for Umicom Studio IDE.
+ * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+ * Last updated: 2025-10-11
+ * ---------------------------------------------------------------------------*/
+#include <umicom/llm_http.h>
+#include <umicom/privacy.h>
 #include <curl/curl.h>
 
 typedef struct { GString *buf; } Acc;

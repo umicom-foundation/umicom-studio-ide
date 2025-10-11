@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "watcher_integration.h"
+#include "include/watcher_integration.h"
 
 static void on_evt(gpointer u, const char *path){
   (void)path;

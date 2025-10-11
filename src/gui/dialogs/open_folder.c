@@ -4,7 +4,7 @@
  * PURPOSE: Implementation of open-folder prompt helper (GTK4)
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-08 | MIT
  *---------------------------------------------------------------------------*/
-#include "open_folder.h"
+#include "include/open_folder.h"
 #include <gio/gio.h>          /* GFile */
 #include <gtk/gtk.h>          /* GtkFileDialog (GTK4) */
 

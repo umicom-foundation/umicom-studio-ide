@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "ripgrep_args.h"
+#include "include/ripgrep_args.h"
 
 GPtrArray *umi_rg_build_argv(const UmiRgCfg *cfg){
   GPtrArray *a = g_ptr_array_new_with_free_func(g_free);

@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "recent_files.h"
+#include <umicom/recent_files.h>
 #include <json-glib/json-glib.h>
 
 static const char *RECENT_JSON = "config/recent.json";

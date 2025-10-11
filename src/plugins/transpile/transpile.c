@@ -1,8 +1,15 @@
 /*---------------------------------------------------------------------------
 * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
 *---------------------------------------------------------------------------*/
-#include "umicom/transpile.h"
-#include "umicom/llm.h"
+
+/* -----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * PURPOSE: Core sources for Umicom Studio IDE.
+ * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+ * Last updated: 2025-10-11
+ * ---------------------------------------------------------------------------*/
+#include <umicom/transpile.h>
+#include <umicom/llm.h>
 #include <string.h>
 static const char *SYS =
   "You are a precise code translator. Preserve semantics and produce idiomatic target code.";

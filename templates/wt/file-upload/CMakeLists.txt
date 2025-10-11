@@ -1,6 +1,0 @@
-cmake_minimum_required(VERSION 3.22)
-project(wt_upload CXX)
-set(CMAKE_CXX_STANDARD 17)
-find_package(Wt REQUIRED COMPONENTS Wt WtHttp )
-add_executable(wt_upload main.cpp)
-target_link_libraries(wt_upload PRIVATE Wt::Wt Wt::WtHttp  

@@ -8,7 +8,7 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 
-#include "gui/app.h"
+#include <umicom/app.h>
 
 __attribute__((weak)) void umi_run_pipeline_start(gpointer out, gpointer problems, gpointer reserved);
 __attribute__((weak)) void umi_run_pipeline_stop(void);

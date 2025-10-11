@@ -10,7 +10,7 @@
  * License: MIT
  *---------------------------------------------------------------------------*/
 #include <glib.h>
-#include "run_config.h"
+#include "include/run_config.h"
 
 void umi_run_config_free(UmiRunConfig *r){
   if(!r) return;

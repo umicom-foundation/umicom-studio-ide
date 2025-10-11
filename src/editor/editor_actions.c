@@ -6,8 +6,8 @@
  *---------------------------------------------------------------------------*/
 #include <gtk/gtk.h>
 #include <glib.h>
-#include "editor_actions.h"
-#include "status_util.h"
+#include "include/editor_actions.h"
+#include "../util/log/include/status_util.h"
 
 static GtkTextBuffer* ensure_buffer(UmiEditor *ed) { 
   if (!ed) return NULL;

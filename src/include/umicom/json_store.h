@@ -1,3 +1,0 @@
-#ifndef UMICOM_JSON_STORE_H
-#define UMICOM_JSON_STORE_H
-#endif

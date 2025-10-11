@@ -5,8 +5,8 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "prefs.h"
-#include "status_util.h"
+#include <umicom/prefs.h>
+#include "../../util/log/include/status_util.h"
 #include <json-glib/json-glib.h>
 
 typedef struct {

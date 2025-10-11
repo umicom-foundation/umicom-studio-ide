@@ -1,3 +1,9 @@
+# -----------------------------------------------------------------------------
+# Umicom Studio IDE
+# PURPOSE: Project automation / helper script.
+# Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+# Last updated: 2025-10-11
+# -----------------------------------------------------------------------------
 param()
 Set-Location (Join-Path $PSScriptRoot '..')
 New-Item -ItemType Directory gradle\wrapper -Force | Out-Null

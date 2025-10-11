@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "actions.h"
+#include "include/actions.h"
 
 static void noop(GSimpleAction *a, GVariant *p, gpointer u){ (void)a;(void)p;(void)u; }
 

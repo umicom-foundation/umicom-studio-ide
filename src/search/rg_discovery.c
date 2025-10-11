@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "rg_discovery.h"
+#include "include/rg_discovery.h"
 
 static gboolean is_exe(const char *path){
   return path && *path && g_file_test(path, G_FILE_TEST_IS_EXECUTABLE);

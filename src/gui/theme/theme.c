@@ -10,7 +10,7 @@
  * License: MIT
  *---------------------------------------------------------------------------*/
 #include <gtk/gtk.h>
-#include "theme.h"
+#include "include/theme.h"
 
 void umi_theme_apply(GtkWindow *win){
   /* GtkStyleContext *ctx = gtk_widget_get_style_context(GTK_WIDGET(win)); */

@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "status_util.h"
+#include "include/status_util.h"
 
 static gboolean restore_cb(gpointer d){
   UmiStatus *s = (UmiStatus*)d;

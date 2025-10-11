@@ -1,6 +1,12 @@
+/* -----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * PURPOSE: Core sources for Umicom Studio IDE.
+ * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+ * Last updated: 2025-10-11
+ * ---------------------------------------------------------------------------*/
 ﻿/* LLM Lab (GTK) — Token Inspector (entropy + top-k) */
-#include "gui/llm_lab.h"
-#include "gui/llm.h"
+#include <umicom/llm_lab.h>
+#include <umicom/llm.h>
 #include <glib/gi18n.h>
 #include <math.h>
 

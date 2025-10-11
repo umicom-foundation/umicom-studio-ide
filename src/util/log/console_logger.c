@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "console_logger.h"
+#include "include/console_logger.h"
 #include <stdarg.h>
 
 static void vpost(UmiOutputConsole *c, const char *sev, const char *color, const char *fmt, va_list ap){

@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "utf8.h"
+#include "include/utf8.h"
 
 gboolean umi_utf8_icontains(const char *h, const char *n){
   if(!h || !n || !*n) return FALSE;

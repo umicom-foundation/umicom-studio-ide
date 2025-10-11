@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "workspace.h"
+#include "include/workspace.h"
 #include <json-glib/json-glib.h>
 
 static const char *WS_JSON = "config/workspace.json";

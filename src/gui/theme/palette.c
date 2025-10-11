@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "palette.h"
+#include "include/palette.h"
 
 static void populate(UmiPalette *p, const char *filter){
   gtk_list_box_remove_all(p->list);

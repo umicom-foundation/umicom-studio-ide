@@ -11,8 +11,8 @@
  * gtk_widget_get_first_child/gtk_widget_get_next_sibling and removes children
  * from a GtkBox with gtk_box_remove().
  *---------------------------------------------------------------------------*/
-#include "command_palette.h"
-#include "utf8.h"
+#include "include/command_palette.h"
+#include "../../util/sys/include/utf8.h"
 
 struct _UmiPalette {
   GtkWidget *dlg;

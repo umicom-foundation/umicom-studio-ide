@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "rg_runner.h"
+#include "include/rg_runner.h"
 
 GSubprocess *umi_rg_spawn(const UmiRgOpts *o, GError **err){
   if(!o || !o->pattern || !o->root) return NULL;

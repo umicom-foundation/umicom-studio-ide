@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "fs_walk.h"
+#include "include/fs_walk.h"
 
 static void walk_dir(const char *root, gboolean include_hidden, UmiFsVisitCb cb, gpointer user){
   if(!root || !cb) return;

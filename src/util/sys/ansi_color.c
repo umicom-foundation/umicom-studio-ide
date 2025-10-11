@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "ansi_color.h"
+#include "include/ansi_color.h"
 
 struct _UmiAnsi { GtkTextBuffer *buf; };
 
