@@ -1,9 +1,15 @@
-
-<?xml version="1.0" encoding="UTF-8"?>
+<!--
+-----------------------------------------------------------------------------
+ Umicom Studio IDE
+ File: assets/data/ustudio.gresource.xml
+ PURPOSE: GTK resource manifest for UI files, CSS, icons, etc.
+ Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+-----------------------------------------------------------------------------
+-->
 <gresources>
   <gresource prefix="/com/umicom/ustudio">
-    <file preprocess="xml-stripblanks">ui/main.ui</file>
-    <file preprocess="xml-stripblanks">ui/shortcuts.ui</file>
-    <file>styles/app.css</file>
+    <!-- Minimal UI file required by the build.
+         If you have additional UI/CSS/images, add them here. -->
+    <file>ui/main.ui</file>
   </gresource>
 </gresources>
