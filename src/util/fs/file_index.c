@@ -103,6 +103,22 @@ void umi_index_refresh(UmiFileIndex *idx){
   g_ptr_array_sort_with_data(idx->files, (GCompareDataFunc)g_strcmp0, NULL);
 }
 
+/* Correct-typed adapter that matches GCompareDataFunc signature for strings. */
+static gint cmp_cstrings(gconstpointer a, gconstpointer b, gpointer user_data) {
+    (void)user_data;                              // Unused.
+    const char *sa = a;                           // Input 'a' as C string.
+    const char *sb = b;                           // Input 'b' as C string.
+    return g_strcmp0(sa, sb);                     // Use GLib-safe strcmp.
+}
+/* Sort the indexed files lexicographically (in-place). */
+void umi_index_sort(UmiFileIndex *idx){
+  if(!idx || !idx->files)                             /* Safe on NULL. */
+    return; 
+  g_ptr_array_sort_with_data(                         /* Stable order for reproducible builds/tests. */
+    idx->files, cmp_cstrings, NULL);                  /* Use typed adapter for safety.
+}
+      
+
 /* Release all resources held by the index. */
 void umi_index_free(UmiFileIndex *idx){
   if(!idx)                                             /* Allow free(NULL). */

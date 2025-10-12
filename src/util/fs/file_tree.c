@@ -56,6 +56,13 @@ UmiFileTree *umi_file_tree_new(UmiFileActivateCb on_activate, gpointer user){
 
   return t;                                                    /* Return fully-constructed object. */
 }
+/* Correct-typed adapter that matches GCompareDataFunc signature for strings. */
+static gint cmp_cstrings(gconstpointer a, gconstpointer b, gpointer user_data) {
+    (void)user_data;                              // Unused.
+    const char *sa = a;                           // Input 'a' as C string.
+    const char *sb = b;                           // Input 'b' as C string.
+    return g_strcmp0(sa, sb);                     // Use GLib-safe strcmp.
+}
 
 /* Expose the widget to the caller for packing. */
 GtkWidget *umi_file_tree_widget(UmiFileTree *t){

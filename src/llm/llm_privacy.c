@@ -158,4 +158,9 @@ void umi_privacy_free(UmiPrivacySettings *s) {
   g_clear_pointer(&s->extra_redactions, g_free);
   g_free(s);
 }
+
+/* In llm_privacy.c — ensure NOT static, and matches header exactly. */
+gboolean umi_privacy_allow_url(const char *url) {
+    /* … your policy checks … */
+}
 /*--- end of file ---*/

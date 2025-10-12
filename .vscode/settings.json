@@ -3,5 +3,10 @@
   "clangd.arguments": [
     "--compile-commands-dir=${workspaceFolder}",
     "--query-driver=C:\\msys64\\mingw64\\bin\\gcc.exe;C:\\msys64\\mingw64\\bin\\g++.exe;C:\\msys64\\mingw64\\bin\\clang.exe;C:\\msys64\\mingw64\\bin\\clang++.exe"
-  ]
+  ],
+  "editor.fontSize": 24,
+  "terminal.integrated.fontSize": 24,
+  "debug.console.fontSize": 24,
+  "scm.inputFontSize": 24,
+  "chat.editor.fontSize": 24
 }

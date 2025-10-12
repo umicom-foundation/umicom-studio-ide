@@ -18,7 +18,7 @@
 #define UMICOM_THEME_PALETTE_H
 
 #include <gtk/gtk.h>
-
+typedef struct UmiThemePalette UmiThemePalette;    // Opaque handle.
 /* Callback type for palette commands. The gpointer is app-defined context. */
 typedef void (*UmiCmdFn)(gpointer user);
 
@@ -42,6 +42,8 @@ UmiPalette *umi_palette_new          (GtkWindow *parent);
 void        umi_palette_set_commands (UmiPalette *p, GPtrArray *cmds);
 void        umi_palette_open         (UmiPalette *p);
 void        umi_palette_free         (UmiPalette *p);
-
+UmiThemePalette *umi_theme_palette_new(void);      // Create theme palette.
+void umi_theme_palette_open(UmiThemePalette *p, GtkWindow *parent); // Show it.
+void umi_theme_palette_free(UmiThemePalette *p);   // Destroy.
 #endif /* UMICOM_THEME_PALETTE_H */
 /*--- end of file ---*/

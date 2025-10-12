@@ -158,4 +158,10 @@ umi_output_console_chain(UmiOutputConsole *c)
 {
   return c ? &c->chain : NULL;
 }
+/* Public accessor to obtain the console’s top-level GtkWidget for packing. */
+GtkWidget *umi_output_console_widget(UmiOutputConsole *c) {
+    g_return_val_if_fail(c != NULL, NULL);       // Validate.
+    return c->widget;                            // Return the widget the UI should pack.
+}
+
 /*--------------------------------- End of file --------------------------------*/

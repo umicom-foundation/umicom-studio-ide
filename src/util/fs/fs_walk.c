@@ -63,3 +63,22 @@ void umi_fs_walk(const char *root, gboolean include_hidden, UmiFsVisitCb cb, gpo
 
   walk_dir(root, include_hidden, cb, user); /* Otherwise, descend recursively. */
 }
+
+/* Correct-typed adapter that matches GCompareDataFunc signature for strings. */
+static gint cmp_cstrings(gconstpointer a, gconstpointer b, gpointer user_data) {
+    (void)user_data;                              // Unused.
+    const char *sa = a;                           // Input 'a' as C string.
+    const char *sb = b;                           // Input 'b' as C string.
+    return g_strcmp0(sa, sb);                     // Use GLib-safe strcmp.
+}
+/* Sort a list of paths lexicographically (in-place). */
+void umi_fs_sort_paths(GPtrArray *arr){
+  if(!arr)                                   /* Safe on NULL. */
+    return;
+  g_ptr_array_sort_with_data(                /* Stable order for reproducible builds/tests. */
+    arr,
+    (GCompareDataFunc)cmp_cstrings,          /* Compare function for strings. */
+    NULL                                     /* No extra user data needed. */
+  );
+}
+/* End of src/util/fs/fs_walk.c */
