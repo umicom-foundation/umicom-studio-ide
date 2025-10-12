@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/include/msys_env.h
  * PURPOSE: Discover MSYS/MinGW roots and build PATH hints for child procs

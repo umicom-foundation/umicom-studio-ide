@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build_tasks.h
  * PURPOSE: Tiny build task facade that uses build_system + output pipeline

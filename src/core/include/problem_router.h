@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/problem_router.h
  * PURPOSE: Glue: feed lines to parsers and update list + output

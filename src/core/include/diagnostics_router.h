@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/diagnostics_router.h
  * PURPOSE: Route process lines to problem_list and output pane

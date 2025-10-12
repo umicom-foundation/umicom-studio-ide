@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/core/json_store.h
  * PURPOSE: Simple JSON-backed key-value store (string->string) using JSON-GLib.

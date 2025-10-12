@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build/include/build_runner.h
  * PURPOSE: Public API for running external build tasks asynchronously using

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/core/umi_log.c
  * PURPOSE: Implementation for tiny logging shim (see umi_log.h)

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/core/run_pipeline.c
  * PURPOSE: Launch and manage external run/build commands via the unified

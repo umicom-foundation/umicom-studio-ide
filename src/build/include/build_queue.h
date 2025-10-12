@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build/include/build_queue.h
  * PURPOSE: A simple FIFO queue of build tasks managed around UmiBuildRunner.

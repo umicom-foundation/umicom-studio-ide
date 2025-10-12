@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/core/recent_files.h
  * PURPOSE: Public API for the MRU (recent files) list, JSON-backed.

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/open_folder.h
  * PURPOSE: Helper to prompt for a folder and set workspace root

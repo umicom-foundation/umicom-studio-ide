@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/problem_router.c
  * PURPOSE: Implementation of problem router using diagnostic_parsers

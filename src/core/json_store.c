@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/core/json_store.c
  * PURPOSE: Implementation of JSON key-value store with json-glib
