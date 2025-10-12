@@ -10,7 +10,7 @@
  * DESIGN CHOICES:
  *   - Opaque public type: the header only forward-declares UmiOutputConsole,
  *     so we can evolve internals without breaking consumers.
- *   - Self-contained widget: the console now constructs and owns a TextView
+ *   - Self-contained widget: the console constructs and owns a TextView
  *     wrapped in a ScrolledWindow; callers just pack the widget.
  *   - Thread-safe appends: lines are marshalled onto the GTK main loop using
  *     g_idle_add_full() so it’s safe to call from worker threads.
@@ -18,8 +18,8 @@
  *     the TextView will take a reference; we won’t unref it manually to avoid
  *     double-free when the view goes away. If a caller passes a buffer, we
  *     do not own it and we never unref it.
- *   - Extensible output chain: a tiny sink/chain API lets other parts hook or
- *     transform lines before they hit the buffer (e.g., ANSI color parsing).
+ *   - No cross-module includes: avoids tangled dependencies; strictly uses
+ *     its own public header and GTK/GLib.
  *
  * RISK & SAFETY NOTES:
  *   - No raw pointer exposure outside the module; dangling pointer risk is
@@ -36,17 +36,24 @@
 
 #include <gtk/gtk.h>                     /* GTK widgets, text buffer, idle API  */
 #include <glib.h>                        /* GLib base types/utilities            */
-#include "include/output_console.h"      /* Public console API (opaque type)     */
-#include "include/diagnostic_parsers.h"  /* Optional: parse build lines to spans */
+#include "output_console.h"              /* Public console API (opaque type)     */
+/* NOTE:
+ * We intentionally do NOT include any cross-module headers such as
+ * "include/diagnostic_parsers.h". If we later add optional parsing,
+ * we’ll inject it via a tiny hook interface to keep modules decoupled.
+ */
 
 /*-----------------------------------------------------------------------------
  * INTERNAL TYPES
  *---------------------------------------------------------------------------*/
 
-/* Forward declaration for ANSI helper (kept as-is from existing code).          */
+/* Forward declaration for a possible ANSI helper (kept extensible).
+ * We stub it out for now; future work can plug in a real parser without
+ * changing this module’s external interface.
+ */
 typedef struct _UmiAnsi UmiAnsi;
 
-/* A small link/sink to allow chaining of line processors.                       */
+/* A tiny sink/chain to allow chaining of line processors (extensible).          */
 typedef struct _UmiOutChain {
   void (*sink)(void *user, const char *line, gboolean is_err); /* next sink fns  */
   void  *user;                                                 /* user context   */
@@ -59,10 +66,8 @@ struct _UmiOutputConsole {
   UmiOutChain    chain;               /* downstream sink chain                   */
   gboolean       created_buf;         /* TRUE if we created the buffer           */
 
-  /* NEW: widget fields (to fix compile error and make the console self-contained)
-   * We keep the scrolled window as the “widget” we expose; it owns the child view.
-   */
-  GtkWidget     *widget;              /* GtkScrolledWindow we hand to the caller */
+  /* The public getter returns this scrolled window for packing into UI.          */
+  GtkWidget     *widget;              /* GtkScrolledWindow handed to caller      */
   GtkWidget     *view;                /* GtkTextView displaying `buf`            */
 };
 
@@ -77,19 +82,8 @@ typedef struct {
  *---------------------------------------------------------------------------*/
 
 /* Optional ANSI parser construction/destruction (stubs if not used).           */
-static UmiAnsi *
-umi_ansi_new(void)
-{
-  /* For now return NULL to indicate “no ANSI processing”.                        */
-  return NULL;                        /* No heap allocation => no leak risk      */
-}
-
-static void
-umi_ansi_free(UmiAnsi *a)
-{
-  /* Nothing to free yet (kept for symmetry / future expansion).                  */
-  (void)a;
-}
+static UmiAnsi *umi_ansi_new(void) { return NULL; }           /* no-op stub      */
+static void     umi_ansi_free(UmiAnsi *a) { (void)a; }        /* no-op stub      }
 
 /* Append a single line to the GtkTextBuffer on the GTK main loop.
  * This function runs from the idle handler (main thread).
@@ -97,179 +91,138 @@ umi_ansi_free(UmiAnsi *a)
 static gboolean
 idle_append_cb(gpointer data)
 {
-  IdleAppend *p = (IdleAppend *)data; /* payload with console+line               */
-
-  /* Guard: ensure payload and console exist.                                     */
-  if (!p || !p->self || !p->line) {
-    if (p) g_free(p);                 /* free payload if partially valid         */
-    return G_SOURCE_REMOVE;           /* remove source; nothing to do            */
+  IdleAppend *p = (IdleAppend *)data;                       /* payload          */
+  if (!p || !p->self || !p->line) {                         /* guard            */
+    if (p) g_free(p);                                       /* cleanup payload  */
+    return G_SOURCE_REMOVE;                                  /* one-shot done    */
   }
 
-  /* Obtain buffer from console.                                                  */
-  GtkTextBuffer *buf = p->self->buf;  /* buffer is owned by view; not NULL       */
+  GtkTextBuffer *buf = p->self->buf;                        /* the buffer       */
 
-  /* Insert the line at the end (cursor position).                                */
-  gtk_text_buffer_insert_at_cursor(buf, p->line, -1);  /* -1 => NUL-terminated  */
-  gtk_text_buffer_insert_at_cursor(buf, "\n", 1);      /* newline after each    */
+  gtk_text_buffer_insert_at_cursor(buf, p->line, -1);       /* insert text      */
+  gtk_text_buffer_insert_at_cursor(buf, "\n", 1);           /* newline          */
 
-  /* Auto-scroll to the end: move iter to end and place cursor there.             */
-  GtkTextIter end_iter;               /* iterator to represent end-of-buffer     */
-  gtk_text_buffer_get_end_iter(buf, &end_iter);        /* compute end           */
-  gtk_text_buffer_place_cursor(buf, &end_iter);        /* move cursor           */
+  GtkTextIter end_iter;                                     /* auto-scroll      */
+  gtk_text_buffer_get_end_iter(buf, &end_iter);             /* compute end      */
+  gtk_text_buffer_place_cursor(buf, &end_iter);             /* place cursor     */
 
-  /* If a view exists, ensure it scrolls (via “insert-text” default behavior).    */
-  /* NOTE: In GTK4, the default behavior keeps the insert mark visible.           */
-
-  /* Clean up heap allocations from the payload.                                  */
-  g_free(p->line);                    /* free duplicated text                    */
-  g_free(p);                          /* free payload struct                     */
-
-  return G_SOURCE_REMOVE;             /* one-shot idle callback                  */
+  g_free(p->line);                                          /* free text        */
+  g_free(p);                                                /* free payload     */
+  return G_SOURCE_REMOVE;                                   /* remove idle      */
 }
 
 /* Deliver a line into the console pipeline (console -> buffer via idle).         */
 static void
 console_sink(void *user, const char *line, gboolean is_err)
 {
-  (void)is_err;                       /* Currently unused; future styling hook   */
+  (void)is_err;                                             /* styling hook     */
+  UmiOutputConsole *c = (UmiOutputConsole *)user;           /* console          */
+  if (!c || !line) return;                                  /* guard            */
 
-  UmiOutputConsole *c = (UmiOutputConsole *)user;  /* back to console instance  */
-  if (!c || !line) return;            /* guard against NULLs                    */
+  IdleAppend *payload = g_new(IdleAppend, 1);               /* allocate         */
+  payload->self = c;                                        /* set console      */
+  payload->line = g_strdup(line);                           /* duplicate text   */
 
-  /* Marshal append onto the GTK main loop safely.                                */
-  IdleAppend *payload = g_new(IdleAppend, 1);       /* allocate payload         */
-  payload->self = c;                                  /* set console            */
-  payload->line = g_strdup(line);                     /* duplicate text         */
-
-  /* Priority: G_PRIORITY_DEFAULT ensures reasonable scheduling.                  */
-  g_idle_add_full(G_PRIORITY_DEFAULT, idle_append_cb, payload, NULL);
+  g_idle_add_full(G_PRIORITY_DEFAULT, idle_append_cb, payload, NULL); /* enqueue */
 }
 
 /*-----------------------------------------------------------------------------
  * PUBLIC API IMPLEMENTATION
  *---------------------------------------------------------------------------*/
 
-/* Create a new console.
- * If `opt_buf` is NULL, we create a new GtkTextBuffer and mark created_buf=TRUE.
- * We also construct the internal GtkTextView and GtkScrolledWindow so callers
- * can immediately pack the widget returned by umi_output_console_widget().
- */
+/* Create a new console (optionally with an existing GtkTextBuffer).              */
 UmiOutputConsole *
 umi_output_console_new(GtkTextBuffer *opt_buf)
 {
-  /* Allocate and zero-init the console object on the heap.                       */
-  UmiOutputConsole *c = g_new0(UmiOutputConsole, 1);  /* zeroed memory block    */
+  UmiOutputConsole *c = g_new0(UmiOutputConsole, 1);        /* zero-init        */
 
-  /* Buffer selection: use caller’s buffer if provided, otherwise create one.     */
-  if (opt_buf) {                         /* case: caller supplies buffer         */
-    c->buf = opt_buf;                    /* store pointer; we DO NOT own it      */
-    c->created_buf = FALSE;              /* reflect ownership policy             */
-  } else {                               /* case: no buffer supplied             */
-    c->buf = gtk_text_buffer_new(NULL);  /* create default buffer (no tags)      */
-    c->created_buf = TRUE;               /* mark as created by us                */
-    /* NOTE: We will not explicitly unref this later because the TextView takes
-     * a reference; the view’s lifetime and the GTK container graph manage it.   */
+  if (opt_buf) {                                            /* caller-supplied  */
+    c->buf = opt_buf;                                       /* non-owning       */
+    c->created_buf = FALSE;                                  /* reflect          */
+  } else {                                                  /* create our own   */
+    c->buf = gtk_text_buffer_new(NULL);                     /* default buffer   */
+    c->created_buf = TRUE;                                   /* mark created     */
+    /* We do NOT manually unref this later; the TextView holds a ref and
+     * will release it when the widget hierarchy is destroyed.                   */
   }
 
-  /* Optional ANSI helper (no-op stub for now).                                   */
-  c->ansi = umi_ansi_new();              /* may return NULL                      */
+  c->ansi = umi_ansi_new();                                 /* optional helper  */
+  c->chain.sink = console_sink;                             /* default sink     */
+  c->chain.user = c;                                        /* back-reference   */
 
-  /* Initialize the downstream chain so external code can hook if needed.         */
-  c->chain.sink = console_sink;          /* direct to our buffer                 */
-  c->chain.user = c;                     /* pass console as user data            */
-
-  /* ---------------------- NEW: Build the internal widget tree ----------------- */
-
-  /* Create a TextView bound to our buffer so text appears immediately.           */
-  GtkWidget *tv = gtk_text_view_new_with_buffer(c->buf);  /* view bound to buf  */
-
-  /* Configure the view for console-like behavior.                                */
-  gtk_text_view_set_monospace(GTK_TEXT_VIEW(tv), TRUE);   /* fixed-width font   */
-  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tv), GTK_WRAP_CHAR); /* wrap lines  */
-  gtk_text_view_set_editable(GTK_TEXT_VIEW(tv), FALSE);   /* read-only console  */
+  /* Build the widget tree: TextView inside ScrolledWindow.                      */
+  GtkWidget *tv = gtk_text_view_new_with_buffer(c->buf);    /* bind to buffer   */
+  gtk_text_view_set_monospace(GTK_TEXT_VIEW(tv), TRUE);     /* console font     */
+  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tv), GTK_WRAP_CHAR); /* wrap        */
+  gtk_text_view_set_editable(GTK_TEXT_VIEW(tv), FALSE);     /* read-only        */
   gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(tv), FALSE); /* hide caret     */
 
-  /* Create a scrolled container and put the TextView inside it.                  */
-  GtkWidget *scr = gtk_scrolled_window_new();            /* GTK4 no adjustments */
+  GtkWidget *scr = gtk_scrolled_window_new();               /* GTK4 constructor */
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scr),
-                                 GTK_POLICY_AUTOMATIC,   /* horizontal policy   */
-                                 GTK_POLICY_AUTOMATIC);  /* vertical policy     */
-  gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scr), tv); /* set child     */
+                                 GTK_POLICY_AUTOMATIC,
+                                 GTK_POLICY_AUTOMATIC);     /* scrollbars       */
+  gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scr), tv); /* add child     */
 
-  /* Save the widgets so umi_output_console_widget() can return them.             */
-  c->view   = tv;                          /* store the text view pointer       */
-  c->widget = scr;                         /* store the scroller as our widget  */
-
-  /* Return the fully initialized console instance.                               */
-  return c;                                /* caller owns the console handle     */
+  c->view   = tv;                                           /* store view       */
+  c->widget = scr;                                          /* store widget     */
+  return c;                                                 /* return handle    */
 }
 
 /* Return the downstream sink chain (so other modules can feed lines in).         */
 UmiOutChain *
 umi_output_console_chain(UmiOutputConsole *c)
 {
-  if (!c) return NULL;                  /* guard                                  */
-  return &c->chain;                     /* pointer to stable, embedded member     */
+  if (!c) return NULL;                                      /* guard            */
+  return &c->chain;                                         /* embedded member  */
 }
 
 /* Return the GtkTextBuffer used by this console (non-owning).                    */
 GtkTextBuffer *
 umi_output_console_buffer(UmiOutputConsole *c)
 {
-  if (!c) return NULL;                  /* guard                                  */
-  return c->buf;                        /* buffer is owned by the view            */
+  if (!c) return NULL;                                      /* guard            */
+  return c->buf;                                            /* the buffer       */
 }
 
 /* Destroy the console and its internal helpers.                                  */
 void
 umi_output_console_free(UmiOutputConsole *c)
 {
-  if (!c) return;                       /* guard                                  */
+  if (!c) return;                                           /* guard            */
 
-  /* Drop ANSI helper if present.                                                 */
-  if (c->ansi) {
-    umi_ansi_free(c->ansi);             /* free helper                            */
-    c->ansi = NULL;                     /* avoid dangling pointer                 }
+  if (c->ansi) {                                            /* drop helper      */
+    umi_ansi_free(c->ansi);                                 /* free helper      */
+    c->ansi = NULL;                                         /* clear pointer    */
   }
 
-  /* NEW: Unref our widget if we still hold a reference.
-   * Safe in GTK4: if the widget is packed somewhere else, this just decrements
-   * our ref; the container still owns it. If it’s not packed, it will be freed.
-   */
-  if (c->widget) {
-    g_object_unref(c->widget);          /* release scrolled window                */
-    c->widget = NULL;                   /* avoid dangling pointer                 */
+  if (c->widget) {                                          /* unref widget     */
+    g_object_unref(c->widget);                              /* release our ref  */
+    c->widget = NULL;                                       /* clear pointer    */
   }
-  c->view = NULL;                       /* child is owned by scroller; clear ptr  */
+  c->view = NULL;                                           /* child owned by scroller */
 
   /* IMPORTANT: Do not unref the buffer explicitly. The TextView owns a ref and
-   * will release it when the widget hierarchy is destroyed. If the buffer was
-   * supplied by the caller (created_buf==FALSE), we certainly must not unref it.
-   */
+   * will release it when the widget hierarchy goes away. If the buffer was
+   * supplied by the caller, we definitely must not unref it here.               */
 
-  g_free(c);                            /* finally free the console instance      */
+  g_free(c);                                                /* free instance    */
 }
 
 /* Append a line (thread-safe).                                                    */
 void
 umi_output_console_append_line(UmiOutputConsole *c, const char *line)
 {
-  if (!c || !line) return;              /* guard                                  */
-
-  /* Prepare a payload for the idle callback to run on the GTK main loop.         */
-  IdleAppend *payload = g_new(IdleAppend, 1); /* allocate payload                */
-  payload->self = c;                           /* set console                     */
-  payload->line = g_strdup(line);              /* duplicate text for safety       */
-
-  /* Queue the UI update on the main loop.                                        */
-  g_idle_add_full(G_PRIORITY_DEFAULT, idle_append_cb, payload, NULL);
+  if (!c || !line) return;                                  /* guard            */
+  IdleAppend *payload = g_new(IdleAppend, 1);               /* allocate         */
+  payload->self = c;                                        /* set console      */
+  payload->line = g_strdup(line);                           /* duplicate text   */
+  g_idle_add_full(G_PRIORITY_DEFAULT, idle_append_cb, payload, NULL); /* enqueue */
 }
 
 /* Expose the console widget (GtkScrolledWindow).                                  */
 GtkWidget *
 umi_output_console_widget(UmiOutputConsole *c)
 {
-  if (!c) return NULL;                  /* guard                                  */
-  return c->widget;                     /* return the scrolled window to pack     */
+  if (!c) return NULL;                                      /* guard            */
+  return c->widget;                                         /* scroller to pack */
 }
-/*--------------------------------- End of file --------------------------------*/
