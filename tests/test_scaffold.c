@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/test_scaffold.h"
+#include "test_scaffold.h"
 
 UmiTests *umi_tests_new(void){
   UmiTests *t = g_new0(UmiTests,1);

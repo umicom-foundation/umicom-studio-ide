@@ -8,7 +8,7 @@
 #include <gtk/gtk.h>
 
 /* Project headers */
-#include <umicom/editor.h>          /* UmiEditor struct & public API */
+#include <editor.h>          /* UmiEditor struct & public API */
 #include "../panes/problems/include/problem_list.h"    /* UmiProblemList, UmiProblemActivateCb */
 #include "../panes/output/include/output_pane.h"     /* UmiOutputPane, umi_output_pane_* */
 #include "../util/log/include/status_util.h"     /* UmiStatus (optional) */

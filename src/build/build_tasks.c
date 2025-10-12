@@ -10,7 +10,7 @@
 
 /* Project headers */
 #include <app.h>            /* UmiApp, umi_app_handle (if you want to use it)   */
-#include "include/build_runner.h"   /* UmiBuildRunner, umi_build_runner_new/_run        */
+#include "build_runner.h"   /* UmiBuildRunner, umi_build_runner_new/_run        */
 
 /* Forward declare to avoid dragging UI types if you don't need them yet.
  * If you later want to display runner output, replace NULL below with a real

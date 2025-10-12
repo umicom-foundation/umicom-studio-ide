@@ -6,7 +6,7 @@
  *---------------------------------------------------------------------------*/
 
 #include <gtk/gtk.h>
-#include "include/app_menu_llm.h"
+#include "app_menu_llm.h"
 
 /* Be tolerant of different header placements across trees. */
 #if __has_include("llm_lab.h")

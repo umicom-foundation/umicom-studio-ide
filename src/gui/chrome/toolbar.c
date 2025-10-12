@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/toolbar.h"
+#include "toolbar.h"
 
 struct _UmiToolbar {
   GtkWidget *root;

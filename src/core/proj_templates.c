@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/proj_templates.h"
+#include "proj_templates.h"
 
 static const char *C_MAIN =
   "#include <stdio.h>\n"

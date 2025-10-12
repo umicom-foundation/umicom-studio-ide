@@ -7,7 +7,7 @@
 #include <gtk/gtk.h>
 
 /* Local header */
-#include "include/app_actions.h"
+#include "app_actions.h"
 
 /* Core & GUI headers */
 #include "../../include/status_bar.h"          /* UmiStatusBar, umi_status_bar_inner */

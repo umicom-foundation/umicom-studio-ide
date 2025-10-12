@@ -1,6 +1,6 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/prefs.c
+ * File: src/gui/prefs/prefs.c
  * PURPOSE: Preferences dialog implementation (pure C callbacks)
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/

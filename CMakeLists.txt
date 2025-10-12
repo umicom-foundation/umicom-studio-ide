@@ -16,11 +16,16 @@ project(umicom_studio_ide LANGUAGES C)
 # -----------------------------------------------------------------------------
 # Build options
 # -----------------------------------------------------------------------------
-option(USIDE_GUI "Build GUI subsystem on Windows (no console window)" ON)
+# ON  -> GUI entry (src/entry/main.c), Windows uses GUI subsystem (no console)
+# OFF -> Console entry (src/entry/cli_entry.c)
+option(USIDE_GUI "Build GUI entry (main.c). OFF picks console entry (cli_entry.c)." ON)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
+
+# Export compile_commands.json (helps IDEs, clangd, static analyzers)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Default to a reasonable build type if none supplied
 if(NOT CMAKE_BUILD_TYPE)
@@ -50,33 +55,34 @@ pkg_check_modules(HARFBUZZ      REQUIRED IMPORTED_TARGET harfbuzz)
 # Optional (present on many GTK stacks)
 pkg_check_modules(GRAPHENE      QUIET    IMPORTED_TARGET graphene-1.0)
 
-# glib-compile-resources program (ships with GLib / GIO)
-find_program(GLIB_COMPILE_RESOURCES glib-compile-resources REQUIRED)
-
 # -----------------------------------------------------------------------------
 # Sources
-#  - We glob all .c files, then explicitly choose ONE entry point:
-#    * GUI build:    src/entry/main.c
-#    * Console build:src/entry/cli_entry.c
-#  - This avoids link errors from having two 'main' symbols.
+#  - Start with all sources under src/**
+#  - Then explicitly choose ONE entry file (GUI or CLI) to avoid duplicate 'main'
 # -----------------------------------------------------------------------------
 file(GLOB_RECURSE USIDE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
 )
 
-# Force-select a single entry file
+# Absolute paths to the two possible entries
 set(USIDE_ENTRY_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/src/entry/main.c")
 set(USIDE_ENTRY_CLI  "${CMAKE_CURRENT_SOURCE_DIR}/src/entry/cli_entry.c")
 
-# Remove both (if present) from the big glob, then add the one we want.
+# Remove both entries from the globbed list first (avoid duplicate main symbols)
 list(REMOVE_ITEM USIDE_SOURCES "${USIDE_ENTRY_MAIN}" "${USIDE_ENTRY_CLI}")
+
+# Choose the single entry to compile based on USIDE_GUI, fail loudly if missing
 if(USIDE_GUI)
   if(EXISTS "${USIDE_ENTRY_MAIN}")
     list(APPEND USIDE_SOURCES "${USIDE_ENTRY_MAIN}")
+  else()
+    message(FATAL_ERROR "USIDE_GUI=ON but entry file not found: ${USIDE_ENTRY_MAIN}")
   endif()
 else()
   if(EXISTS "${USIDE_ENTRY_CLI}")
     list(APPEND USIDE_SOURCES "${USIDE_ENTRY_CLI}")
+  else()
+    message(FATAL_ERROR "USIDE_GUI=OFF but entry file not found: ${USIDE_ENTRY_CLI}")
   endif()
 endif()
 
@@ -88,28 +94,34 @@ file(GLOB_RECURSE USIDE_INCLUDE_DIRS
     LIST_DIRECTORIES TRUE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*/include"
 )
-# Third-party public headers we include
+
+# Third-party public headers used by this project
 list(APPEND USIDE_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/umicom/uengine/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/umicom/uengine/include/ueng"
 )
+
 list(REMOVE_DUPLICATES USIDE_INCLUDE_DIRS)
 
 # -----------------------------------------------------------------------------
 # Resources (GLib/GResource)
-#  - Generates C from src/ui/resources/ustudio.gresource.xml
-#  - Embeds CSS/JSON/UI into the binary
+#  - Generates a single C source from src/ui/resources/ustudio.gresource.xml
+#  - NOTE: Do NOT list a header in OUTPUT unless you actually --generate-header.
 # -----------------------------------------------------------------------------
 set(USIDE_GRESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources")
 set(USIDE_GRESOURCE_XML "${USIDE_GRESOURCE_DIR}/ustudio.gresource.xml")
 
 if(EXISTS "${USIDE_GRESOURCE_XML}")
+  # Find the tool so builds fail fast & clearly if it's missing
+  find_program(GLIB_COMPILE_RESOURCES glib-compile-resources)
+  if(NOT GLIB_COMPILE_RESOURCES)
+    message(FATAL_ERROR "Missing tool: glib-compile-resources (part of GLib). Please install glib2 tools.")
+  endif()
+
   set(USIDE_GRESOURCE_C "${CMAKE_CURRENT_BINARY_DIR}/ustudio_gresource.c")
-  # Header is optional; we include binary dir anyway.
-  set(USIDE_GRESOURCE_H "${CMAKE_CURRENT_BINARY_DIR}/ustudio_gresource.h")
 
   add_custom_command(
-    OUTPUT "${USIDE_GRESOURCE_C}" "${USIDE_GRESOURCE_H}"
+    OUTPUT "${USIDE_GRESOURCE_C}"
     COMMAND "${GLIB_COMPILE_RESOURCES}"
             --generate-source
             --target="${USIDE_GRESOURCE_C}"
@@ -119,7 +131,6 @@ if(EXISTS "${USIDE_GRESOURCE_XML}")
     WORKING_DIRECTORY "${USIDE_GRESOURCE_DIR}"
     VERBATIM
   )
-
   list(APPEND USIDE_SOURCES "${USIDE_GRESOURCE_C}")
 else()
   message(WARNING "GResource XML not found at ${USIDE_GRESOURCE_XML} — UI may be incomplete.")
@@ -130,13 +141,13 @@ endif()
 # -----------------------------------------------------------------------------
 add_executable(umicom-studio-ide ${USIDE_SOURCES})
 
-# Windows subsystem switch
+# Windows subsystem switch (only meaningful on Windows)
 if(WIN32 AND USIDE_GUI)
   # GUI subsystem (no console window)
   set_target_properties(umicom-studio-ide PROPERTIES WIN32_EXECUTABLE YES)
 endif()
 
-# Include paths (also add binary dir in case generated headers are used later)
+# Include paths (add binary dir too in case generated files are included later)
 target_include_directories(umicom-studio-ide PRIVATE
   ${USIDE_INCLUDE_DIRS}
   "${CMAKE_CURRENT_BINARY_DIR}"
@@ -147,10 +158,21 @@ if(WIN32)
   target_compile_definitions(umicom-studio-ide PRIVATE
     _CRT_SECURE_NO_WARNINGS
     NOMINMAX
-    UNICODE
-    _UNICODE
   )
 endif()
+
+# Stricter warnings; silence unused-parameter noise common with GTK callbacks
+if(MSVC)
+  target_compile_options(umicom-studio-ide PRIVATE /W4)
+else()
+  target_compile_options(umicom-studio-ide PRIVATE -Wall -Wextra -Wpedantic -Wno-unused-parameter)
+endif()
+
+# (Optional) GLib API deprecation windows – adjust to your stack versions
+# target_compile_definitions(umicom-studio-ide PRIVATE
+#   GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_70
+#   GLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_78
+# )
 
 # Link libraries from pkg-config
 target_link_libraries(umicom-studio-ide
@@ -170,19 +192,6 @@ target_link_libraries(umicom-studio-ide
 if(TARGET PkgConfig::GRAPHENE)
   target_link_libraries(umicom-studio-ide PRIVATE PkgConfig::GRAPHENE)
 endif()
-
-# Stricter warnings while allowing common GTK callback patterns
-if(MSVC)
-  target_compile_options(umicom-studio-ide PRIVATE /W4)
-else()
-  target_compile_options(umicom-studio-ide PRIVATE
-    -Wall -Wextra -Wpedantic
-    -Wno-unused-parameter   # usual for signal handlers/callbacks
-  )
-endif()
-
-# Group sources nicely in IDEs (optional)
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${USIDE_SOURCES})
 
 # Install (optional)
 include(GNUInstallDirs)

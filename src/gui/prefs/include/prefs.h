@@ -7,49 +7,76 @@
 #ifndef UMI_PREFS_H
 #define UMI_PREFS_H
 
-#include <glib.h>
-#include <gtk/gtk.h>
+#include <glib.h>   /* GLib base types like gboolean, gchar, gsize         */
+#include <gtk/gtk.h>/* GTK widget types used by the Preferences UI API      */
 
-G_BEGIN_DECLS
+G_BEGIN_DECLS /* Ensure C linkage when included from C++ sources */
 
-/* -----------------------------
- * Persistent settings (model)
- * ----------------------------- */
+/* ---------------------------------------------------------------------------
+ * UmiSettings:
+ * A plain-old-data model that mirrors what we persist to disk (e.g. JSON).
+ * Each field is owned by the struct unless stated otherwise; free with
+ * umi_settings_free() to release strings allocated by the loader.
+ *---------------------------------------------------------------------------*/
 typedef struct UmiSettings {
-  /* theme: "light", "dark", etc. */
+  /* theme name (e.g. "light", "dark", "system"). May be NULL -> use default. */
   char     *theme;
-  /* editor font size in points */
+
+  /* Editor font size in points; >= 8 is typical. 0 -> use default.          */
   int       font_size;
-  /* tool paths (may be empty) */
+
+  /* Optional tool paths (NULL or empty means: find via PATH at runtime).     */
   char     *umicc_path;
   char     *uaengine_path;
   char     *ripgrep_path;
-  /* autosave configuration */
+
+  /* Autosave prefs: if enabled, editor saves periodically every interval sec. */
   gboolean  autosave_enabled;
   int       autosave_interval_sec;
 } UmiSettings;
 
-/* Load settings from disk (uses project default location inside function). */
+/* ---------------------------------------------------------------------------
+ * umi_settings_load:
+ * Loads settings from the project’s default configuration path and returns a
+ * newly allocated UmiSettings* (or a sane-defaults struct if file is absent).
+ * Caller owns the returned pointer and must call umi_settings_free().
+ *---------------------------------------------------------------------------*/
 UmiSettings *umi_settings_load(void);
-/* Save settings to disk (project default path). Matches prefs.c one-arg signature. */
+
+/* ---------------------------------------------------------------------------
+ * umi_settings_save:
+ * Persists the provided settings to the default configuration path.
+ * Returns TRUE on success; FALSE otherwise (e.g., I/O error).
+ *---------------------------------------------------------------------------*/
 gboolean     umi_settings_save(const UmiSettings *s);
-/* Free settings and owned strings. */
+
+/* ---------------------------------------------------------------------------
+ * umi_settings_free:
+ * Releases all owned strings within UmiSettings and then frees the struct.
+ * Accepts NULL for convenience (no-op).
+ *---------------------------------------------------------------------------*/
 void         umi_settings_free(UmiSettings *s);
 
 /* -----------------------------
  * Preferences UI (controller)
- * ----------------------------- */
-typedef struct UmiPrefs UmiPrefs;
+ * -----------------------------
+ * The UI layer is intentionally thin: construct with umi_prefs_new(),
+ * pack the widget via umi_prefs_widget(), and optionally present it modally
+ * using umi_prefs_show_modal(). Parent wiring is optional but recommended.
+ */
+typedef struct UmiPrefs UmiPrefs;  /* Opaque controller struct */
 
-/* Construction and lifetime */
+/* Create/destroy the preferences dialog controller (not yet shown). */
 UmiPrefs  *umi_prefs_new(void);
 void       umi_prefs_free(UmiPrefs *p);
 
-/* Parent wiring and widget access */
+/* Wire an optional transient parent window for better window management.     */
 void       umi_prefs_set_parent(UmiPrefs *p, GtkWindow *parent);
+
+/* Return the top-level GTK widget for packing in custom containers.          */
 GtkWidget *umi_prefs_widget(UmiPrefs *p);
 
-/* UX helpers */
+/* Convenience: show as a modal dialog; returns TRUE if user accepted/saved.  */
 gboolean   umi_prefs_show_modal(UmiPrefs *p, GtkWindow *parent);
 
 G_END_DECLS

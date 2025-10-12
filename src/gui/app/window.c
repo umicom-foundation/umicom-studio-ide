@@ -5,7 +5,7 @@
  * Last updated: 2025-10-11
  * ---------------------------------------------------------------------------*/
 
-#include "../include/window.h"
+#include "window.h"
 
 static GtkWidget* build_ui(GtkApplication *app) {
   GtkBuilder *builder = gtk_builder_new_from_resource("/com/umicom/ustudio/ui/main.ui");

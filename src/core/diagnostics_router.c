@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/diagnostics_router.h"
+#include "diagnostics_router.h"
 
 void umi_diag_router_begin(UmiDiagRouter *dr){
   if(!dr) return;

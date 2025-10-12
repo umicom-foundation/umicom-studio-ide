@@ -4,7 +4,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
  * Last updated: 2025-10-11
  * ---------------------------------------------------------------------------*/
-#include <umicom/privacy.h>
+#include <privacy.h>
 #include <stdio.h>
 int main(void){
   char err[128];

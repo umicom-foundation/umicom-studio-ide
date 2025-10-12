@@ -1,30 +1,33 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/search_panel.h
- * PURPOSE: Simple search panel using the ripgrep runner
+ * File: src/search/include/search_panel.h
+ * PURPOSE: Public API for the Search Panel widget (GTK)
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
-
-#ifndef UMICOM_SEARCH_PANEL_H
-#define UMICOM_SEARCH_PANEL_H
+#pragma once
 
 #include <gtk/gtk.h>
 #include "rg_runner.h"
-#include "../../util/log/include/status_util.h"
+#include "rg_discovery.h"
+#include "ripgrep_args.h"
+#include "status_util.h"  /* from src/util/log/include */
 
-/* The Search Panel is a small widget with:
- * - An entry for the pattern the contributor wants to find.
- * - A 'Search' button that spawns ripgrep.
- * - A listbox that fills with 'file:line:col:text' matches.
- * The code is deliberately simple and heavily commented so a newcomer can follow. */
-typedef struct {
-  GtkWidget *root;
-  GtkEntry  *entry;
-  GtkButton *btn;
-  GtkListBox *list;
-  UmiStatus *status;
+/*---------------------------------------------------------------------------
+ * UmiSearchPanel:
+ *   Opaque type representing the panel state. For now this is a trivial
+ *   wrapper around a GtkWidget, but it may evolve to keep settings/state.
+ *---------------------------------------------------------------------------*/
+typedef struct UmiSearchPanel {
+  GtkWidget *widget;  /* owned by the panel; packed into the main UI */
 } UmiSearchPanel;
 
-UmiSearchPanel *umi_search_panel_new(UmiStatus *status);
+/* Construct a new panel instance. Ownership: caller must later destroy it. */
+UmiSearchPanel *umi_search_panel_new(void);
 
-#endif /* UMICOM_SEARCH_PANEL_H */
+/* Return the root widget to pack into UI containers. Non-owning pointer. */
+GtkWidget *umi_search_panel_widget(UmiSearchPanel *sp);
+
+/* Execute a sample search (placeholder). Will emit results to the UI when
+ * fully implemented. */
+void umi_search_panel_run_example(UmiSearchPanel *sp);
+/*---------------------------------------------------------------------------*/

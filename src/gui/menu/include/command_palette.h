@@ -1,6 +1,6 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/command_palette.h
+ * File: src/gui/menu/include/command_palette.h
  * PURPOSE: Command palette dialog with filterable list of commands
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/

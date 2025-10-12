@@ -5,8 +5,8 @@
  * Last updated: 2025-10-11
  * ---------------------------------------------------------------------------*/
 ï»¿/* LLM Lab (GTK) â€” Token Inspector (entropy + top-k) */
-#include <umicom/llm_lab.h>
-#include <umicom/llm.h>
+#include <llm_lab.h>
+#include <llm.h>
 #include <glib/gi18n.h>
 #include <math.h>
 

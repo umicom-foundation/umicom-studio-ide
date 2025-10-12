@@ -1,24 +1,42 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/ripgrep_args.c
- * PURPOSE: Implementation of argv builder for ripgrep
+ * File: src/search/ripgrep_args.c
+ * PURPOSE: Build argv lists for invoking ripgrep
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
+#include <glib.h>
+#include <string.h>
+#include "ripgrep_args.h"
 
-#include "include/ripgrep_args.h"
+/*---------------------------------------------------------------------------
+ * umi_rg_args_make_simple:
+ *   Construct:  [ "rg", "--hidden", "--line-number", "--vimgrep",
+ *                 pattern, path, NULL ]
+ *   This is a beginner-friendly preset that searches hidden files and
+ *   produces vimgrep-compatible output (<file>:<line>:<col>:<match>).
+ *---------------------------------------------------------------------------*/
+char **umi_rg_args_make_simple(const char *pattern, const char *path) {
+  g_return_val_if_fail(pattern != NULL, NULL);
+  g_return_val_if_fail(path    != NULL, NULL);
 
-GPtrArray *umi_rg_build_argv(const UmiRgCfg *cfg){
-  GPtrArray *a = g_ptr_array_new_with_free_func(g_free);
-#ifdef G_OS_WIN32
-  g_ptr_array_add(a, g_strdup("rg.exe"));
-#else
-  g_ptr_array_add(a, g_strdup("rg"));
-#endif
-  g_ptr_array_add(a, g_strdup("--vimgrep"));
-  if(!cfg->match_case) g_ptr_array_add(a, g_strdup("--ignore-case"));
-  if(!cfg->regex) g_ptr_array_add(a, g_strdup("--fixed-strings"));
-  g_ptr_array_add(a, g_strdup(cfg->query?cfg->query:""));
-  g_ptr_array_add(a, g_strdup(cfg->folder?cfg->folder:"."));
-  g_ptr_array_add(a, NULL);
-  return a;
+  char **argvv = g_new0(char*, 7);
+  argvv[0] = g_strdup("rg");
+  argvv[1] = g_strdup("--hidden");
+  argvv[2] = g_strdup("--line-number");
+  argvv[3] = g_strdup("--vimgrep");
+  argvv[4] = g_strdup(pattern);
+  argvv[5] = g_strdup(path);
+  argvv[6] = NULL;
+  return argvv;
 }
+
+/*---------------------------------------------------------------------------
+ * umi_rg_args_free:
+ *   Release argv array allocated by umi_rg_args_make_simple().
+ *---------------------------------------------------------------------------*/
+void umi_rg_args_free(char **argvv) {
+  if (!argvv) return;
+  for (guint i = 0; argvv[i]; ++i) g_free(argvv[i]);
+  g_free(argvv);
+}
+/*---------------------------------------------------------------------------*/

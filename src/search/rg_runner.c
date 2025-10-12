@@ -1,25 +1,59 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/rg_runner.c
- * PURPOSE: Implementation of ripgrep spawner
+ * File: src/search/rg_runner.c
+ * PURPOSE: Spawn ripgrep and collect its output
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
+#include <glib.h>
+#include <string.h>
+#include "rg_runner.h"
 
-#include "include/rg_runner.h"
+/*---------------------------------------------------------------------------
+ * umi_rg_run:
+ *   Spawns the process described by argvv and captures stdout / stderr.
+ *   The argvv array must be NULL-terminated. Output is appended to the
+ *   provided GString buffers (they may be empty). Returns TRUE if the
+ *   process was started; the process exit status is returned via
+ *   *exit_status when supplied.
+ *---------------------------------------------------------------------------*/
+gboolean umi_rg_run(char **argvv, GString *out, GString *err, int *exit_status) {
+  g_return_val_if_fail(argvv != NULL && argvv[0] != NULL, FALSE);
+  g_return_val_if_fail(out != NULL && err != NULL, FALSE);
 
-GSubprocess *umi_rg_spawn(const UmiRgOpts *o, GError **err){
-  if(!o || !o->pattern || !o->root) return NULL;
-  GPtrArray *argv = g_ptr_array_new_with_free_func(g_free);
-  g_ptr_array_add(argv, g_strdup("rg"));
-  if(o->ignore_case) g_ptr_array_add(argv, g_strdup("-i"));
-  g_ptr_array_add(argv, g_strdup("--vimgrep"));
-  g_ptr_array_add(argv, g_strdup(o->pattern));
-  g_ptr_array_add(argv, g_strdup(o->root));
-  g_ptr_array_add(argv, NULL);
+  gchar *stdout_str = NULL;
+  gchar *stderr_str = NULL;
+  GError *spawn_err = NULL;
+  gint    status = 0;
 
-  GSubprocessLauncher *L = g_subprocess_launcher_new(G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE);
-  GSubprocess *p = g_subprocess_launcher_spawnv(L, (const gchar * const*)argv->pdata, err);
-  g_object_unref(L);
-  g_ptr_array_free(argv, TRUE);
-  return p;
+  if (!g_spawn_sync(NULL,              /* working dir */
+                    argvv,             /* argv */
+                    NULL,              /* envp */
+                    G_SPAWN_SEARCH_PATH,
+                    NULL, NULL,        /* no child-setup */
+                    &stdout_str,       /* capture stdout */
+                    &stderr_str,       /* capture stderr */
+                    &status,           /* exit status */
+                    &spawn_err)) {
+    /* Propagate error text to 'err' buffer for visibility. */
+    if (spawn_err) {
+      g_string_append(err, spawn_err->message);
+      g_error_free(spawn_err);
+    }
+    g_free(stdout_str);
+    g_free(stderr_str);
+    return FALSE;
+  }
+
+  if (stdout_str) {
+    g_string_append(out, stdout_str);
+    g_free(stdout_str);
+  }
+  if (stderr_str) {
+    g_string_append(err, stderr_str);
+    g_free(stderr_str);
+  }
+
+  if (exit_status) *exit_status = status;
+  return TRUE;
 }
+/*---------------------------------------------------------------------------*/

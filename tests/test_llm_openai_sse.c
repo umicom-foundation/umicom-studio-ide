@@ -5,7 +5,7 @@
  * Last updated: 2025-10-11
  * ---------------------------------------------------------------------------*/
 
-#include <umicom/llm.h>
+#include <llm.h>
 #include <assert.h>
 #include <stdio.h>
 

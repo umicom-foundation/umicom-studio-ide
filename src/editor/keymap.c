@@ -6,7 +6,7 @@
  *---------------------------------------------------------------------------*/
 #include <gtk/gtk.h>
 #include <gio/gio.h>
-#include "include/keymap.h"
+#include "keymap.h"
 
 typedef struct {
   void    (*fn)(gpointer user);

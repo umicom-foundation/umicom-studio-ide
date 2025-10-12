@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/run_pipeline.h"
+#include "run_pipeline.h"
 #include "../util/sys/include/env.h"
 
 static UmiBuildRunner *g_runner = NULL;

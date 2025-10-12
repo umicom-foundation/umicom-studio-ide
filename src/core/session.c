@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/session.h"
+#include "session.h"
 #include <json-glib/json-glib.h>
 
 static const char *SESSION_JSON = "config/session.json";

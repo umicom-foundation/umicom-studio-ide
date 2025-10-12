@@ -7,7 +7,7 @@
 #ifndef UMICOM_EDITOR_ACTIONS_H
 #define UMICOM_EDITOR_ACTIONS_H
 
-#include <umicom/editor.h>
+#include <editor.h>
 
 /* Open a file path (errors via GError) */
 gboolean umi_editor_open_file(UmiEditor *ed, const char *path, GError **err);

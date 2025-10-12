@@ -1,22 +1,24 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/ripgrep_args.h
- * PURPOSE: Build argv for ripgrep based on UI toggles
+ * File: src/search/include/ripgrep_args.h
+ * PURPOSE: Helpers to construct argv arrays for ripgrep invocations
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
-
-#ifndef UMICOM_RIPGREP_ARGS_H
-#define UMICOM_RIPGREP_ARGS_H
-
+#pragma once
 #include <glib.h>
 
-typedef struct {
-  gboolean regex;
-  gboolean match_case;
-  const char *query;
-  const char *folder;
-} UmiRgCfg;
+/*---------------------------------------------------------------------------
+ * umi_rg_args_make_simple:
+ *   Build a NULL-terminated argv suitable for glib's g_spawn* APIs.
+ *   The returned array and all contained strings are newly allocated and
+ *   must be released with umi_rg_args_free().
+ *---------------------------------------------------------------------------*/
+char **umi_rg_args_make_simple(const char *pattern, const char *path);
 
-GPtrArray *umi_rg_build_argv(const UmiRgCfg *cfg);
-
-#endif /* UMICOM_RIPGREP_ARGS_H */
+/*---------------------------------------------------------------------------
+ * umi_rg_args_free:
+ *   Frees an argv vector previously created by umi_rg_args_make_simple().
+ *   Safe with NULL.
+ *---------------------------------------------------------------------------*/
+void umi_rg_args_free(char **argvv);
+/*---------------------------------------------------------------------------*/

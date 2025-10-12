@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-07 | MIT
  *---------------------------------------------------------------------------*/
 #include <glib.h>
-#include <umicom/llm.h>
+#include <llm.h>
 
 #ifndef UMI_TEST_STUB_LLM_CFG
 #define UMI_TEST_STUB_LLM_CFG

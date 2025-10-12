@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "../../include/status_bar.h"
+#include "status_bar.h"
 
 /* PURPOSE (status_bar.c):
  * Implements a simple status bar that embeds the status widget. The bar
