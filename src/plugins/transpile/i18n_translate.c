@@ -13,7 +13,7 @@
  * License: MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/i18n_translate.h"
+#include "i18n_translate.h"
 #include <string.h>   /* strlen */
 
 /* Small helper: safe snprintf into errbuf. */
