@@ -6,7 +6,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/path_watcher.h"  /* UmiPathWatcher, UmiPathEvt */
+#include "path_watcher.h"  /* UmiPathWatcher, UmiPathEvt */
 #include <gio/gio.h>               /* GFile, GFileMonitor */
 #include <glib.h>
 #include <string.h>
