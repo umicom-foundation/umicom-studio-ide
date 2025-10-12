@@ -1,114 +1,106 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/llm/include/privacy.h
- * PURPOSE: Public interface for privacy guardrails governing outbound URLs.
- *          - Query whether the IDE is running in “local-only” privacy mode.
- *          - Validate whether a given URL is permitted under the current mode.
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
+ * File: src/llm/includes/privacy.h
+ * PURPOSE: Public Privacy API surface (settings model + helpers)
+ *
+ * Design goals:
+ *   - Self-contained header for the privacy module (no cross-tree includes).
+ *   - Expose a small, stable C API used by llm_privacy.c and llm_http.c.
+ *   - Keep ownership rules explicit and documented.
+ *
+ * Created by: Umicom Foundation | Author: Sammy Hegab
+ * Date: 2025-10-12
+ * License: MIT
  *---------------------------------------------------------------------------*/
-/* Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT */
 #ifndef UMICOM_PRIVACY_H
 #define UMICOM_PRIVACY_H
 
-#include <stdbool.h>  /* bool, true, false */
+/* Minimal dependencies:
+ * - <stdbool.h> for 'bool' in helper functions.
+ * - <glib.h>    for gboolean and basic types used by the settings API.
+ *
+ * NOTE: We intentionally keep this header lightweight and free of other
+ * project headers to avoid spaghetti dependencies.
+ */
+#include <stdbool.h>
+#include <glib.h>
+
+G_BEGIN_DECLS  /* Ensures C linkage when included from C++ sources */
 
 /*-----------------------------------------------------------------------------
- * Overview
- * -------
- * This header exposes two small helpers used throughout the networking layer:
+ * UmiPrivacySettings
  *
- *   1) umi_privacy_is_local_only()
- *      Returns whether “local-only” privacy mode is active. In that mode,
- *      the IDE should avoid talking to remote hosts on the public internet.
- *      The implementation typically decides this based on environment/config
- *      (e.g., variables like UMI_PRIVACY_MODE=local-only or
- *      UMI_PRIVACY_LOCAL_ONLY=1/true/yes). See llm_privacy.c for details.
+ * A plain-old-data struct describing privacy controls persisted to disk.
  *
- *   2) umi_privacy_allow_url(url, errbuf, errcap)
- *      Given a URL, tells you if it is allowed to be used right now:
- *      - file:// URLs are always allowed (purely local file access).
- *      - If local-only mode is ON, only loopback http(s) endpoints are allowed
- *        (e.g., hosts like “localhost”, “127.0.0.1”, or “::1”).
- *      - If local-only mode is OFF, all syntactically valid URLs pass here
- *        (further policy checks may still happen elsewhere if needed).
+ * Ownership:
+ *   - The struct itself is owned by the caller (allocated by load or by you).
+ *   - 'extra_redactions' is a heap string owned by the struct (g_free in free).
  *
- * Thread-safety & Cost
- * --------------------
- * Both functions are designed to be cheap and safe to call from any thread.
- * Implementations cache/parse lightweight state and do not perform network I/O.
- *
- * Return Semantics
- * ----------------
- * All functions return 'bool' (true on success/allowed, false otherwise).
- * When a function returns false and you provided an error buffer, a short,
- * human-readable reason is written to that buffer (always NUL-terminated).
- *
- * Notes for Callers
- * -----------------
- * - Always pass absolute URLs to umi_privacy_allow_url().
- * - errbuf may be NULL if you do not need an error string.
- * - errcap is the total capacity of errbuf (including space for the '\0').
- * - The implementation uses GLib internally but does not expose it here.
+ * Persistence:
+ *   - Use umi_privacy_load() / umi_privacy_save() to read/write a JSON file.
  *---------------------------------------------------------------------------*/
+typedef struct UmiPrivacySettings {
+  /* Allow any network access at all (e.g., to LLM providers).                */
+  gboolean allow_network;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+  /* Redact absolute local file paths from prompts/logs.                       */
+  gboolean redact_file_paths;
 
-/**
- * umi_privacy_is_local_only
- * -------------------------
- * Query whether the IDE is currently in “local-only” privacy mode.
- *
- * Typical sources of truth (implementation detail; listed here for clarity):
- * - Environment variables:
- *     - UMI_PRIVACY_MODE=local-only   → enables local-only mode
- *     - UMI_PRIVACY_LOCAL_ONLY=1/true/yes → enables local-only mode
- *
- * Returns:
- *   true  → local-only mode is enabled (restrict outbound networking)
- *   false → normal mode (no extra host restrictions from this helper)
- */
-bool umi_privacy_is_local_only(void);
+  /* Redact system/user names from prompts/logs.                               */
+  gboolean redact_usernames;
 
-/**
- * umi_privacy_allow_url
- * ---------------------
- * Validate whether 'url' is permitted under the current privacy policy.
+  /* Disable telemetry unless a user explicitly opts in.                       */
+  gboolean ban_telemetry;
+
+  /* Optional additional redaction patterns (UTF-8, app-defined semantics).    */
+  char    *extra_redactions;
+} UmiPrivacySettings;
+
+/*-----------------------------------------------------------------------------
+ * Settings API (used by src/llm/llm_privacy.c)
  *
- * Behavior (high level):
- *   - file:// URLs are always allowed.
- *   - In local-only mode:
- *       * http:// and https:// are allowed ONLY if the host is loopback
- *         (e.g., “localhost”, “127.0.0.1”, “::1”). All other hosts are denied.
- *   - In normal mode:
- *       * Any syntactically valid URL passes this gate.
+ * umi_privacy_load:
+ *   Reads JSON from 'path' and returns a heap-allocated settings struct.
+ *   On any failure, returns a struct pre-populated with safe defaults.
+ *   Caller must free with umi_privacy_free().
+ *
+ * umi_privacy_save:
+ *   Serializes 's' to JSON and writes it to 'path'.
+ *   Returns TRUE on success; FALSE on IO/serialization error.
+ *
+ * umi_privacy_free:
+ *   Frees any owned strings within the struct and then the struct itself.
+ *   Safe to pass NULL (no-op).
+ *---------------------------------------------------------------------------*/
+UmiPrivacySettings *umi_privacy_load(const char *path);
+gboolean            umi_privacy_save(const char *path, const UmiPrivacySettings *s);
+void                umi_privacy_free(UmiPrivacySettings *s);
+
+/*-----------------------------------------------------------------------------
+ * Lightweight runtime helpers (used by src/llm/llm_http.c)
+ *
+ * umi_privacy_is_local_only:
+ *   Returns true if “local-only” mode is enabled (e.g., via environment).
+ *
+ * umi_privacy_allow_url:
+ *   Validates whether a given absolute URL is allowed under the current
+ *   policy. In local-only mode, permits only file:// and loopback hosts.
+ *   On denial, writes a short reason string into 'errbuf' if provided.
  *
  * Parameters:
- *   url    : (in)  A NUL-terminated string with the absolute URL to validate.
- *                  Must not be NULL. Undefined behavior if NULL.
- *   errbuf : (out) Optional buffer to receive a short reason on failure.
- *                  Pass NULL if you do not need error text.
- *   errcap : (in)  Capacity of 'errbuf' in bytes (including space for '\0').
- *                  Ignored if errbuf is NULL. If > 0, the function always
- *                  writes a NUL-terminated string on failure.
+ *   - url    : absolute URL (MUST NOT be NULL)
+ *   - errbuf : optional buffer for error reason (may be NULL)
+ *   - errcap : capacity of errbuf, including the trailing '\0'
  *
  * Returns:
- *   true  → The URL is allowed right now.
- *   false → The URL is NOT allowed; if 'errbuf' was provided, it contains
- *           a human-readable explanation (truncated to fit 'errcap').
- *
- * Examples:
- *   char why[128];
- *   if (!umi_privacy_allow_url("https://api.example.com", why, sizeof why)) {
- *     // Denied under current settings; 'why' explains why.
- *   }
- */
+ *   true  if allowed
+ *   false if denied (and 'errbuf' contains a reason when provided)
+ *---------------------------------------------------------------------------*/
+bool umi_privacy_is_local_only(void);
 bool umi_privacy_allow_url(const char *url, char *errbuf, unsigned errcap);
 
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
+G_END_DECLS
 
 #endif /* UMICOM_PRIVACY_H */
 /*---------------------------------------------------------------------------*/
+/*--------------------------------- End of file --------------------------------*/

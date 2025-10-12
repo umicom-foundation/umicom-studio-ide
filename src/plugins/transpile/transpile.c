@@ -1,57 +1,60 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/plugins/transpile/transpile.c
- * PURPOSE: Demonstration 'transpile' / translate plugin wiring
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ * PURPOSE:
+ *   Minimal “Transpile” demo showcasing umi_translate_text(...).
+ *
+ * DESIGN:
+ *   - No mandatory UI dependencies. If a status UI is available, define
+ *     UMI_HAVE_STATUS_UI and include its header to get rich messages.
+ *   - Otherwise we fall back to g_warning/g_message (no compile break).
+ *   - Uses umi_llm_cfg_init_from_env(...) so it Just Works with env vars.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-01
+ * License: MIT
  *---------------------------------------------------------------------------*/
+
+#include "include/transpile.h"
 #include <glib.h>
-#include "status_util.h"  /* logging helpers */
+#include <llm.h>
 
-/* Detect optional uengine LLM headers. */
-#if defined(__has_include)
-  #if __has_include(<ueng/llm.h>)
-    #define USIDE_HAVE_UENGINE 1
-    #include <ueng/llm.h>
-  #endif
-#endif
-
-/* Local translation helper provided by i18n_translate.c */
-gchar *umi_translate_text(const gchar *text,
-                          const gchar *source_lang,
-                          const gchar *target_lang,
-#ifdef USIDE_HAVE_UENGINE
-                          UmiLlmCfg   *cfg,
+/* ------------------------------------------------------------------------- */
+/* Optional status UI glue.
+ * If your tree provides these helpers, enable by adding
+ *   add_definitions(-DUMI_HAVE_STATUS_UI)
+ * and including the correct header below (example path shown).
+ */
+#ifdef UMI_HAVE_STATUS_UI
+#  include "ui/status_bar.h" /* must declare umi_status_error/info */
 #else
-                          void        *cfg,
+#  define umi_status_error(tag, fmt, ...)  g_warning ("[%s] " fmt, tag, __VA_ARGS__)
+#  define umi_status_info(tag,  fmt, ...)  g_message ("[%s] " fmt, tag, __VA_ARGS__)
 #endif
-                          GError     **err);
+/* ------------------------------------------------------------------------- */
 
-/*---------------------------------------------------------------------------
- * umi_transpile_demo:
- *   Example entrypoint that translates a fixed snippet to English. In a
- *   future iteration this will dispatch a full transpilation pipeline.
- *---------------------------------------------------------------------------*/
-void umi_transpile_demo(void) {
-  const gchar *sample = "مرحبا بالعالم"; /* Arabic 'Hello, world' */
-  GError *err = NULL;
+void
+umi_transpile_demo(void)
+{
+  /* Sample text (English) -> Arabic just as a smoke-test. */
+  const char *sample = "Hello world! This translation is powered by Umicom Studio IDE.";
 
-#ifdef USIDE_HAVE_UENGINE
+  /* Initialize LLM configuration from environment. */
   UmiLlmCfg cfg = {0};
   umi_llm_cfg_init_from_env(&cfg);
-  g_autofree gchar *out = umi_translate_text(sample, "ar", "en", &cfg, &err);
-#else
-  g_autofree gchar *out = umi_translate_text(sample, "ar", "en", NULL, &err);
-#endif
 
-  if (!out) {
-    if (err) {
-      umi_status_error("Transpile", "Translation failed: %s", err->message);
-      g_error_free(err);
-    } else {
-      umi_status_error("Transpile", "Translation failed (unknown error).");
-    }
+  /* Error buffer per our API contract. */
+  char err[256] = {0};
+
+  g_autofree gchar *translated =
+      umi_translate_text(sample, "en", "ar", &cfg, err, sizeof(err));
+
+  if (!translated) {
+    /* No UI coupling required: macro falls back to g_warning if no status UI. */
+    umi_status_error("Transpile", "Translation failed: %s", err[0] ? err : "unknown error");
     return;
   }
 
-  umi_status_info("Transpile", "Translation result: %s", out);
+  umi_status_info("Transpile", "Translation result: %s", translated);
+
+  /* Done: translated is g_free()’d automatically because of g_autofree. */
 }

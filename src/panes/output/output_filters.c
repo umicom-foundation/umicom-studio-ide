@@ -6,57 +6,52 @@
  *---------------------------------------------------------------------------*/
 
 #include "include/output_filters.h"
-#include "../../util/sys/include/timestamp.h"
+#include <string.h>
+#include <ctype.h>
 
-UmiOutChain *umi_out_chain_new(void){
-  UmiOutChain *c = g_new0(UmiOutChain,1);
-  c->filters = g_ptr_array_new();
-  c->users   = g_ptr_array_new();
-  return c;
+/* Opaque data; currently only holds the target buffer. */
+struct _UmiAnsi {
+  GtkTextBuffer *buf; /* not owned */
+};
+
+UmiAnsi *umi_ansi_new(GtkTextBuffer *buf) {
+  g_return_val_if_fail(GTK_IS_TEXT_BUFFER(buf), NULL);
+  UmiAnsi *a = g_new0(UmiAnsi, 1);
+  a->buf = buf;
+  return a;
 }
 
-void umi_out_chain_free(UmiOutChain *c){
-  if(!c) return;
-  g_ptr_array_free(c->filters, TRUE);
-  g_ptr_array_free(c->users, TRUE);
-  g_free(c);
-}
-
-void umi_out_chain_add(UmiOutChain *c, UmiOutFilter fn, gpointer user){
-  if(!c || !fn) return;
-  g_ptr_array_add(c->filters, (gpointer)fn);
-  g_ptr_array_add(c->users, user);
-}
-
-gboolean umi_out_chain_process(UmiOutChain *c, UmiOutLine *line){
-  if(!c || !line) return TRUE;
-  for(guint i=0;i<c->filters->len;i++){
-    UmiOutFilter fn = (UmiOutFilter)c->filters->pdata[i];
-    gpointer u = c->users->pdata[i];
-    if(!fn(line, u)) return FALSE;
+/* Cheap ANSI stripper: removes ESC[ ... m and ESC[ ... K etc. */
+static void strip_ansi_into(GString *dst, const char *src) {
+  const unsigned char *p = (const unsigned char *)src;
+  while (*p) {
+    if (*p == 0x1B && p[1] == '[') {
+      /* Skip ESC '[' ... until a letter (final byte of CSI). */
+      p += 2;
+      while (*p && !((*p >= 'A' && *p <= 'Z') || (*p >= 'a' && *p <= 'z'))) p++;
+      if (*p) p++; /* consume final letter */
+      continue;
+    }
+    g_string_append_c(dst, (char)*p++);
   }
-  return TRUE;
 }
 
-static void meta_set(UmiOutLine *l, const char *k, const char *v){
-  if(!l->meta) l->meta = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-  g_hash_table_insert(l->meta, g_strdup(k), g_strdup(v));
+void umi_ansi_append_line(UmiAnsi *a, const char *line) {
+  if (!a || !a->buf || !line) return;
+
+  g_autoptr(GString) clean = g_string_new(NULL);
+  strip_ansi_into(clean, line);
+
+  /* Ensure a trailing newline once. */
+  gboolean add_nl = clean->len == 0 || clean->str[clean->len - 1] != '\n';
+  GtkTextIter end;
+  gtk_text_buffer_get_end_iter(a->buf, &end);
+  gtk_text_buffer_insert(a->buf, &end, clean->str, (gint)clean->len);
+  if (add_nl)
+    gtk_text_buffer_insert(a->buf, &end, "\n", 1);
 }
 
-gboolean umi_out_filter_timestamp(UmiOutLine *line, gpointer user){
-  (void)user;
-  gchar *ts = umi_now_iso8601();
-  meta_set(line, "ts", ts);
-  g_free(ts);
-  return TRUE;
+void umi_ansi_free(UmiAnsi *a) {
+  g_free(a);
 }
-
-gboolean umi_out_filter_severity(UmiOutLine *line, gpointer user){
-  (void)user;
-  const char *s = line->text ? line->text : "";
-  const char *sev = "info";
-  if(g_strrstr(s, "error:") || g_strrstr(s, "ERROR") || g_strrstr(s, "fail")) sev = "error";
-  else if(g_strrstr(s, "warning:") || g_strrstr(s, "WARN")) sev = "warn";
-  meta_set(line, "sev", sev);
-  return TRUE;
-}
+/*--- end of file ---*/

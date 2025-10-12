@@ -8,32 +8,22 @@
 #ifndef UMICOM_OUTPUT_FILTERS_H
 #define UMICOM_OUTPUT_FILTERS_H
 
+#include <gtk/gtk.h>
 #include <glib.h>
 
-typedef struct _UmiOutLine {
-  gchar *text;       /* line text (no trailing newline) */
-  GHashTable *meta;  /* string->string */
-} UmiOutLine;
+G_BEGIN_DECLS
 
-typedef gboolean (*UmiOutFilter)(UmiOutLine *line, gpointer user);
+/* Opaque handle; implementation can evolve without touching callers. */
+typedef struct _UmiAnsi UmiAnsi;
 
-typedef struct {
-  GPtrArray *filters; /* of UmiOutFilter */
-  GPtrArray *users;   /* of gpointer */
-} UmiOutChain;
+/* Create a filter that writes into the provided GtkTextBuffer. */
+UmiAnsi *umi_ansi_new(GtkTextBuffer *buf);
 
-/* Create/destroy */
-UmiOutChain *umi_out_chain_new(void);
-void         umi_out_chain_free(UmiOutChain *c);
+/* Append one logical line. ANSI CSI sequences are stripped for now. */
+void umi_ansi_append_line(UmiAnsi *a, const char *line);
 
-/* Add a filter to the end (executed in order). */
-void         umi_out_chain_add(UmiOutChain *c, UmiOutFilter fn, gpointer user);
+/* Destroy the filter and release any allocated resources. */
+void umi_ansi_free(UmiAnsi *a);
 
-/* Process a line in-place. Returns FALSE if a filter consumes/drops it. */
-gboolean     umi_out_chain_process(UmiOutChain *c, UmiOutLine *line);
-
-/* Utilities: predefined filters */
-gboolean umi_out_filter_timestamp(UmiOutLine *line, gpointer user); /* adds meta: ts */
-gboolean umi_out_filter_severity(UmiOutLine *line, gpointer user);  /* adds meta: sev=info|warn|error */
-
+G_END_DECLS
 #endif /* UMICOM_OUTPUT_FILTERS_H */

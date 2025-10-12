@@ -1,136 +1,129 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/llm/llm_privacy.c
- * PURPOSE: Helpers for loading/saving privacy settings
+  * PURPOSE:
+ *   Load/save IDE privacy settings (JSON) with zero cross-folder deps.
+ *
+ * DESIGN:
+ *   - Self-contained: only needs GLib + JSON-GLib + local public header <privacy.h>.
+ *   - Uses json_object_*_member() helpers instead of raw JsonNode access to
+ *     avoid const-discard warnings and to keep code simpler/safer.
+ *   - Defensive: missing keys fallback to a sane default.
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * File: src/llm/llm_privacy.c
+ * PURPOSE:
+ *   Load/save IDE privacy settings (JSON) with zero cross-folder deps.
+ *
+ * DESIGN:
+ *   - Self-contained: only needs GLib + JSON-GLib + local public header <privacy.h>.
+ *   - Uses json_object_*_member() helpers instead of raw JsonNode access to
+ *     avoid const-discard warnings and to keep code simpler/safer.
+ *   - Defensive: missing keys fallback to a sane default.
+ *
+ * COPYRIGHT: MIT
+ *---------------------------------------------------------------------------*/
 
-#include <glib.h>                   /* Core GLib types/macros, memory helpers  */
-#include <json-glib/json-glib.h>    /* JSON-GLib: parsing + generation         */
-#include <privacy.h>                /* Public struct + API for privacy settings*/
+#include <glib.h>
+#include <json-glib/json-glib.h>
+#include <string.h>
 
-/* ---------------------------------------------------------------------------
+#include <privacy.h>   /* UmiPrivacySettings API/struct */
+
+/*-----------------------------------------------------------------------------
  * Internal helpers
- * -------------------------------------------------------------------------*/
+ *---------------------------------------------------------------------------*/
 
-/* Return a heap-allocated struct pre-populated with safe defaults.
- * Caller must free via umi_privacy_free(). */
+/* Create default settings. Caller owns the returned struct. */
 static UmiPrivacySettings *s_default_settings(void) {
-  /* Allocate the settings struct; GLib’s g_new0() zero-initializes memory.   */
   UmiPrivacySettings *s = g_new0(UmiPrivacySettings, 1);
 
-  /* Sensible + conservative defaults. Tweak here if product policy changes. */
-  s->allow_network     = TRUE;   /* Enable network by default (IDE needs it). */
-  s->redact_file_paths = TRUE;   /* Hide absolute local file paths.           */
-  s->redact_usernames  = TRUE;   /* Hide system usernames.                    */
-  s->ban_telemetry     = TRUE;   /* No telemetry unless explicitly disabled.  */
-  /* s->extra_redactions remains NULL unless loaded from file.               */
+  /* Defaults are conservative (privacy-first) but still usable. */
+  s->allow_network     = TRUE;   /* IDE often needs network for LLMs, updates, etc. */
+  s->redact_file_paths = TRUE;   /* Don’t leak absolute local paths.                */
+  s->redact_usernames  = TRUE;   /* Don’t leak $USERNAME.                           */
+  s->ban_telemetry     = TRUE;   /* No telemetry unless user opts in.               */
+  s->extra_redactions  = NULL;   /* Optional; comma/regex list; NULL = none.        */
 
-  return s; /* Ownership to caller. */
+  return s;
 }
 
-/* Parse a JSON object -> fill an already-allocated UmiPrivacySettings. 
- * Returns TRUE on success (all recognized fields parsed), FALSE on any error. */
+/* Populate settings from a JSON object. Returns TRUE on success. */
 static gboolean s_parse_json(JsonObject *obj, UmiPrivacySettings *s) {
-  /* Defensive checks: both pointers must be non-NULL and obj should be a JSON
-   * object. JSON-GLib keeps types dynamic, so we validate before reading.     */
-  if (!obj || !s) return FALSE;
+  g_return_val_if_fail(obj != NULL, FALSE);
+  g_return_val_if_fail(s   != NULL, FALSE);
 
-  /* Helper pointer reused for each lookup to avoid re-declarations.          */
-  const JsonNode *tmp = NULL;
+  /* NOTE:
+   * We intentionally use the typed json_object_*_member() helpers which
+   * accept (JsonObject*) and return primitive types. This avoids the
+   * const-discard warnings you saw with JsonNode access, and is simpler.
+   */
 
-  /* Each section below:
-   *  1) Look up a member by key.
-   *  2) Ensure the node holds the expected type.
-   *  3) Extract the value into our struct.                                   */
+  if (json_object_has_member(obj, "allow_network"))
+    s->allow_network = json_object_get_boolean_member(obj, "allow_network");
 
-  /* allow_network: boolean */
-  tmp = json_object_get_member(obj, "allow_network");
-  if (tmp && JSON_NODE_HOLDS_VALUE(tmp))
-    s->allow_network = json_node_get_boolean(tmp);
+  if (json_object_has_member(obj, "redact_file_paths"))
+    s->redact_file_paths = json_object_get_boolean_member(obj, "redact_file_paths");
 
-  /* redact_file_paths: boolean */
-  tmp = json_object_get_member(obj, "redact_file_paths");
-  if (tmp && JSON_NODE_HOLDS_VALUE(tmp))
-    s->redact_file_paths = json_node_get_boolean(tmp);
+  if (json_object_has_member(obj, "redact_usernames"))
+    s->redact_usernames = json_object_get_boolean_member(obj, "redact_usernames");
 
-  /* redact_usernames: boolean */
-  tmp = json_object_get_member(obj, "redact_usernames");
-  if (tmp && JSON_NODE_HOLDS_VALUE(tmp))
-    s->redact_usernames = json_node_get_boolean(tmp);
+  if (json_object_has_member(obj, "ban_telemetry"))
+    s->ban_telemetry = json_object_get_boolean_member(obj, "ban_telemetry");
 
-  /* ban_telemetry: boolean */
-  tmp = json_object_get_member(obj, "ban_telemetry");
-  if (tmp && JSON_NODE_HOLDS_VALUE(tmp))
-    s->ban_telemetry = json_node_get_boolean(tmp);
-
-  /* extra_redactions: string (optional). We dup into our own owned buffer.   */
-  tmp = json_object_get_member(obj, "extra_redactions");
-  if (tmp && JSON_NODE_HOLDS_VALUE(tmp)) {
-    const gchar *val = json_node_get_string(tmp);   /* Returns const gchar*.  */
-    g_free(s->extra_redactions);                    /* Free old value if any. */
-    s->extra_redactions = val ? g_strdup(val) : NULL;
+  if (json_object_has_member(obj, "extra_redactions")) {
+    const gchar *val = json_object_get_string_member(obj, "extra_redactions");
+    g_clear_pointer(&s->extra_redactions, g_free);
+    s->extra_redactions = (val && *val) ? g_strdup(val) : NULL;
   }
 
   return TRUE;
 }
 
-/* ---------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Public API
- * -------------------------------------------------------------------------*/
+ *---------------------------------------------------------------------------*/
 
-/* Load settings from a JSON file at `path`.
- * On success: returns a valid, heap-allocated settings struct.
- * On failure: returns defaults (still valid) and logs the reason. */
 UmiPrivacySettings *umi_privacy_load(const char *path) {
-  /* Always start with safe defaults so we return a usable struct even if
-   * reading/parsing fails.                                                   */
+  /* Always start with defaults; layer file values over them if present. */
   UmiPrivacySettings *s = s_default_settings();
+  if (!path || !*path) return s;
 
-  /* Quick exit if caller passed no path. We keep defaults and return.        */
-  if (!path || !*path)
-    return s;
-
-  /* JSON-GLib parser: g_autoptr auto-unrefs when we leave this function.     */
+  g_autoptr(GError) err = NULL;
   g_autoptr(JsonParser) parser = json_parser_new();
-  g_autoptr(GError)     err    = NULL;
 
-  /* Attempt to parse the file (returns FALSE on IO or JSON syntax errors).   */
   if (!json_parser_load_from_file(parser, path, &err)) {
-    g_warning("privacy: failed to parse '%s': %s — using defaults",
-              path, err ? err->message : "unknown error");
-    return s; /* Keep defaults. */
+    g_debug("privacy: load failed for '%s': %s (using defaults)",
+            path, err ? err->message : "unknown");
+    return s; /* Defaults already set. */
   }
 
-  /* Validate the root is an object; otherwise ignore and keep defaults.      */
   JsonNode *root = json_parser_get_root(parser);
-  if (!root || json_node_get_node_type(root) != JSON_NODE_OBJECT) {
-    g_warning("privacy: root is not a JSON object in '%s' — using defaults", path);
+  if (!JSON_NODE_HOLDS_OBJECT(root)) {
+    g_debug("privacy: invalid root JSON type in '%s' (using defaults)", path);
     return s;
   }
 
-  /* Fill the defaults with values from the file.                              */
-  if (!s_parse_json(json_node_get_object(root), s)) {
-    g_warning("privacy: failed to read members from '%s' — using defaults", path);
-    /* We still return `s` which contains defaults.                            */
+  JsonObject *obj = json_node_get_object(root);
+  if (!s_parse_json(obj, s)) {
+    g_debug("privacy: parse failed for '%s' (using defaults)", path);
+    /* Keep defaults already in `s`. */
   }
 
-  return s; /* Caller owns and must free via umi_privacy_free(). */
+  return s;
 }
 
-/* Save settings to a JSON file at `path`.
- * Returns TRUE on success; FALSE on any IO or serialization error. */
 gboolean umi_privacy_save(const char *path, const UmiPrivacySettings *s) {
-  if (!path || !*path || !s) {
-    g_warning("privacy: save called with invalid argument(s)");
-    return FALSE;
-  }
+  g_return_val_if_fail(path && *path, FALSE);
+  g_return_val_if_fail(s != NULL, FALSE);
 
-  /* Build a JSON object { ... } using JsonBuilder for clarity and ordering.  */
+  g_autoptr(GError) err = NULL;
   g_autoptr(JsonBuilder) builder = json_builder_new();
-  json_builder_begin_object(builder);                       /* { */
 
-  /* Serialize every field explicitly so the on-disk schema is stable.       */
+  json_builder_begin_object(builder);
+
   json_builder_set_member_name(builder, "allow_network");
   json_builder_add_boolean_value(builder, s->allow_network);
 
@@ -146,44 +139,23 @@ gboolean umi_privacy_save(const char *path, const UmiPrivacySettings *s) {
   json_builder_set_member_name(builder, "extra_redactions");
   json_builder_add_string_value(builder, s->extra_redactions ? s->extra_redactions : "");
 
-  json_builder_end_object(builder);                         /* } */
+  json_builder_end_object(builder);
 
-  /* Turn the builder’s root node into text with pretty formatting.           */
   g_autoptr(JsonGenerator) gen = json_generator_new();
-  g_autoptr(JsonNode)      node = json_builder_get_root(builder);
-  json_generator_set_root(gen, node);
+  g_autoptr(JsonNode) root = json_builder_get_root(builder);
+  json_generator_set_root(gen, root);
   json_generator_set_pretty(gen, TRUE);
 
-  /* json_generator_to_data() returns a UTF-8 buffer and its length.          */
-  gsize len = 0;
-  char *text = json_generator_to_data(gen, &len);
-  if (!text) {
-    g_warning("privacy: failed to serialize settings (generator returned NULL)");
+  if (!json_generator_to_file(gen, path, &err)) {
+    g_warning("privacy: save failed for '%s': %s", path, err ? err->message : "unknown");
     return FALSE;
   }
-
-  /* IMPORTANT FIX:
-   * Use the exact length returned by JSON-GLib, not strlen(), to avoid an
-   * 'unused variable' warning and to be robust if the buffer ever contains
-   * embedded NULs (it shouldn’t, but this is correct API usage).             */
-  g_autoptr(GError) err = NULL;
-  gboolean written = g_file_set_contents(path, text, len, &err);
-  g_free(text); /* We own the buffer returned by json_generator_to_data().    */
-
-  if (!written) {
-    g_warning("privacy: failed to write '%s': %s",
-              path, err ? err->message : "unknown error");
-    return FALSE;
-  }
-
   return TRUE;
 }
 
-/* Free a UmiPrivacySettings previously returned by umi_privacy_load()
- * or created by the caller. Safe to call with NULL. */
 void umi_privacy_free(UmiPrivacySettings *s) {
-  if (!s) return;                /* Defensive: allow umi_privacy_free(NULL).  */
-  g_free(s->extra_redactions);   /* Free any heap string we own.              */
-  g_free(s);                     /* Finally free the struct itself.           */
+  if (!s) return;
+  g_clear_pointer(&s->extra_redactions, g_free);
+  g_free(s);
 }
-/*---------------------------------------------------------------------------*/
+/*--- end of file ---*/

@@ -1,83 +1,73 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/plugins/transpile/i18n_translate.c
- * PURPOSE: Simple LLM-backed translation helper used by the Transpile plugin
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
- *---------------------------------------------------------------------------*/
-/* NOTE:
- * This module is written to compile both with and without the optional
- * 'uengine' LLM dependency. When the headers from
- * third_party/umicom/uengine/include/ueng are available, we enable the
- * real implementation. Otherwise, we build a graceful stub that reports
- * that translation is unavailable.
- */
-
-#include <glib.h>
-
-/* Detect availability of uengine public headers at compile time. */
-#if defined(__has_include)
-  #if __has_include(<ueng/llm.h>)
-    #define USIDE_HAVE_UENGINE 1
-    #include <ueng/llm.h>
-  #endif
-#endif
-
-/*---------------------------------------------------------------------------
- * umi_translate_text:
- *   Translate 'text' from source_lang -> target_lang using an LLM.
- *   When USIDE_HAVE_UENGINE is defined, this calls into uengine's chat
- *   helper. Returns a newly allocated string that the caller must g_free().
- *   On error, returns NULL and sets *err.
+ * PURPOSE:
+ *   Build a minimal prompt and call umi_llm_chat_simple(...) to translate text.
  *
- *   Parameters:
- *     - text:        UTF-8 input text to translate
- *     - source_lang: BCP-47 (e.g. "en"), may be NULL/"" for auto-detect
- *     - target_lang: BCP-47 (e.g. "de"), must not be NULL/empty
- *     - cfg:         Optional UmiLlmCfg with endpoint/keys. If NULL and
- *                    uengine is present, a default config from the env
- *                    will be used.
+ * DESIGN:
+ *   - Self-contained: depends only on <glib.h> and public <llm.h>.
+ *   - No UI dependencies. Errors reported via (errbuf, errcap).
+ *   - Tight, defensive validation + clear comments.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-01
+ * License: MIT
  *---------------------------------------------------------------------------*/
-gchar *umi_translate_text(const gchar *text,
-                          const gchar *source_lang,
-                          const gchar *target_lang,
-#ifdef USIDE_HAVE_UENGINE
-                          UmiLlmCfg   *cfg,
-#else
-                          void        *cfg /* unused without uengine */,
-#endif
-                          GError     **err) {
-  g_return_val_if_fail(text != NULL, NULL);
-  g_return_val_if_fail(target_lang != NULL && *target_lang, NULL);
 
-#ifndef USIDE_HAVE_UENGINE
-  /* Stub: no LLM integration available. */
-  g_set_error(err, g_quark_from_static_string("umi-translate"),
-              1, "Translation unavailable: uengine headers not found at build time.");
-  return NULL;
-#else
-  /* Build a minimal system/user prompt pair instructing the model to translate. */
-  g_autofree gchar *prompt =
-      g_strdup_printf("Translate the following text%s%s to %s. Keep formatting.\n\n%s",
-                      (source_lang && *source_lang) ? " from " : "",
-                      (source_lang && *source_lang) ? source_lang : "",
-                      target_lang, text);
+#include "include/i18n_translate.h"
+#include <string.h>   /* strlen */
 
-  UmiLlmCfg local = {0};
-  if (!cfg) {
-    /* Try environment defaults if caller didn't provide a config. */
-    umi_llm_cfg_init_from_env(&local);
-    cfg = &local;
+/* Small helper: safe snprintf into errbuf. */
+static void
+set_err(char *errbuf, gsize errcap, const char *fmt, ...)
+{
+  if (!errbuf || errcap == 0) return;
+  va_list ap;
+  va_start(ap, fmt);
+  g_vsnprintf(errbuf, errcap, fmt, ap);
+  va_end(ap);
+}
+
+gchar *
+umi_translate_text(const char *input_text,
+                   const char *src_lang,
+                   const char *dst_lang,
+                   const UmiLlmCfg *cfg,
+                   char *errbuf,
+                   gsize errcap)
+{
+  if (!cfg)           { set_err(errbuf, errcap, "cfg is NULL"); return NULL; }
+  if (!dst_lang || !*dst_lang) {
+    set_err(errbuf, errcap, "dst_lang is empty"); return NULL;
+  }
+  if (!input_text || !*input_text) {
+    set_err(errbuf, errcap, "input text is empty"); return NULL;
   }
 
-  /* Issue a single-shot chat call; see uengine docs for details. */
-  g_autofree gchar *response = NULL;
-  if (!umi_llm_chat_simple(cfg, "system:You are a precise translator.", prompt,
-                           &response, err)) {
+  /* Build a compact system instruction that’s provider-agnostic. */
+  g_autofree gchar *system_prompt = g_strdup_printf(
+      "You are a translation engine. Translate strictly from %s to %s. "
+      "Keep code blocks and formatting. Only return the translated text.",
+      (src_lang && *src_lang) ? src_lang : "auto-detected language",
+      dst_lang);
+
+  /* Output (returned via **out_text) per llm.h contract. */
+  char *out_text = NULL;
+
+  /* Scratch error buffer for the LLM call (separate from our public errbuf). */
+  char call_err[512] = {0};
+
+  /* Call the simple chat entry-point. */
+  const gboolean ok = umi_llm_chat_simple(cfg,
+                                          system_prompt,           /* system role */
+                                          input_text,              /* user text   */
+                                          &out_text,               /* OUT: malloc'd */
+                                          call_err, sizeof(call_err));
+  if (!ok) {
+    set_err(errbuf, errcap, "%s", call_err[0] ? call_err : "translation failed");
     return NULL;
   }
 
-  /* Transfer ownership to the caller (duplicate from the auto-free slot). */
-  return g_strdup(response);
-#endif
+  /* Take ownership: we return g_malloc memory compatible with g_free. */
+  return out_text;
 }
-/*---------------------------------------------------------------------------*/
+/*--- end of file ---*/
