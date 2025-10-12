@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/console_logger.h" /* Public API */
+#include "console_logger.h" /* Public API */
 #include <string.h>                 /* strlen for sanity checks (comments only) */
 
 /* Global binding to currently active console text view.

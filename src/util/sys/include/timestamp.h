@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/include/timestamp.h
  * PURPOSE: Tiny helpers to format timestamps (ISO 8601, local/UTC)

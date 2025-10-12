@@ -1,58 +1,86 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/msys_env.c
- * PURPOSE: MSYS2/MinGW compatibility helpers (derive PATH and prefixes)
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ * PURPOSE:
+ *   Discover MSYS/MinGW roots on Windows and build a PATH prefix hint that
+ *   callers can prepend when spawning subprocesses that need MSYS tools.
+ *
+ * DESIGN:
+ *   - Windows-only behavior, but compiles on other platforms (returns NULL).
+ *   - Uses GLib file utilities and environment helpers.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-01
+ * License: MIT
  *---------------------------------------------------------------------------*/
-
-/* existing headers... */
+#include "msys_env.h"   /* declarations */      /* NOLINT */
+#include <string.h>
+#include <stdlib.h>
 #include <glib.h>
-#include <gio/gio.h>
-#include "msys_env.h"
-#include "env.h"          /* <-- add this line: public prototypes for umi_env_* */
 
+#if defined(G_OS_WIN32)
+#include <windows.h>
+#endif
 
+/* Internal helper: return TRUE if @path exists as a directory. */
+static gboolean path_is_dir(const char *path) {
+  if (!path || !*path) return FALSE;
+  return g_file_test(path, G_FILE_TEST_IS_DIR);
+}
 
+/* Try common MSYS2 prefixes; callers may expand this later via settings. */
+static const char * const g_msys_prefixes[] = {
+  "C:\\\\msys64",
+  "C:\\\\tools\\\\msys64",
+  NULL
+};
 
-/* Return TRUE if this process looks like it’s running under MSYS/MinGW shells. */
-/* We check a couple of common environment markers.                              */
-gboolean umi_msys_detect(void) {
-#ifdef G_OS_WIN32
-    const char *msystem = g_getenv("MSYSTEM");  /* MSYS shells export this */
-    const char *mingw   = g_getenv("MINGW_PREFIX");
-    return (msystem && *msystem) || (mingw && *mingw);
+gboolean umi_msys_detected(void) {
+#if defined(G_OS_WIN32)
+  for (const char * const *p = g_msys_prefixes; *p; ++p) {
+    if (path_is_dir(*p)) return TRUE;
+  }
+  /* Also consider MSYS2_BASE env var if user customized location. */
+  const char *env = g_getenv("MSYS2_BASE");
+  return env && path_is_dir(env);
 #else
-    return FALSE; /* Non-Windows → not MSYS */
+  return FALSE;
 #endif
 }
 
-/* Return a best-effort PATH for running external tools on MSYS/MinGW.           */
-/* This function is intentionally conservative: it starts from the existing PATH */
-/* and may add a few common MSYS locations if they are missing.                  */
-gchar *umi_msys_best_path(void) {
-#ifndef G_OS_WIN32
-    /* Non-Windows: just copy PATH or empty. */
-    const char *p = g_getenv("PATH");
-    return g_strdup(p ? p : "");
+/* Build "C:\msys64\usr\bin;C:\msys64\mingw64\bin" if present; else NULL. */
+gchar *umi_msys_path_hint(void) {
+#if !defined(G_OS_WIN32)
+  return NULL;
 #else
-    /* Windows: If under MSYS, include the MSYS usr/bin in front for consistency. */
-    g_autofree gchar *cur = umi_env_get("PATH");  /* copy current PATH (may be NULL) */
-    const char *prefix = g_getenv("MSYS2_PREFIX");/* some installations expose this  */
-    const char *usrbin = prefix ? "\\usr\\bin" : NULL;
+  const char *base = NULL;
 
-    if (prefix && usrbin) {
-        /* Build a candidate: <prefix>\usr\bin;<existing PATH> */
-        GString *out = g_string_new(prefix);
-        g_string_append(out, usrbin);
-        if (cur && *cur) {
-            g_string_append_c(out, ';');
-            g_string_append(out, cur);
-        }
-        return g_string_free(out, FALSE);
+  /* Prefer env override. */
+  const char *env = g_getenv("MSYS2_BASE");
+  if (env && path_is_dir(env)) base = env;
+
+  /* Fall back to known prefixes. */
+  if (!base) {
+    for (const char * const *p = g_msys_prefixes; *p; ++p) {
+      if (path_is_dir(*p)) { base = *p; break; }
     }
+  }
+  if (!base) return NULL;
 
-    /* Fallback: return the current PATH as-is. */
-    return g_strdup(cur ? cur : "");
+  /* Compose candidate bin directories. */
+  gchar *usr_bin   = g_build_filename(base, "usr",   "bin", NULL);
+  gchar *mingw_bin = g_build_filename(base, "mingw64", "bin", NULL);
+
+  GString *out = g_string_new(NULL);
+  if (path_is_dir(usr_bin))   g_string_append(out, usr_bin);
+  if (path_is_dir(mingw_bin)) {
+    if (out->len) g_string_append_c(out, ';');
+    g_string_append(out, mingw_bin);
+  }
+
+  g_free(usr_bin);
+  g_free(mingw_bin);
+
+  if (out->len == 0) { g_string_free(out, TRUE); return NULL; }
+  return g_string_free(out, FALSE); /* transfer */
 #endif
 }
-/* Return a semicolon-separated PATH prefix for MSYS/MinGW tools, or NULL.      */

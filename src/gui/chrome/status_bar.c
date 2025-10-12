@@ -7,7 +7,7 @@
 
 #include <gtk/gtk.h>
 #include <glib.h>
-#include "include/status_bar.h"
+#include "status_bar.h"
 
 struct _UmiStatusBar {
     GtkWidget *box;        /* container (exposed via umi_status_bar_widget) */

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
  * File: src/gui/theme/include/theme_live.h
  * PURPOSE: Live theming overrides (e.g., change accent at runtime)

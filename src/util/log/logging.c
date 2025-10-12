@@ -27,9 +27,9 @@
  * - All credits/comments preserved; heavy inline comments added for clarity.
  *---------------------------------------------------------------------------*/
 
-#include "include/logging.h"        /* Public API we implement */
-#include "include/console_logger.h" /* To mirror into the text console pane  */
-#include "include/status_util.h"    /* For status-bar mirroring              */
+#include "logging.h"        /* Public API we implement */
+#include "console_logger.h" /* To mirror into the text console pane  */
+#include "status_util.h"    /* For status-bar mirroring              */
 
 #include <stdarg.h>                 /* va_list for fmt helper */
 #include <string.h>                 /* strlen used in comments */

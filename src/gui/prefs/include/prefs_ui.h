@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/prefs_ui.h
  * PURPOSE: Preferences dialog UI bound to json_store and settings_bus

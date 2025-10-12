@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/cli_entry.c
  * PURPOSE: CLI logging setup + light banner (build-safe on all platforms)

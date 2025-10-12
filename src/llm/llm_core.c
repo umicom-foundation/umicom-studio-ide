@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/llm/llm_core.c
  * PURPOSE: Minimal LLM core glue (build-safe stubs matching public API)

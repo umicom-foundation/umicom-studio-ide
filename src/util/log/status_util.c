@@ -1,11 +1,11 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/log/status_util.c
  * PURPOSE: Small helper abstraction over GtkStatusbar
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/status_util.h"  /* UmiStatus API */
+#include "status_util.h"  /* UmiStatus API */
 
 UmiStatus *
 umi_status_new(GtkStatusbar *bar)

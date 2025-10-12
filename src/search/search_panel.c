@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/search/search_panel.c
  * PURPOSE: Minimal Search Panel wiring (placeholder for full UI)

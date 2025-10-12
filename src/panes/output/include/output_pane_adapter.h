@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/output_pane_adapter.h
  * PURPOSE: Bridge legacy UmiOutputPane API to UmiOutputConsole

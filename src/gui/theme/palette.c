@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
  * File: src/gui/theme/palette.c
  * PURPOSE: Implementation of a tiny command palette (GTK4)
@@ -20,7 +20,7 @@
 
 #include <gtk/gtk.h>
 #include <string.h>        /* for NULL checks only                            */
-#include "include/palette.h"
+#include "palette.h"
 
 /*-----------------------------------------------------------------------------
  * Local helper: utf8_icontains
@@ -99,8 +99,7 @@ on_changed(GtkEditable *editable, gpointer user_data)
  * Create the dialog, widgets, and wire up the filtering behavior.
  * Everything is kept local and explicit.
  *---------------------------------------------------------------------------*/
-UmiPalette *
-umi_palette_new(GtkWindow *parent)
+static UmiPalette *umi_palette_new(GtkWindow *parent)
 {
   UmiPalette *p = g_new0(UmiPalette, 1);
 
@@ -146,8 +145,7 @@ umi_palette_set_commands(UmiPalette *p, GPtrArray *cmds)
  * umi_palette_open:
  * Present the dialog window. The caller should keep @p alive while shown.
  *---------------------------------------------------------------------------*/
-void
-umi_palette_open(UmiPalette *p)
+static void umi_palette_open(UmiPalette *p)
 {
   if (!p || !p->dialog) return;
   gtk_window_present(GTK_WINDOW(p->dialog));
@@ -158,8 +156,7 @@ umi_palette_open(UmiPalette *p)
  * Destroy the dialog and free the controller struct. We do NOT free the
  * commands array items because ownership remains with the caller.
  *---------------------------------------------------------------------------*/
-void
-umi_palette_free(UmiPalette *p)
+static void umi_palette_free(UmiPalette *p)
 {
   if (!p) return;
 

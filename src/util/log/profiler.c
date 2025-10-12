@@ -1,11 +1,11 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/log/profiler.c
  * PURPOSE: Tiny GTimer-based profiling helpers (scoped + manual)
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/profiler.h"  /* UmiProfiler API */
+#include "profiler.h"  /* UmiProfiler API */
 
 void
 umi_profiler_start(UmiProfiler *p, const char *label)

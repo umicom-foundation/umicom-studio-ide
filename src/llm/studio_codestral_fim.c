@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/llm/studio_codestral_fim.c
  * PURPOSE: Utilities for "Fill-In-the-Middle" (FIM) prompt shaping used by

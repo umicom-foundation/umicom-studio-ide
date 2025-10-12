@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/panes/chat_pane.c
  * PURPOSE: Simple chat pane UI (GTK4) + async HTTP using libsoup-3.0

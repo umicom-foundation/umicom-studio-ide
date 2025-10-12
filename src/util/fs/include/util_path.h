@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/fs/include/util_path.h
  * PURPOSE: Path helpers: normalize, join, relative, is_subpath

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/output_filters.h
  * PURPOSE: Chainable output filters (timestamp, severity)

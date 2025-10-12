@@ -9,8 +9,8 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 
-#include "include/app_actions.h"  /* public prototypes for this module */
-#include "include/app.h"          /* UmiApp struct & accessors for this module */
+#include "app_actions.h"  /* public prototypes for this module */
+#include "app.h"          /* UmiApp struct & accessors for this module */
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /* Optional cross-module features via weak symbols

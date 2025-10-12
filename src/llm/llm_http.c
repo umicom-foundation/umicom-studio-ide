@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/llm/llm_http.c
  * PURPOSE: HTTP helpers (libcurl) + SSE-ish streaming with privacy guard

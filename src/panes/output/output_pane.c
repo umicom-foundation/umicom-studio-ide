@@ -1,10 +1,10 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/output_pane.c
  * PURPOSE: Implements a scrollable text console for build/run output
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
-#include "include/output_pane.h"
+#include "output_pane.h"
 #include <string.h>
 
 struct _UmiOutputPane {

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/llm/providers/llm_zai.c
  * PURPOSE: Z.ai provider stub (kept minimal until live API keys & endpoints)

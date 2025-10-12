@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
  * File: src/gui/theme/include/theme.h
  * PURPOSE: Theme application — declarations

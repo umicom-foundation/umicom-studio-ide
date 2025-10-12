@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/keymap.c
  * PURPOSE: Centralized keybinding table + callbacks (GTK4, action-based)

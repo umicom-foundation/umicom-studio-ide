@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/search/include/ripgrep_args.h
  * PURPOSE: Helpers to construct argv arrays for ripgrep invocations

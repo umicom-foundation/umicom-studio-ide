@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
  * File: src/gui/theme/include/palette.h
  * PURPOSE: Simple command palette stub (search + execute callbacks)

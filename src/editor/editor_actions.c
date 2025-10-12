@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/editor/editor_actions.c
  * PURPOSE: Minimal editor operations (open/save/new) with zero dependency on

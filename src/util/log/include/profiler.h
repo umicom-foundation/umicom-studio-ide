@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/log/include/profiler.h
  * PURPOSE: Tiny GTimer-based profiling helpers (scoped + manual)

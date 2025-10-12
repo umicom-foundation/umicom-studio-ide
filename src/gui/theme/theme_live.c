@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
  * File: src/gui/theme/theme_live.c
  * PURPOSE: Live theming helpers layered on top of the base theme
@@ -21,7 +21,7 @@
  *---------------------------------------------------------------------------*/
 
 #include <gtk/gtk.h>
-#include "include/theme_live.h"
+#include "theme_live.h"
 
 /*-----------------------------------------------------------------------------
  * Static state owned by this module

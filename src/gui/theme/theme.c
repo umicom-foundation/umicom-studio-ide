@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
  * File: src/gui/theme/theme.c
  * PURPOSE: Theme application (base CSS + named presets via GResource)
@@ -20,7 +20,7 @@
 #include <gtk/gtk.h>
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
-#include "include/theme.h"
+#include "theme.h"
 
 /*----------------------------------------------------------------------------
  * Resource layout (must match src/ui/resources/ustudio.gresource.xml)

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/llm_lab/llm_lab.c
  * PURPOSE: LLM Lab panel (pure C, GTK4). Loosely-coupled, builds even when
