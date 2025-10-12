@@ -1,57 +1,57 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build/include/build_runner.h
- * PURPOSE: Interfaces for the build runner (spawns and monitors build tasks).
- * NOTE:    This header MUST NOT force GUI includes. We forward-declare
- *          UmiOutputPane so the type can be referenced without pulling in
- *          <gtk/gtk.h>. C files that need the real API should include
- *          "src/panes/output/include/output_pane.h".
+ * PURPOSE: Public API for running external build tasks asynchronously using
+ *          GLib/GIO. The implementation lives in build_runner.c.
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
+#ifndef UMICOM_BUILD_RUNNER_H
+#define UMICOM_BUILD_RUNNER_H
 
-#ifndef UMICOM_BUILD_RUNNER_H         /* Include guard start */
-#define UMICOM_BUILD_RUNNER_H         /* Mark guard defined */
+/* GLib/GIO provide the base types (gboolean, gpointer) and error model (GError). */
+#include <glib.h>     /* basic types/macros (gboolean, gpointer, etc.) */
+#include <gio/gio.h>  /* GError forward decls + I/O types used in signatures */
 
-/* Keep headers minimal here to avoid leaking GUI deps into non-GUI builds. */
-#include <stddef.h>                   /* size_t for completeness */
-#ifdef __cplusplus
-extern "C" {
-#endif
-/* Forward declarations (break circular / heavy deps) */
-typedef struct _UmiOutputPane UmiOutputPane;   /* Opaque console/output pane */
-typedef struct _UmiBuildRunner UmiBuildRunner; /* Opaque build runner object */
+/* Opaque struct; defined privately in build_runner.c */
+typedef struct _UmiBuildRunner UmiBuildRunner;
 
-/*-----------------------------------------------------------------------------
- * Lifecycle
- *---------------------------------------------------------------------------*/
+/* Callback invoked when the process exits; 'code' is the exit status (or -1 on error). */
+typedef void (*UmiBuildExitCb)(gpointer user, int code);
 
-/* Create a runner that will report to the given output pane (may be NULL). */
-UmiBuildRunner *umi_build_runner_new(UmiOutputPane *out);
+/* Generic output sink for lines produced by the child process.
+ * - 'user' is the sink’s user-data
+ * - 'line' is a NUL-terminated UTF-8 string (without trailing newline)
+ * - 'is_err' is TRUE if the line came from stderr, FALSE if from stdout
+ */
+typedef void (*UmiOutputSink)(gpointer user, const char *line, gboolean is_err);
 
-/* Free the runner and any internal resources. Safe on NULL. */
-void            umi_build_runner_free(UmiBuildRunner *runner);
+/* Create a new runner (owns its GIO state). */
+UmiBuildRunner *umi_build_runner_new(void);
 
-/*-----------------------------------------------------------------------------
- * Control
- *---------------------------------------------------------------------------*/
+/* Provide a sink that will receive output lines (optional). */
+void umi_build_runner_set_sink(UmiBuildRunner *br, UmiOutputSink sink, gpointer sink_user);
 
-/* Start a build job (e.g., run a command line). Returns 0 on success. */
-int             umi_build_runner_start(UmiBuildRunner *runner,
-                                       const char     *cmdline,
-                                       const char     *workdir);
+/* Start the process asynchronously:
+ * - argv: NULL-terminated vector of program and args (argv[0] is the program)
+ * - envp: optional NULL-terminated environment (pass NULL to inherit)
+ * - cwd : optional working directory (pass NULL to use current)
+ * - on_exit/user: optional exit callback + user-data
+ * - err : (out) GLib error (set on failure)
+ *
+ * Returns TRUE on successful spawn (async I/O begins), FALSE on failure.
+ */
+gboolean umi_build_runner_run(UmiBuildRunner *br,
+                              char * const *argv,
+                              char * const *envp,
+                              const char *cwd,
+                              UmiBuildExitCb on_exit,
+                              gpointer user,
+                              GError **err);
 
-/* Request termination of the running job (best-effort). */
-void            umi_build_runner_kill(UmiBuildRunner *runner);
+/* Request graceful stop (cancels async reads and forces child exit). */
+void umi_build_runner_stop(UmiBuildRunner *br);
 
-/* Check if a job is currently running (non-zero = running). */
-int             umi_build_runner_is_running(const UmiBuildRunner *runner);
+/* Destroy the runner and release resources. */
+void umi_build_runner_free(UmiBuildRunner *br);
 
-/* Optional: set a user pointer for callbacks (stored, not owned). */
-void            umi_build_runner_set_user(UmiBuildRunner *runner, void *user);
-
-/* Optional: get the user pointer back. */
-void           *umi_build_runner_get_user(const UmiBuildRunner *runner);
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-#endif /* UMICOM_BUILD_RUNNER_H */    /* Include guard end */
+#endif /* UMICOM_BUILD_RUNNER_H */

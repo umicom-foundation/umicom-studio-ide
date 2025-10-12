@@ -38,7 +38,7 @@ int            umi_build_queue_push(UmiBuildQueue *q,
                                     const char    *workdir);
 
 /* Start processing queued tasks if idle. */
-gboolean          umi_build_queue_start(UmiBuildQueue *q);
+int          umi_build_queue_start(UmiBuildQueue *q);
 
 /* Abort current task and clear pending items. */
 void           umi_build_queue_abort_all(UmiBuildQueue *q);
