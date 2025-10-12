@@ -14,7 +14,7 @@
  * License: MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/transpile.h"
+#include "transpile.h"
 #include <glib.h>
 #include <llm.h>
 
