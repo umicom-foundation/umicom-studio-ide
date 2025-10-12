@@ -1,39 +1,55 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/build_queue.h
- * PURPOSE: Queued build/run jobs executed by UmiBuildRunner
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ * File: src/build/include/build_queue.h
+ * PURPOSE: A simple FIFO queue of build tasks managed around UmiBuildRunner.
+ * NOTE:    Avoids GUI includes by forward-declaring UmiOutputPane.
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
 
-#ifndef UMICOM_BUILD_QUEUE_H
-#define UMICOM_BUILD_QUEUE_H
+#ifndef UMICOM_BUILD_QUEUE_H          /* Include guard start */
+#define UMICOM_BUILD_QUEUE_H          /* Mark guard defined */
 
-#include <gio/gio.h>
-#include "build_runner.h"
-
+#include <stddef.h>                   /* size_t for counts/lengths */
 #ifdef __cplusplus
 extern "C" {
 #endif
+/* Forward declarations to avoid dragging GUI headers here */
+typedef struct _UmiOutputPane UmiOutputPane;   /* Opaque console/output pane */
+typedef struct _UmiBuildRunner UmiBuildRunner; /* From build_runner.h */
+typedef struct _UmiBuildQueue  UmiBuildQueue;  /* Opaque queue object */
 
-typedef struct _UmiBuildQueue UmiBuildQueue;
+/*-----------------------------------------------------------------------------
+ * Lifecycle
+ *---------------------------------------------------------------------------*/
 
-/* Create a queue bound to an output pane (may be NULL for silent mode). */
+/* Create a queue that prints to the output pane (may be NULL for silent). */
 UmiBuildQueue *umi_build_queue_new(UmiOutputPane *out);
 
-/* Enqueue a job: cwd + argv (NULL-terminated). The queue takes a deep copy. */
-void umi_build_queue_push(UmiBuildQueue *q, const char *cwd, char * const *argv);
+/* Destroy the queue and its internal resources. Safe on NULL. */
+void           umi_build_queue_free(UmiBuildQueue *q);
 
-/* Start processing if idle; returns FALSE on immediate error. */
-gboolean umi_build_queue_start(UmiBuildQueue *q);
+/*-----------------------------------------------------------------------------
+ * Enqueue / Control
+ *---------------------------------------------------------------------------*/
 
-/* Stop current job (if any) and clear pending jobs. */
-void umi_build_queue_stop(UmiBuildQueue *q);
+/* Add a build command (cmdline + optional working directory). Returns 0 on ok. */
+int            umi_build_queue_push(UmiBuildQueue *q,
+                                    const char    *cmdline,
+                                    const char    *workdir);
 
-/* Destroy queue and free resources. */
-void umi_build_queue_free(UmiBuildQueue *q);
+/* Start processing queued tasks if idle. */
+gboolean          umi_build_queue_start(UmiBuildQueue *q);
 
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
+/* Abort current task and clear pending items. */
+void           umi_build_queue_abort_all(UmiBuildQueue *q);
 
-#endif /* UMICOM_BUILD_QUEUE_H */
+/* Number of pending tasks (not including the one possibly running). */
+size_t         umi_build_queue_size(const UmiBuildQueue *q);
+
+/* Is the queue currently executing a task? (non-zero = yes) */
+int            umi_build_queue_is_busy(const UmiBuildQueue *q);
+
+/* Optional: access to underlying runner (do not free/own it). */
+UmiBuildRunner *umi_build_queue_runner(UmiBuildQueue *q);
+
+#endif /* UMICOM_BUILD_QUEUE_H */     /* Include guard end */

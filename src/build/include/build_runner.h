@@ -1,45 +1,57 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/build_runner.h
- * PURPOSE: Start/stop a subprocess; stream stdout/stderr to Output pane
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ * File: src/build/include/build_runner.h
+ * PURPOSE: Interfaces for the build runner (spawns and monitors build tasks).
+ * NOTE:    This header MUST NOT force GUI includes. We forward-declare
+ *          UmiOutputPane so the type can be referenced without pulling in
+ *          <gtk/gtk.h>. C files that need the real API should include
+ *          "src/panes/output/include/output_pane.h".
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
 
-#ifndef UMICOM_BUILD_RUNNER_H
-#define UMICOM_BUILD_RUNNER_H
+#ifndef UMICOM_BUILD_RUNNER_H         /* Include guard start */
+#define UMICOM_BUILD_RUNNER_H         /* Mark guard defined */
 
-#include <gio/gio.h>
-#include "../../panes/output/include/output_pane.h"
-
+/* Keep headers minimal here to avoid leaking GUI deps into non-GUI builds. */
+#include <stddef.h>                   /* size_t for completeness */
 #ifdef __cplusplus
 extern "C" {
 #endif
+/* Forward declarations (break circular / heavy deps) */
+typedef struct _UmiOutputPane UmiOutputPane;   /* Opaque console/output pane */
+typedef struct _UmiBuildRunner UmiBuildRunner; /* Opaque build runner object */
 
-typedef struct _UmiBuildRunner UmiBuildRunner;
+/*-----------------------------------------------------------------------------
+ * Lifecycle
+ *---------------------------------------------------------------------------*/
 
-/* On process exit, called with exit code. */
-typedef void (*UmiBuildExitCb)(gpointer user, int exit_code);
-
-/* Create a runner which writes to the provided output pane (may be NULL). */
+/* Create a runner that will report to the given output pane (may be NULL). */
 UmiBuildRunner *umi_build_runner_new(UmiOutputPane *out);
 
-/* Start the process with cwd and argv (NULL-terminated). Returns TRUE on spawn success.
- * Exit notifications are delivered via 'on_exit'. */
-gboolean umi_build_runner_run(UmiBuildRunner *br,
-                              const char *cwd,
-                              char * const *argv,
-                              UmiBuildExitCb on_exit,
-                              gpointer user,
-                              GError **err);
+/* Free the runner and any internal resources. Safe on NULL. */
+void            umi_build_runner_free(UmiBuildRunner *runner);
 
-/* Attempt polite stop: sends SIGTERM on POSIX or terminates process on Windows. */
-void     umi_build_runner_stop(UmiBuildRunner *br);
+/*-----------------------------------------------------------------------------
+ * Control
+ *---------------------------------------------------------------------------*/
 
-/* Free resources (does not kill a running process; call stop() first). */
-void     umi_build_runner_free(UmiBuildRunner *br);
+/* Start a build job (e.g., run a command line). Returns 0 on success. */
+int             umi_build_runner_start(UmiBuildRunner *runner,
+                                       const char     *cmdline,
+                                       const char     *workdir);
 
+/* Request termination of the running job (best-effort). */
+void            umi_build_runner_kill(UmiBuildRunner *runner);
+
+/* Check if a job is currently running (non-zero = running). */
+int             umi_build_runner_is_running(const UmiBuildRunner *runner);
+
+/* Optional: set a user pointer for callbacks (stored, not owned). */
+void            umi_build_runner_set_user(UmiBuildRunner *runner, void *user);
+
+/* Optional: get the user pointer back. */
+void           *umi_build_runner_get_user(const UmiBuildRunner *runner);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#endif /* UMICOM_BUILD_RUNNER_H */
+#endif /* UMICOM_BUILD_RUNNER_H */    /* Include guard end */
