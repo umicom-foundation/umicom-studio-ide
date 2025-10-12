@@ -5,10 +5,14 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include <glib.h>    /* g_* utilities */
-#include <string.h>  /* strstr, strlen */
+/* existing headers... */
+#include <glib.h>
+#include <gio/gio.h>
+#include "msys_env.h"
+#include "env.h"          /* <-- add this line: public prototypes for umi_env_* */
 
-#include <msys_env.h>
+
+
 
 /* Return TRUE if this process looks like it’s running under MSYS/MinGW shells. */
 /* We check a couple of common environment markers.                              */

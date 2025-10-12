@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/watchers/include/watcher_recursive.h
  * PURPOSE: Recursive filesystem watcher API
@@ -7,22 +7,51 @@
 #pragma once
 #ifndef UMICOM_WATCHER_RECURSIVE_H
 #define UMICOM_WATCHER_RECURSIVE_H
+#pragma once
+/*
+ * Recursive filesystem watcher (GLib/GIO)
+ *
+ * Canonical API:
+ *   - UmiWatcherCallback
+ *   - UmiWatcherRec
+ *   - umi_watchrec_new()
+ *   - umi_watchrec_free()
+ *   - umi_watchrec_rescan()
+ *
+ * Back-compat aliases are provided for older names used in the tree:
+ *   - UmiWatchCb      -> UmiWatcherCallback
+ *   - UmiWatchRec     -> UmiWatcherRec
+ */
 
-#include <glib.h>  /* GSource, GMainContext, GPtrArray */
-#include <path_watcher.h> /* UmiPathWatch */
+#include <glib.h>
+#include <gio/gio.h>
 
-/* Forward-declared opaque types for the watcher implementation. */
-typedef struct _UmiWatcherRec  UmiWatcherRec;
+G_BEGIN_DECLS
 
-/* Create/destroy a recursive watcher object. Ownership: caller must free. */
-UmiWatcherRec *umi_watcher_rec_new(void);        /* allocate empty watcher    */
-void            umi_watcher_rec_free(UmiWatcherRec *wr); /* free resources    */
+/* Opaque watcher handle */
+typedef struct UmiWatcherRec UmiWatcherRec;
 
-/* Add a watch request to the watcher. Returns FALSE on failure.              */
-gboolean umi_watcher_rec_add(UmiWatcherRec *wr, const UmiPathWatch *req);
+/* Callback invoked on any file change event under the watched root.
+ * The 'path' string is UTF‑8 and valid for the duration of the call.
+ * Treat it as read-only. */
+typedef void (*UmiWatcherCallback)(gpointer user, const char *path);
 
-/* Integrate with GLib main loop: attach to a context and return a GSource*.   */
-/* The returned source is owned by the caller (unref when no longer needed).    */
-GSource *umi_watcher_rec_attach(UmiWatcherRec *wr, GMainContext *ctx);
+/* Backward-compat typedefs (older names that appear in some sources) */
+typedef UmiWatcherCallback UmiWatchCb;
+typedef UmiWatcherRec      UmiWatchRec;
 
-#endif /* UMICOM_WATCHER_RECURSIVE_H */
+/* Create a recursive watcher rooted at 'root'.
+ * - 'root' must be an absolute or relative directory path.
+ * - 'cb'   will be called on changes (create/delete/modify/move).
+ * - 'user' is passed back to 'cb' on every invocation.
+ * Returns NULL on error.
+ */
+UmiWatcherRec *umi_watchrec_new(const char *root, UmiWatcherCallback cb, gpointer user);
+
+/* Free the watcher and stop all monitors (idempotent). */
+void umi_watchrec_free(UmiWatcherRec *w);
+
+/* Drop all monitors and rescan the tree (useful after large moves). */
+void umi_watchrec_rescan(UmiWatcherRec *w);
+
+G_END_DECLS

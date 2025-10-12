@@ -1,58 +1,69 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/include/env.h
- * PURPOSE: Environment helpers (paths, configs, platform conditionals)
+ * PURPOSE:
+ *   Public, GLib-friendly helpers for getting/setting environment variables.
+ *
+ * DESIGN:
+ *   - Small, self-contained API used by multiple util/sys modules (e.g. msys_env.c).
+ *   - Returns heap-allocated GLib strings for convenience; callers free with g_free().
+ *   - Mirrors the implementations in src/util/sys/env.c exactly (no behavior change).
+ *
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMICOM_ENV_H
 #define UMICOM_ENV_H
 
-#include <glib.h>    /* gchar, GError, gsize, ownership semantics */
+#include <glib.h>   /* gchar, gboolean */
 
 /*-----------------------------------------------------------------------------
- * umi_env_is_windows / umi_env_is_unix
+ * umi_env_get
  *
  * PURPOSE:
- *   Tiny, compile-time driven helpers to branch platform-specific behavior
+ *   Fetch the value of an environment variable as a newly allocated string.
+*   Tiny, compile-time driven helpers to branch platform-specific behavior
  *   at runtime without sprinkling #ifdefs through higher-level code.
- *---------------------------------------------------------------------------*/
-gboolean umi_env_is_windows(void);
-gboolean umi_env_is_unix(void);
-
-/*-----------------------------------------------------------------------------
- * umi_env_app_config_dir
  *
- * PURPOSE:
- *   Return the directory where application config should be stored
- *   (e.g. %APPDATA%\Umicom\Studio on Windows, ~/.config/umicom-studio on Unix).
+ * PARAMS:
+ *   key  - Environment variable name (UTF-8).
  *
  * RETURNS:
- *   Newly allocated path string (g_free when done), or NULL on failure.
+ *   Newly allocated string containing the value (use g_free), or NULL if unset.
  *---------------------------------------------------------------------------*/
-gchar *umi_env_app_config_dir(void);
+gchar *umi_env_get(const char *key);
 
 /*-----------------------------------------------------------------------------
- * umi_env_data_dir
+ * umi_env_get_or
  *
  * PURPOSE:
- *   Return the directory for application data/assets (read-only at runtime),
- *   following platform conventions (e.g., ProgramData/… on Windows).
+ *   Fetch the value of an environment variable, or return a duplicate of the
+ *   provided fallback if the variable is missing or empty.
+ *
+ * PARAMS:
+ *   key      - Environment variable name (UTF-8).
+ *   fallback - Fallback string used when variable is not set or empty.
  *
  * RETURNS:
- *   Newly allocated path string (g_free), or NULL on failure.
+ *   Newly allocated string (use g_free). Never returns NULL; returns a duplicate
+ *   of 'fallback' (or an empty string if fallback is NULL).
  *---------------------------------------------------------------------------*/
-gchar *umi_env_data_dir(void);
+gchar *umi_env_get_or(const char *key, const char *fallback);
 
 /*-----------------------------------------------------------------------------
- * umi_env_expand_vars
+ * umi_env_set
  *
  * PURPOSE:
- *   Expand ${VAR} and %VAR% style environment references within 'input'
- *   into a newly allocated string. Supports both Windows and Unix syntax.
+ *   Set (or unset) an environment variable.
+ *
+ * PARAMS:
+ *   key       - Environment variable name.
+ *   value     - New value; if NULL, the variable is unset.
+ *   overwrite - When FALSE and the variable already exists, no change is made.
  *
  * RETURNS:
- *   Newly allocated string (g_free), or NULL on error.
+ *   TRUE on success, FALSE on failure.
  *---------------------------------------------------------------------------*/
-gchar *umi_env_expand_vars(const gchar *input, GError **err);
+gboolean umi_env_set(const char *key, const char *value, gboolean overwrite);
 
 #endif /* UMICOM_ENV_H */
+/*--- end of file ---*/

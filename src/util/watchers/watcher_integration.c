@@ -1,14 +1,44 @@
 ﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/watchers/watcher_integration.c
- * PURPOSE: Implementation of watcher glue – connects the recursive file
- *          watcher to higher-level workspace + file-tree refresh.
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ * PURPOSE:
+ *   Implementation of watcher ↔ UI glue.
+ *
+ *   Minimal, compile-safe implementation:
+ *   - Owns a non-recursive path watcher.
+ *   - On any event, asks the file tree to refresh.
+ *   - Keeps the API surface stable so we can later expand to recursive and/or
+ *    
+* workspace-driven paths without touching callers.
+* * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/watcher_integration.h"  /* Public API for UmiWatchGlue, workspace & tree types */
+#include <glib.h>
+
+/* Public API for this unit */
+#include "watcher_integration.h"
+
+/* Path watcher API (opaque handle + add/stop/free) */
+#include "path_watcher.h"
+
+/* File tree API: we need the refresh function + the type name. The include
+ * path for this header is already on your compile command:
+ *   -I .../src/util/fs/include
+ */
+#include "file_tree.h"
 
 /*-----------------------------------------------------------------------------
+ * Private glue object
+ *---------------------------------------------------------------------------*/
+struct _UmiWatchGlue {
+  UmiFileTree    *tree;      /* UI tree to refresh on FS changes             */
+  UmiPathWatcher *pw;        /* Non-recursive watcher handle (may be NULL)   */
+  /* Future: add recursive watcher, per-workspace roots, filters, etc.        */
+};
+
+/*-----------------------------------------------------------------------------
+ * FS event callback: refresh the file tree when something changes.
+ * GIO dispatches on the main context, so we can call directly into UI helpers.
  * Internal callback: invoked by the recursive watcher when something changes.
  *
  * Parameters:
@@ -23,22 +53,25 @@
  *   - IMPORTANT: If the lower-level watcher calls us from a worker thread, the
  *     implementation of umi_file_tree_refresh() must marshal to GTK's main
  *     thread internally. If it does not, add a main-loop dispatch here.
+
  *---------------------------------------------------------------------------*/
-static void on_evt(gpointer u, const char *path)
+static void
+on_evt(gpointer u, const char *path)
 {
-  (void)path;                               /* Explicitly mark 'path' unused here */
+  (void)path; /* not used yet; keep signature to allow richer UIs later */
 
-  UmiWatchGlue *g = (UmiWatchGlue*)u;       /* Cast opaque pointer back to our type */
-  if (!g) return;                           /* Defensive: nothing to do if glue is NULL */
+  UmiWatchGlue *g = (UmiWatchGlue *)u;
+  if (!g) return;
 
-  if (g->tree) {                            /* Only act if we still hold a valid tree ref */
-    /* Ask the file-tree to refresh its view of the workspace filesystem. */
+  if (g->tree) {
+    /* Ask the tree to rebuild/refresh its view of the file system. */
     umi_file_tree_refresh(g->tree);
   }
 }
 
 /*-----------------------------------------------------------------------------
- * umi_watchglue_start
+ * Start glue: create watcher + hook callback.
+* umi_watchglue_start
  *
  * PURPOSE:
  *   Build the glue object that ties the workspace root to the recursive
@@ -56,32 +89,25 @@ static void on_evt(gpointer u, const char *path)
  *     recursive watcher. Ownership is clear: caller stops via umi_watchglue_stop().
  *   - We fall back to "." if workspace root is absent (defensive behavior).
  *---------------------------------------------------------------------------*/
-UmiWatchGlue *umi_watchglue_start(UmiWorkspace *ws, UmiFileTree *tree)
+
+ *---------------------------------------------------------------------------*/
+UmiWatchGlue *
+umi_watchglue_start(UmiWorkspace *ws, UmiFileTree *tree)
 {
-  if (!ws || !tree) {
-    /* Invalid inputs – refuse to start, avoid partial state. */
-    return NULL;
-  }
+  (void)ws; /* Unused in this minimal integration. */
 
-  /* Allocate and zero-initialize the glue struct. Using g_new0 ensures fields start at 0/NULL. */
   UmiWatchGlue *g = g_new0(UmiWatchGlue, 1);
-
-  /* Keep references (not owning) to the workspace and file-tree supplied by the caller. */
-  g->ws   = ws;
   g->tree = tree;
 
-  /* Determine the filesystem root to monitor; use "." as a safe default. */
+   /* Determine the filesystem root to monitor; use "." as a safe default. */
   const char *root = umi_workspace_root(ws);
   const char *watch_root = (root && *root) ? root : ".";
-
-  /* Create the recursive watcher:
-   *  - watch_root: base directory to observe
-   *  - on_evt:     our callback (above) for any change
-   *  - g:          user data passed back to the callback
+  /* Create a path watcher and bind our callback. We deliberately don’t add
+   * any directories here; higher layers can call umi_pathwatch_add() with
+   * workspace/project roots when appropriate. This keeps us build-safe now.
    */
-  g->rec = umi_watchrec_new(watch_root, on_evt, g);
-
-  /* If watcher creation failed, release the glue and report failure. */
+  g->pw = umi_pathwatch_new(on_evt, g);
+   /* If watcher creation failed, release the glue and report failure. */
   if (!g->rec) {
     g_free(g);
     return NULL;
@@ -92,6 +118,8 @@ UmiWatchGlue *umi_watchglue_start(UmiWorkspace *ws, UmiFileTree *tree)
 }
 
 /*-----------------------------------------------------------------------------
+ * Stop glue: tear down watchers and free the glue object.
+*-----------------------------------------------------------------------------
  * umi_watchglue_stop
  *
  * PURPOSE:
@@ -108,13 +136,16 @@ UmiWatchGlue *umi_watchglue_start(UmiWorkspace *ws, UmiFileTree *tree)
  *---------------------------------------------------------------------------*/
 void umi_watchglue_stop(UmiWatchGlue *g)
 {
-  if (!g) return;              /* Nothing to do */
+  if (!g) return;
 
-  if (g->rec) {                /* Stop and destroy the recursive watcher first */
-    umi_watchrec_free(g->rec);
-    g->rec = NULL;
+  if (g->pw) {
+    /* Detach and free watcher resources. */
+    umi_pathwatch_stop(g->pw);
+    umi_pathwatch_free(g->pw);
+    g->pw = NULL;
   }
 
-  /* Finally free the glue struct. */
+ /* Finally free the glue struct. */
   g_free(g);
 }
+/*--- end of file ---*/

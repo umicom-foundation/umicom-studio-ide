@@ -10,7 +10,7 @@
 #include <string.h>         /* strlen, memchr                 */
 #include <stdlib.h>         /* strtol                         */
 
-/* Use project include dirs (CMake adds src/*/include). */
+/* Use project include dirs */
 #include <ansi_color.h>
 
 /* Internal: a small struct describing one SGR “graphic rendition” code. */
