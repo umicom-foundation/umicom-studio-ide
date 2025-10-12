@@ -1,106 +1,58 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/llm/includes/privacy.h
- * PURPOSE: Public Privacy API surface (settings model + helpers)
  *
- * Design goals:
- *   - Self-contained header for the privacy module (no cross-tree includes).
- *   - Expose a small, stable C API used by llm_privacy.c and llm_http.c.
- *   - Keep ownership rules explicit and documented.
+ * PURPOSE:
+ *   Public interface for URL privacy checks used by LLM HTTP code. We validate
+ *   that outgoing requests are safe to perform (e.g., only http/https schemes,
+ *   not targeting loopback or private networks unless explicitly allowed).
  *
- * Created by: Umicom Foundation | Author: Sammy Hegab
- * Date: 2025-10-12
- * License: MIT
+ * DESIGN CHOICES:
+ *   - Single stable function signature (no conflicting prototypes).
+ *   - GLib-friendly: returns gboolean, uses plain C buffers for error strings.
+ *   - Loosely coupled: only depends on <glib.h>; no cross-module includes.
+ *
+ * HOW IT WORKS (high level):
+ *   - Parse the URL via GLib’s GUri.
+ *   - Allow schemes: "http" and "https" (reject others).
+ *   - Reject obvious local/loopback/private targets by default:
+ *       localhost, 127.0.0.0/8, ::1, 10.0.0.0/8, 192.168.0.0/16,
+ *       172.16.0.0/12 (172.16.x.x .. 172.31.x.x)
+ *   - On reject, write a human-readable reason into errbuf (if provided).
+ *
+ * THREADING:
+ *   - Purely CPU-bound checks; safe to call from any thread.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
+
 #ifndef UMICOM_PRIVACY_H
 #define UMICOM_PRIVACY_H
 
-/* Minimal dependencies:
- * - <stdbool.h> for 'bool' in helper functions.
- * - <glib.h>    for gboolean and basic types used by the settings API.
- *
- * NOTE: We intentionally keep this header lightweight and free of other
- * project headers to avoid spaghetti dependencies.
- */
-#include <stdbool.h>
-#include <glib.h>
-
-G_BEGIN_DECLS  /* Ensures C linkage when included from C++ sources */
+/* Include GLib for gboolean and basic types. */
+#include <glib.h>  /* provides gboolean, TRUE/FALSE, gsize, etc. */
 
 /*-----------------------------------------------------------------------------
- * UmiPrivacySettings
+ * umi_privacy_allow_url
  *
- * A plain-old-data struct describing privacy controls persisted to disk.
+ * PURPOSE:
+ *   Validate whether 'url' is allowed to be accessed by the application.
  *
- * Ownership:
- *   - The struct itself is owned by the caller (allocated by load or by you).
- *   - 'extra_redactions' is a heap string owned by the struct (g_free in free).
+ * PARAMETERS:
+ *   url     - (in)  NUL-terminated URL string to check. Must be non-NULL.
+ *   errbuf  - (out) Optional buffer to receive a short explanation on failure.
+ *                  May be NULL if caller does not need the error text.
+ *   errcap  - (in)  Size in bytes of 'errbuf'. Ignored if errbuf==NULL.
  *
- * Persistence:
- *   - Use umi_privacy_load() / umi_privacy_save() to read/write a JSON file.
+ * RETURNS:
+ *   TRUE  => URL is allowed (passes privacy policy).
+ *   FALSE => URL is rejected; errbuf (if provided) explains why.
+ *
+ * NOTES:
+ *   - This function does **not** perform I/O; it only validates the string.
+ *   - Callers should fail fast when this returns FALSE.
  *---------------------------------------------------------------------------*/
-typedef struct UmiPrivacySettings {
-  /* Allow any network access at all (e.g., to LLM providers).                */
-  gboolean allow_network;
-
-  /* Redact absolute local file paths from prompts/logs.                       */
-  gboolean redact_file_paths;
-
-  /* Redact system/user names from prompts/logs.                               */
-  gboolean redact_usernames;
-
-  /* Disable telemetry unless a user explicitly opts in.                       */
-  gboolean ban_telemetry;
-
-  /* Optional additional redaction patterns (UTF-8, app-defined semantics).    */
-  char    *extra_redactions;
-} UmiPrivacySettings;
-
-/*-----------------------------------------------------------------------------
- * Settings API (used by src/llm/llm_privacy.c)
- *
- * umi_privacy_load:
- *   Reads JSON from 'path' and returns a heap-allocated settings struct.
- *   On any failure, returns a struct pre-populated with safe defaults.
- *   Caller must free with umi_privacy_free().
- *
- * umi_privacy_save:
- *   Serializes 's' to JSON and writes it to 'path'.
- *   Returns TRUE on success; FALSE on IO/serialization error.
- *
- * umi_privacy_free:
- *   Frees any owned strings within the struct and then the struct itself.
- *   Safe to pass NULL (no-op).
- *---------------------------------------------------------------------------*/
-UmiPrivacySettings *umi_privacy_load(const char *path);
-gboolean            umi_privacy_save(const char *path, const UmiPrivacySettings *s);
-void                umi_privacy_free(UmiPrivacySettings *s);
-
-/*-----------------------------------------------------------------------------
- * Lightweight runtime helpers (used by src/llm/llm_http.c)
- *
- * umi_privacy_is_local_only:
- *   Returns true if “local-only” mode is enabled (e.g., via environment).
- *
- * umi_privacy_allow_url:
- *   Validates whether a given absolute URL is allowed under the current
- *   policy. In local-only mode, permits only file:// and loopback hosts.
- *   On denial, writes a short reason string into 'errbuf' if provided.
- *
- * Parameters:
- *   - url    : absolute URL (MUST NOT be NULL)
- *   - errbuf : optional buffer for error reason (may be NULL)
- *   - errcap : capacity of errbuf, including the trailing '\0'
- *
- * Returns:
- *   true  if allowed
- *   false if denied (and 'errbuf' contains a reason when provided)
- *---------------------------------------------------------------------------*/
-bool umi_privacy_is_local_only(void);
-bool umi_privacy_allow_url(const char *url, char *errbuf, unsigned errcap);
-gboolean umi_privacy_allow_url(const char *url);
-G_END_DECLS
+gboolean umi_privacy_allow_url(const char *url, char *errbuf, unsigned errcap);
 
 #endif /* UMICOM_PRIVACY_H */
-/*---------------------------------------------------------------------------*/
-/*--------------------------------- End of file --------------------------------*/
+/*--- end of file ---*/

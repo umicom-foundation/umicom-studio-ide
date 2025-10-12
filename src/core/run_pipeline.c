@@ -1,148 +1,216 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/core/run_pipeline.c
- * PURPOSE: Launch and manage external run/build commands via the unified
- *          build runner. Pure C (C17), GLib only; no UI/status/XML deps.
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-12 | MIT
+ *
+ * PROJECT:
+ *   Umicom Studio IDE — Core “run pipeline” implementation.
+ *
+ * PURPOSE:
+ *   Glue together:
+ *     - run_config:      produces argv/envp/cwd for the target to run
+ *     - build_runner:    spawns the process, streams stdout/stderr lines
+ *     - diagnostics:     routes each line to the problem list + output pane
+ *
+ * GOALS:
+ *   - Pure C, GTK4/GLib/GIO friendly.
+ *   - Loosely coupled: depend only on public headers; no cross-folder relative
+ *     includes (no "../../...").
+ *   - Safe and clear memory ownership: no dangling pointers, no leaks.
+ *   - Comprehensive comments (>50%) and line-by-line explanations for clarity.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
 
-#include <glib.h>                 /* gboolean, GError, GPtrArray, g_message, etc. */
-#include <string.h>               /* memcpy (rare), strcmp, etc.                  */
+#include <glib.h>                   /* GLib core types (gboolean, gpointer, GError)           */
+#include "run_pipeline.h"           /* Our own public header (ensures consistent declarations) */
 
-#include "run_pipeline.h"         /* Declares umi_run_pipeline_start/stop         */
-#include "run_config.h"           /* Load/convert run config                      */
-#include "../../build/include/build_runner.h"  /* Runner ctor + run               */
+/*--------------------------- Module-private state -------------------------------------------*/
+/* We keep a single runner instance and a small “router user data” bundle alive while a child
+ * is running. The diagnostics router itself is a lightweight struct of pointers to the UI.   */
 
-/*-----------------------------------------------------------------------------
- * Static runner state
- *---------------------------------------------------------------------------*/
-static UmiBuildRunner *g_runner = NULL;
+typedef struct
+{
+  UmiDiagRouter router;            /* holds UmiProblemList* + UmiOutputPane*                 */
+} UmiRunPipelineCtx;               /* opaque context we pass back to callbacks               */
 
-/*-----------------------------------------------------------------------------
- * Exit callback: invoked when child process terminates.
- *---------------------------------------------------------------------------*/
+static UmiBuildRunner   *s_runner  = NULL;   /* singleton runner for the pipeline               */
+static UmiRunPipelineCtx *s_ctx    = NULL;   /* lifetime spans start->exit OR start->stop       */
+
+/*--------------------------- Output-line callback -------------------------------------------*/
+/* Signature matches the build_runner sink:
+ *   typedef void (*UmiOutputSink)(gpointer user, const char *line, gboolean is_err);
+ * We forward every line (stdout/stderr) into the diagnostics router, which both mirrors to the
+ * Output pane and parses known patterns to populate the Problems list.                         */
+
 static void
-on_exit(gpointer user, int code)
+on_runner_line(gpointer user, const char *line, gboolean is_err)
 {
-    (void)user; /* unused */
-    g_message("run-pipeline: process exited with code %d", code);
+  /* user  : points to our UmiRunPipelineCtx created at start() time.                         */
+  /* line  : a single UTF-8 line without trailing newline (empty string if none).             */
+  /* is_err: TRUE if line originated from stderr (can be used to tweak styling if desired).   */
+
+  UmiRunPipelineCtx *ctx = (UmiRunPipelineCtx *)user;        /* recover our context          */
+  if (!ctx || !line)                                         /* guard against NULLs          */
+    return;                                                  /* nothing to do                */
+
+  /* Feed the text into the diagnostics router. The router will:
+   *   - append the line to the Output pane
+   *   - parse it for known error/warning formats to update Problems                           */
+  umi_diag_router_feed(&ctx->router, line);                  /* route a single line          */
+
+  (void)is_err;  /* currently we treat both streams the same; router/Output pane can style.   */
 }
 
-/*-----------------------------------------------------------------------------
- * Helper: convert GPtrArray (of char*) to a newly-allocated NULL-terminated
- *         vector suitable for execv-style APIs.
- * OWNERSHIP: caller must g_free() the returned vector. Strings are NOT copied.
- *---------------------------------------------------------------------------*/
-static char * const *
-argv_from_ptr_array(const GPtrArray *arr)
+/*--------------------------- Process-exit callback ------------------------------------------*/
+/* Signature matches runner exit callback:
+ *   typedef void (*UmiBuildExitCb)(gpointer user, int exit_code);
+ * We finalize diagnostics (summary/totals), free our context, and keep the runner reusable.    */
+
+static void
+on_runner_exit(gpointer user, int exit_code)
 {
-    if (!arr || arr->len == 0) {
-        char **empty = g_new0(char *, 1);
-        return (char * const *)empty;
-    }
-    char **vec = g_new0(char *, arr->len + 1);
-    for (guint i = 0; i < arr->len; i++) {
-        vec[i] = (char *)arr->pdata[i]; /* pass through; no deep copy */
-    }
-    vec[arr->len] = NULL;
-    return (char * const *)vec;
+  UmiRunPipelineCtx *ctx = (UmiRunPipelineCtx *)user;        /* recover our context          */
+
+  if (ctx)
+  {
+    /* Tell diagnostics we’re done so it can compute a footer/summary if it wants.            */
+    umi_diag_router_end(&ctx->router);                       /* finalize problem reporting   */
+
+    g_free(ctx);                                             /* free our small heap context  */
+    s_ctx = NULL;                                            /* mark none active             */
+  }
+
+  /* Optional: log non-zero exit (could also push to Output pane already via router).         */
+  if (exit_code != 0)
+  {
+    g_warning("run-pipeline: child exited with code=%d", exit_code); /* developer visibility  */
+  }
 }
 
-/*-----------------------------------------------------------------------------
- * Start pipeline using config: builds argv/envp and launches via runner.
- *
- * Signature per run_pipeline.h:
- *   gboolean umi_run_pipeline_start(UmiOutputPane *out,
- *                                   UmiProblemList *plist,
- *                                   GError **err);
- *
- * NOTE: We don’t currently use 'out' or 'plist' here; wiring diagnostics to
- * panes can be added later once runner exposes pipe capture.
- *---------------------------------------------------------------------------*/
+/*--------------------------- Public: start the pipeline -------------------------------------*/
+/* High-level steps:
+ *   1) Ensure we have (or create) a runner instance.
+ *   2) Build a diagnostics router anchored on (plist,out); begin() to clear old state.
+ *   3) Load run config, obtain argv/envp/cwd using the **actual** API (char** + out_argc).
+ *   4) Hook our line/exit callbacks into the runner; spawn the process.
+ *   5) Manage ownership: do NOT free argv/envp until after spawn (we free the duplicates).
+ *      Keep ctx alive until the exit callback fires (or stop() is called).
+ */
+
 gboolean
 umi_run_pipeline_start(UmiOutputPane *out, UmiProblemList *plist, GError **err)
 {
-    (void)out;   /* not used yet */
-    (void)plist; /* not used yet */
+  /* Validate required UI sinks.                                                               */
+  if (!out || !plist)
+  {
+    g_set_error(err, g_quark_from_static_string("uside-run"), 1,
+                "run-pipeline: output pane and problem list must be non-NULL");
+    return FALSE;                                            /* cannot proceed               */
+  }
 
-    /* Load the run configuration (cwd, argv_line, env_multiline). */
-    UmiRunConfig *rc = umi_run_config_load();
-    if (G_UNLIKELY(!rc)) {
-        if (err) g_set_error(err, g_quark_from_static_string("uside-run"), 1,
-                             "failed to load run configuration");
-        return FALSE;
+  /* Reuse or create the runner.                                                               */
+  if (!s_runner)
+  {
+    s_runner = umi_build_runner_new();                       /* allocate runner              */
+    if (!s_runner)
+    {
+      g_set_error(err, g_quark_from_static_string("uside-run"), 2,
+                  "run-pipeline: failed to create runner");
+      return FALSE;                                          /* allocation failure           */
     }
+  }
 
-    /* Build argv (GPtrArray) and convert to NULL-terminated vector. */
-    GPtrArray *argv_arr = umi_run_config_to_argv(rc);
-    if (G_UNLIKELY(!argv_arr || argv_arr->len == 0 || argv_arr->pdata[0] == NULL)) {
-        if (err) g_set_error(err, g_quark_from_static_string("uside-run"), 2,
-                             "run configuration produced empty argv");
-        if (argv_arr) g_ptr_array_free(argv_arr, TRUE);
-        umi_run_config_free(rc);
-        return FALSE;
-    }
-    char * const *argvv = argv_from_ptr_array(argv_arr);
+  /* Prevent starting a second process while one is active.                                    */
+  if (s_ctx)
+  {
+    g_set_error(err, g_quark_from_static_string("uside-run"), 3,
+                "run-pipeline: a process is already running");
+    return FALSE;                                            /* enforce single-run invariant */
+  }
 
-    /* Build envp (NULL-terminated).  We’ll free with g_strfreev(). */
-    gchar **envp_glib = umi_run_config_to_envp(rc);
-    char * const *envp = (char * const *)envp_glib; /* cast for runner API */
+  /* Create and initialize our tiny context that bridges runner <-> diagnostics router.        */
+  s_ctx = (UmiRunPipelineCtx *)g_new0(UmiRunPipelineCtx, 1); /* zero-initialized             */
+  s_ctx->router.plist = plist;                               /* connect problem list         */
+  s_ctx->router.out   = out;                                 /* connect output console       */
 
-    /* Determine working directory. */
-    const char *cwd = (rc->cwd && *rc->cwd) ? rc->cwd : ".";
+  /* Start a fresh diagnostics session (clears Problems pane, etc.).                           */
+  umi_diag_router_begin(&s_ctx->router);                     /* begin routing session        */
 
-    /* Ensure we have a runner. Constructor takes no arguments. */
-    if (g_runner == NULL) {
-        g_runner = umi_build_runner_new();
-        if (G_UNLIKELY(g_runner == NULL)) {
-            if (err) g_set_error(err, g_quark_from_static_string("uside-run"), 3,
-                                 "failed to create build runner");
-            g_free((gpointer)argvv);
-            if (envp_glib) g_strfreev(envp_glib);
-            g_ptr_array_free(argv_arr, TRUE);
-            umi_run_config_free(rc);
-            return FALSE;
-        }
-    }
+  /* Load the run configuration (implementation decides where it comes from: session, file…). */
+  UmiRunConfig *rc = umi_run_config_load();                  /* obtain config object         */
+  if (!rc)
+  {
+    g_free(s_ctx); s_ctx = NULL;                             /* drop context on failure      */
+    g_set_error(err, g_quark_from_static_string("uside-run"), 4,
+                "run-pipeline: failed to load run configuration");
+    return FALSE;                                            /* cannot proceed               */
+  }
 
-    /* Launch with correct parameter order: (runner, argv, envp, cwd, on_exit, user, err) */
-    GError *gerr = NULL;
-    gboolean ok = umi_build_runner_run(
-        g_runner,
-        argvv,
-        envp,           /* NULL to inherit, or env vector */
-        cwd,
-        on_exit,
-        NULL,           /* user data for callback */
-        &gerr
-    );
+  /* Convert run-config to argv (NULL-terminated) using the real API (char** + out_argc).      */
+  int    argc = 0;                                           /* will receive argument count  */
+  char **argv = umi_run_config_to_argv(rc, &argc);           /* NULL-terminated vector       */
+  if (!argv || !argv[0])                                     /* must have a program to exec  */
+  {
+    umi_run_config_free(rc);                                 /* free config                  */
+    g_free(s_ctx); s_ctx = NULL;                             /* drop context                 */
+    g_set_error(err, g_quark_from_static_string("uside-run"), 5,
+                "run-pipeline: invalid argv (empty program)");
+    return FALSE;                                            /* invalid configuration        */
+  }
 
-    /* Cleanup temporaries (runner is kept for reuse). */
-    g_free((gpointer)argvv);
-    if (envp_glib) g_strfreev(envp_glib);
-    g_ptr_array_free(argv_arr, TRUE);
-    umi_run_config_free(rc);
+  /* Convert run-config to envp (NULL-terminated). It may return NULL to mean “inherit”.       */
+  char **envp = umi_run_config_to_envp(rc);                  /* may be NULL (inherit env)    */
 
-    if (!ok) {
-        if (err) {
-            g_set_error(err, g_quark_from_static_string("uside-run"), 4,
-                        "runner error: %s", (gerr && gerr->message) ? gerr->message : "unknown");
-        }
-        if (gerr) g_clear_error(&gerr);
-        return FALSE;
-    }
+  /* Working directory for the child; fallback to "." if unspecified.                          */
+  const char *cwd = rc->cwd ? rc->cwd : ".";                 /* safe default                 */
 
-    return TRUE;
+  /* Wire our line callback before spawn so early output is not missed.                        */
+  umi_build_runner_set_sink(s_runner, on_runner_line, s_ctx);/* sink + user pointer          */
+
+  /* Spawn the process via the runner, passing our **char * const *** vectors as the API wants.
+   * (The API uses const on pointed-to strings; GLib historically omits const on gchar**.)     */
+  gboolean ok = umi_build_runner_run(
+                  s_runner,                                  /* runner instance              */
+                  (char * const *)argv,                      /* argv (NULL-terminated)       */
+                  (char * const *)envp,                      /* envp (NULL or NULL-terminated)*/
+                  cwd,                                       /* working directory            */
+                  on_runner_exit,                            /* exit callback                */
+                  s_ctx,                                     /* callback user data           */
+                  err);                                      /* GLib error out               */
+
+  /* argv/envp were dynamically created by the run-config helpers; free our local copies.      */
+  if (argv) g_strfreev(argv);                                /* free vector + strings        */
+  if (envp) g_strfreev(envp);                                /* free vector + strings        */
+
+  /* The config object is no longer needed after we’ve produced argv/envp/cwd.                 */
+  umi_run_config_free(rc);                                   /* free configuration           */
+
+  if (!ok)
+  {
+    /* Spawn failed: free context to avoid dangling pointer in callbacks.                      */
+    g_free(s_ctx); s_ctx = NULL;                             /* drop context                 */
+    return FALSE;                                            /* 'err' already set by runner  */
+  }
+
+  /* Success: the child is running; s_ctx remains alive until on_runner_exit() (or stop()).    */
+  return TRUE;                                               /* started successfully         */
 }
 
-/*-----------------------------------------------------------------------------
- * Stop the active pipeline (placeholder).
- * If/when build_runner exposes a stop/kill API, call it here and clear state.
- *---------------------------------------------------------------------------*/
+/*--------------------------- Public: stop the pipeline --------------------------------------*/
+/* Politely cancels asynchronous reads and requests process termination. We keep the runner
+ * instance allocated so a future start() can reuse it. Context will be released by the exit
+ * callback after the runner observes process termination.                                      */
+
 void
 umi_run_pipeline_stop(void)
 {
-    /* TODO: add umi_build_runner_stop/kill when available, then set g_runner=NULL. */
-    g_message("run-pipeline: stop requested (no-op; implement when runner exposes stop/kill)");
+  if (!s_runner)                                             /* if never created, no-op      */
+    return;
+
+  umi_build_runner_stop(s_runner);                            /* request graceful shutdown    */
+  /* NOTE:
+   *  - on_runner_exit() will be invoked when the child actually terminates.
+   *  - on_runner_exit() will free s_ctx, finalize diagnostics, etc.
+   */
 }
 /*--- end of file ---*/

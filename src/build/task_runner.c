@@ -2,135 +2,141 @@
  * Umicom Studio IDE
  * File: src/build/task_runner.c
  * PURPOSE:
- *   Implementation of a tiny, GLib-based task runner. Provides a small API
- *   to queue background jobs (function + user_data) onto a GThreadPool, so
- *   the GUI remains responsive while work runs in parallel.
+ *   Implementation of a tiny, GLib-based task runner. The runner owns a
+ *   GThreadPool and lets callers queue background jobs (function + user_data)
+ *   so the GTK main loop stays responsive while work runs off-thread.
  *
- * HOW IT WORKS (PSEUDOCODE):
- *   struct Runner { GThreadPool *pool; }
- *   new(max_threads):
- *     threads = clamp(max_threads, 1..N)
- *     pool = g_thread_pool_new(worker_invoke, /*user_data=*/NULL, threads, exclusive=FALSE)
- *   queue(fn, user):
- *     job = allocate { fn, user }
- *     g_thread_pool_push(pool, job)
- *   worker_invoke(job):
- *     call job->fn(job->user)
- *     free(job)
- *   free():
- *     g_thread_pool_free(pool, immediate=FALSE, wait_=TRUE)
+ * DESIGN / ARCH:
+ *   - Pure C, no C++; depends only on GLib threading primitives.
+ *   - Loosely coupled: only includes this module’s own public header.
+ *   - Opaque handle: callers can’t access internals (reduces coupling).
+ *   - Each job is a pair {UmiTaskFn fn, gpointer user}; workers call fn(user).
+ *   - DO NOT touch GTK from workers; post back with g_idle_add() if needed.
  *
- * CONCURRENCY RULE:
- *   Worker threads MUST NOT touch GTK. UI updates must be posted back to
- *   the main thread (e.g., via g_idle_add()).
+ * SAFETY:
+ *   - Input validation on all public APIs.
+ *   - Defensive checks before invoking callbacks.
+ *   - Errors during push are logged and the job is freed (no leaks).
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "task_runner.h"   /* <- public API for this module only            */
-#include <stdlib.h>        /* <- for NULL                                   */
+#include "task_runner.h"                 /* module’s public API; brings in GLib */
+#include <stdlib.h>                      /* NULL macro                          */
 
-/*----------------------------- Internal Types ------------------------------*/
-/* A single queued call: function pointer + user data.                       */
-/* Keeping this tiny helps throughput and reduces allocation overhead.       */
+/*--------------------------- Internal Structures ----------------------------*/
+
+/* A single enqueued call (function + user data).                              */
 typedef struct UmiTaskCall {
-  UmiTaskFn fn;           /* function to invoke on a worker thread          */
-  gpointer  user;         /* opaque context pointer passed to 'fn'          */
+  UmiTaskFn fn;                          /* the function to run on a worker    */
+  gpointer  user;                        /* opaque pointer passed to the fn    */
 } UmiTaskCall;
 
-/* The opaque runner holds only a GLib thread pool.                          */
+/* Opaque runner body: keep internals private to this .c file.                 */
 struct UmiTaskRunner {
-  GThreadPool *pool;      /* shared pool executing our UmiTaskCall jobs     */
+  GThreadPool *pool;                     /* GLib thread pool for executing jobs*/
 };
 
-/*----------------------------- Worker Glue ---------------------------------*/
+/*--------------------------- Forward Declarations ---------------------------*/
+
+/* Worker trampoline that matches GFunc: void (*)(gpointer,gpointer).          */
+static void worker_invoke(gpointer data, gpointer user_data);
+
+/*------------------------------ API: Create --------------------------------*/
+
+UmiTaskRunner *
+umi_task_runner_new(int max_threads)     /* create a runner with N workers     */
+{
+  int threads = (max_threads > 0) ? max_threads : 1; /* clamp to >= 1         */
+  GError *err = NULL;                    /* will capture GLib creation errors  */
+
+  /* Create a shared (non-exclusive) thread pool.                              */
+  GThreadPool *pool = g_thread_pool_new(
+      worker_invoke,                     /* function applied to each job       */
+      NULL,                              /* pool user_data (unused by us)      */
+      threads,                           /* maximum threads allowed            */
+      FALSE,                             /* shared, not exclusive              */
+      &err                               /* error out                          */
+  );
+
+  if (!pool) {                           /* creation failed?                   */
+    if (err) {                           /* log diagnostic if provided         */
+      g_warning("umi_task_runner_new: %s", err->message ? err->message : "unknown");
+      g_clear_error(&err);               /* free error                         */
+    }
+    return NULL;                         /* signal failure to caller           */
+  }
+
+  /* Allocate the runner and store the pool.                                   */
+  UmiTaskRunner *r = g_slice_new0(UmiTaskRunner); /* zero-initialized struct  */
+  r->pool = pool;                        /* keep the created pool              */
+  return r;                              /* hand back to caller                */
+}
+
+/*------------------------------ API: Destroy -------------------------------*/
+
+void
+umi_task_runner_free(UmiTaskRunner *r)   /* destroy the runner + pool          */
+{
+  if (!r) return;                        /* guard against NULL                 */
+
+  if (r->pool) {                         /* if we have a pool                  */
+    /* Free the pool:
+     *  immediate = FALSE  => do not kill running tasks abruptly
+     *  wait_     = TRUE   => block until queued/running tasks complete
+     */
+    g_thread_pool_free(r->pool, FALSE, TRUE); /* clean shutdown               */
+    r->pool = NULL;                      /* clear dangling pointer             */
+  }
+
+  g_slice_free(UmiTaskRunner, r);        /* free the runner struct itself      */
+}
+
+/*------------------------------ API: Queue ---------------------------------*/
+
+void
+umi_task_runner_queue(UmiTaskRunner *r,  /* enqueue a job onto the pool        */
+                      UmiTaskFn fn,      /* callback function (runs on worker) */
+                      gpointer user)     /* opaque user_data passed to fn      */
+{
+  if (!r || !r->pool || !fn) {           /* validate inputs                    */
+    return;                              /* nothing to do if invalid           */
+  }
+
+  /* Allocate a small job container.                                          */
+  UmiTaskCall *job = g_slice_new(UmiTaskCall); /* allocate from GLib slice    */
+  job->fn   = fn;                        /* store function pointer             */
+  job->user = user;                      /* store opaque context               */
+
+  /* Push the job to the thread pool.                                         */
+  GError *err = NULL;                    /* capture potential push error       */
+  g_thread_pool_push(r->pool, job, &err);/* async enqueue                      */
+  if (G_UNLIKELY(err != NULL)) {         /* if push failed                     */
+    g_warning("umi_task_runner_queue: %s", err->message ? err->message : "unknown");
+    g_clear_error(&err);                 /* free GLib error                    */
+    g_slice_free(UmiTaskCall, job);      /* free the job to avoid leaking      */
+  }
+}
+
+/*---------------------------- Worker Trampoline ----------------------------*/
+
 /* worker_invoke:
- *  Signature must match GFunc: void (*GFunc)(gpointer data, gpointer user_data)
- *  - 'data'      : our UmiTaskCall*
- *  - 'user_data' : constant pointer supplied once at pool creation (unused)
+ *  GLib calls this for each queued item. Its signature must be:
+ *    void (*GFunc)(gpointer data, gpointer user_data)
+ *  - data      : the UmiTaskCall* we pushed
+ *  - user_data : the constant pointer given to g_thread_pool_new (unused here)
  */
 static void
-worker_invoke(gpointer data, gpointer user_data /* unused */)
+worker_invoke(gpointer data, gpointer user_data)
 {
-  /* Cast the generic pointer back to our job container.                     */
-  UmiTaskCall *call = (UmiTaskCall *)data;        /* recover the enqueued job */
+  (void)user_data;                       /* we don’t use pool user_data        */
 
-  /* Defensive: ensure we have a function before calling it.                 */
-  if (call && call->fn) {                         /* if valid job            */
-    /* CRITICAL: pass the user pointer to match typedef void (*)(gpointer).  */
-    call->fn(call->user);                         /* run job with its arg    */
+  UmiTaskCall *call = (UmiTaskCall *)data; /* recover the job object          */
+  if (call && call->fn) {                /* defensive: ensure a valid fn       */
+    call->fn(call->user);                /* run the job: fn(user)              */
   }
 
-  /* Free the small job object. Using GLib slice is fast & low-fragmentation */
-  g_slice_free(UmiTaskCall, call);                /* return memory to slice  */
+  g_slice_free(UmiTaskCall, call);       /* always free the job container      */
 }
 
-/*----------------------------- API: new/free -------------------------------*/
-UmiTaskRunner *
-umi_task_runner_new(int max_threads)
-{
-  /* Clamp the requested size: GLib expects positive values for pools.       */
-  int threads = (max_threads > 0) ? max_threads : 1;  /* at least one worker */
-
-  /* Allocate our runner object from GLib's slice allocator.                 */
-  UmiTaskRunner *r = g_slice_new0(UmiTaskRunner);     /* zeroed memory       */
-  if (!r) {                                          /* allocation failure?  */
-    return NULL;                                     /* bubble up NULL       */
-  }
-
-  /* Create a non-exclusive thread pool that will execute 'worker_invoke'.   */
-  /* - user_data   : NULL (we don't need a constant context)                 */
-  /* - exclusive   : FALSE (allow GLib to share the global pool infra)       */
-  /* - error out   : for now, if creation fails, free 'r' and return NULL    */
-  GError *err = NULL;                                 /* collect GLib errors */
-  r->pool = g_thread_pool_new(/*func=*/worker_invoke,
-                              /*user_data=*/NULL,
-                              /*max_threads=*/threads,
-                              /*exclusive=*/FALSE,
-                              /*error=*/&err);
-  if (!r->pool) {                                     /* pool could not be made */
-    g_slice_free(UmiTaskRunner, r);                   /* free runner object     */
-    if (err) g_error_free(err);                       /* drop error (optional)  */
-    return NULL;                                      /* signal failure         */
-  }
-
-  return r;                                           /* ready to queue work   */
-}
-
-void
-umi_task_runner_free(UmiTaskRunner *r)
-{
-  if (!r) return;                                     /* nullptr-safe         */
-
-  /* Free the thread pool:                                                   
-   *  - immediate = FALSE (do not free pool if jobs still queued)
-   *  - wait_     = TRUE  (block until running jobs finish)
-   * This guarantees no background thread touches freed memory after return.
-   */
-  g_thread_pool_free(r->pool, /*immediate=*/FALSE, /*wait_=*/TRUE);
-
-  /* Free the runner object itself.                                          */
-  g_slice_free(UmiTaskRunner, r);
-}
-
-/*----------------------------- API: queue ----------------------------------*/
-void
-umi_task_runner_queue(UmiTaskRunner *r, UmiTaskFn fn, gpointer user)
-{
-  if (!r || !fn) return;                              /* invalid inputs?      */
-
-  /* Allocate a tiny job package to carry the pointer + its user data.       */
-  UmiTaskCall *call = g_slice_new(UmiTaskCall);       /* small, fast alloc    */
-  call->fn   = fn;                                    /* store function       */
-  call->user = user;                                  /* store user context   */
-
-  /* Push onto the GLib thread pool. If the pool is full, GLib will queue.   */
-  /* We ignore the (rare) push error here; production code could log it.     */
-  GError *err = NULL;                                 /* collect push errors  */
-  g_thread_pool_push(r->pool, call, &err);            /* enqueue the job      */
-  if (G_UNLIKELY(err)) {                              /* if push failed       */
-    g_slice_free(UmiTaskCall, call);                  /* free job we created  */
-    g_error_free(err);                                /* drop error object    */
-    /* Optionally log via your logger here.                                   */
-  }
-}
+/*--------------------------------- EOF -------------------------------------*/

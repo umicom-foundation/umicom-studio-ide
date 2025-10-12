@@ -1,124 +1,76 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build/build_tasks.c
- * PURPOSE: Thin helpers around the build runner to execute shell commands in a
- *          controlled, cross-platform way for the IDE's task system.
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-12 | MIT
- *---------------------------------------------------------------------------
- * Quick Start / Notes:
- * - This wrapper matches the current build_runner.h signature:
- *
- *     gboolean umi_build_runner_run(
- *         UmiBuildRunner *br,
- *         char * const *argv,   // argv[0] = cmd, NULL-terminated
- *         char * const *envp,   // optional environment vector (NULL = inherit)
- *         const char *cwd,      // working directory (e.g., ".")
- *         UmiBuildExitCb on_exit,
- *         gpointer user,
- *         GError **err          // failure details (NULL if not needed)
- *     );
- *
- * - We do NOT capture stdout/stderr here because the runner API does not expose
- *   capture buffers in its parameters. If needed later, we can add a helper
- *   that reads GSubprocess pipes inside the runner and returns text.
- * - Pure C (C17) + GLib types; zero GtkBuilder/GResource/XML.
- * - Keep warnings clean (-Wall -Wextra -Wpedantic). Avoid unused locals.
- *---------------------------------------------------------------------------*/
-
-#include <glib.h>               /* gboolean, GString, GError, g_clear_error    */
-#include <string.h>             /* strlen (not strictly needed but common)     */
-
-#include "build_tasks.h"        /* public declaration for umi_run_command_simple */
-#include "build_runner.h"       /* UmiBuildRunner ctor + run, UmiBuildExitCb     */
-
-/*-----------------------------------------------------------------------------
- * Function: umi_run_command_simple
- *
  * PURPOSE:
- *   Execute a single command with no extra arguments, optionally in a specific
- *   working directory. On failure, forward any GError message into 'err'
- *   (GString) so callers can surface a textual diagnostic.
+ *   Thin helpers around the build runner to execute shell commands in a
+ *   controlled, cross-platform way for the IDE's task system.
  *
- * PARAMETERS:
- *   cmd  - (in)  Executable path or command name (argv[0]); must be non-NULL.
- *   cwd  - (in)  Working directory; if NULL/empty, defaults to ".".
- *   out  - (out) Optional stdout text sink (currently unused here).
- *   err  - (out) Optional error text sink; receives GError message on failure.
+ * NOTES:
+ *   - Matches build_runner.h signatures exactly (argv/envp are char* const*).
+ *   - Keeps implementation tiny; captures/stdout routing is handled by the
+ *     runner sink (see umi_build_runner_set_sink()).
  *
- * RETURNS:
- *   TRUE on success, FALSE on failure (see 'err' for details if provided).
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
+
+#include <glib.h>                 /* gboolean, GString, GError                 */
+
+#include "build_tasks.h"          /* this module’s header (public helpers)     */
+#include "build_runner.h"         /* UmiBuildRunner API                         */
+
+/* Execute a command with no extra args; forward any error text to 'err'.      */
 gboolean
 umi_run_command_simple(const char *cmd, const char *cwd, GString *out, GString *err)
 {
-    /* Validate 'cmd' early to avoid undefined behavior further down. */
-    if (G_UNLIKELY(cmd == NULL || *cmd == '\0')) {
+    /* Validate cmd early.                                                     */
+    if (G_UNLIKELY(!cmd || !*cmd)) {
         if (err) g_string_append(err, "umi_run_command_simple: empty command\n");
         return FALSE;
     }
 
-    /* Build argv for the runner:
-     *  - argv[0] must be the command itself,
-     *  - argv must be NULL-terminated,
-     *  - type must be 'char * const *'.
-     * We cast away const on 'cmd' because we do not modify it; the runner treats
-     * argv as read-only (execv-style). */
+    /* argv must be NULL-terminated; cast is safe (we never modify strings).   */
     char *argvv[] = { (char *)cmd, NULL };
 
-    /* Environment vector:
-     *  - NULL means "inherit current process environment".
-     *  - If you later want a custom environment, build a char* vector like:
-     *      char *envp[] = { "VAR1=VALUE1", "VAR2=VALUE2", NULL };
-     *    and pass 'envp'. */
+    /* envp: NULL => inherit.                                                  */
     char * const *envp = NULL;
 
-    /* Normalise the working directory; default to "." if not provided. */
+    /* Normalize working directory.                                            */
     const char *work_dir = (cwd && *cwd) ? cwd : ".";
 
-    /* Create the runner instance (constructor takes no parameters). */
+    /* Create runner.                                                          */
     UmiBuildRunner *runner = umi_build_runner_new();
-    if (G_UNLIKELY(runner == NULL)) {
-        if (err) g_string_append(err, "umi_run_command_simple: failed to create runner\n");
+    if (!runner) {
+        if (err) g_string_append(err, "umi_run_command_simple: runner alloc failed\n");
         return FALSE;
     }
 
-    /* Optional exit callback and user data — unused in this simple helper. */
-    UmiBuildExitCb on_exit = NULL;
-    gpointer       user    = NULL;
+    /* We don’t need a sink here (GUI usually wires it elsewhere).             */
+    /* umi_build_runner_set_sink(runner, my_sink, my_user); */
 
-    /* Prepare GError** for detailed failure reporting from the runner. */
     GError *gerr = NULL;
-
-    /* Call the runner with the correct parameter order and types:
-     *   (runner, argv, envp, cwd, on_exit, user, &gerr) */
     gboolean ok = umi_build_runner_run(
-        runner,     /* runner instance                                          */
-        argvv,      /* argv: { cmd, NULL }                                      */
-        envp,       /* envp: NULL => inherit                                    */
-        work_dir,   /* cwd                                                      */
-        on_exit,    /* optional exit callback (unused here)                      */
-        user,       /* user data (unused here)                                   */
-        &gerr       /* failure details (NULL if success)                         */
+        runner,               /* runner instance                               */
+        argvv,                /* argv: { cmd, NULL }                           */
+        envp,                 /* envp: inherit                                 */
+        work_dir,             /* cwd                                           */
+        NULL,                 /* on_exit (unused here)                         */
+        NULL,                 /* user (unused here)                            */
+        &gerr                 /* error details                                 */
     );
 
-    /* If the runner reported an error, forward its message into 'err' so
-     * callers that expect textual diagnostics receive them. */
     if (!ok) {
         if (gerr) {
             if (err) g_string_append_printf(err, "runner error: %s\n",
                                             gerr->message ? gerr->message : "unknown");
-            g_clear_error(&gerr); /* frees and NULLs the pointer */
+            g_clear_error(&gerr);
         } else {
-            if (err) g_string_append(err, "runner error: (no GError message)\n");
+            if (err) g_string_append(err, "runner error (no message)\n");
         }
     } else {
-        /* Success: the current runner API does not expose stdout capture; mark
-         * 'out' intentionally unused to keep -Wunused-parameter clean. */
-        (void)out;
+        (void)out; /* Current runner version streams to sink; silence unused. */
     }
 
-    /* If/when a destructor exists (e.g., umi_build_runner_free), call it here.
-     * We avoid assuming it to keep this file aligned with your current headers. */
+    /* If you add umi_build_runner_free() in the header later, call it here.   */
     /* umi_build_runner_free(runner); */
 
     return ok;
