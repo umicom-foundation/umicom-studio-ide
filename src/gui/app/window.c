@@ -1,21 +1,16 @@
 ﻿/* -----------------------------------------------------------------------------
  * Umicom Studio IDE
- * PURPOSE: Core sources for Umicom Studio IDE.
+ * File: src/gui/app/window.c
+ * PURPOSE: Minimal window helper (pure C widgets; no GtkBuilder/resources)
  * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
  * Last updated: 2025-10-11
  * ---------------------------------------------------------------------------*/
 
-#include "window.h"
-
-static GtkWidget* build_ui(GtkApplication *app) {
-  GtkBuilder *builder = gtk_builder_new_from_resource("/com/umicom/ustudio/ui/main.ui");
-  GtkWidget *win = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
-  gtk_window_set_application(GTK_WINDOW(win), app);
-  g_object_unref(builder);
-  return win;
-}
+#include <gtk/gtk.h>
 
 GtkWidget* window_new(GtkApplication *app) {
-  GtkWidget *win = build_ui(app);
+  GtkWidget *win = gtk_application_window_new(app);
+  gtk_window_set_title(GTK_WINDOW(win), "Umicom Studio IDE");
+  gtk_window_set_default_size(GTK_WINDOW(win), 1200, 800);
   return win;
 }

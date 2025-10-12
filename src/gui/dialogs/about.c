@@ -11,9 +11,11 @@ void umi_about_show(GtkWindow *parent);
 void umi_show_about(GtkWindow *parent);
 
 /* Internal: close handler for the dialog's "response" signal */
-static void on_about_response(GtkDialog *dialog, int /*response*/, gpointer /*user_data*/) {
-  gtk_window_destroy(GTK_WINDOW(dialog));
+static void on_about_response(GtkDialog *dialog, int response, gpointer user_data) {
+    (void)response; (void)user_data;
+    gtk_window_destroy(GTK_WINDOW(dialog));
 }
+
 
 void umi_about_show(GtkWindow *parent)
 {
