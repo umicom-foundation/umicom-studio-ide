@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/panes/output/output_pane_adapter.c
  * PURPOSE:
@@ -19,7 +19,7 @@
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/output_pane_adapter.h"  /* Brings in output_console.h too. */
+#include "output_pane_adapter.h"  /* Brings in output_console.h too. */
 
 /*-----------------------------------------------------------------------------
  * umi_output_pane_adapter_new

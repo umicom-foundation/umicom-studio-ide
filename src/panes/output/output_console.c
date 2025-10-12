@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/panes/output/output_console.c
  *
@@ -26,8 +26,8 @@
 #include <string.h>
 
 /* Local public headers (sibling include/ folder) */
-#include "include/output_console.h"   /* UmiOutputConsole, UmiOutChain API */
-#include "include/output_filters.h"   /* UmiAnsi, umi_ansi_new, umi_ansi_append_line */
+#include "output_console.h"   /* UmiOutputConsole, UmiOutChain API */
+#include "output_filters.h"   /* UmiAnsi, umi_ansi_new, umi_ansi_append_line */
 
 /*========================
  * Internal data structure

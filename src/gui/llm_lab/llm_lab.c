@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/llm_lab/llm_lab.c
  * PURPOSE: LLM Lab panel (pure C, GTK4). Loosely-coupled, builds even when
@@ -21,7 +21,7 @@
 #include <glib.h>
 #include <math.h>        /* exp, log for entropy calculation */
 
-#include "include/llm_lab.h"   /* local public header for this module */
+#include "llm_lab.h"   /* local public header for this module */
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /* Provider shims (weak) — keep us loosely coupled to any LLM backend.

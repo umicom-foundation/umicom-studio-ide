@@ -1,11 +1,11 @@
-/*-----------------------------------------------------------------------------
+﻿/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/output_filters.c
  * PURPOSE: Implementation of output filter chain
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/output_filters.h"
+#include "output_filters.h"
 #include <string.h>
 #include <ctype.h>
 
