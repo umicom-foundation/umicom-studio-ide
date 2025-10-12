@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/problem_list.h
  * PURPOSE: Diagnostics model and GTK list view; parse helpers

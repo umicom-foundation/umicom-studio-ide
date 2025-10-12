@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/fs/include/fs_walk.h
  * PURPOSE: Recursive directory walk with callback

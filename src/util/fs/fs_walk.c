@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/fs_walk.h"               /* Public API */
+#include "fs_walk.h"               /* Public API */
 
 #include <string.h>                        /* strcmp (for optional sorting) */
 

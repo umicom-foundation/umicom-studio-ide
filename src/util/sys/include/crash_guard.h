@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/include/crash_guard.h
  * PURPOSE: Process-wide crash/SEH signal guard install/uninstall APIs

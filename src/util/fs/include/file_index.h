@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/fs/include/file_index.h
  * PURPOSE: Recursive file index (cache + refresh)

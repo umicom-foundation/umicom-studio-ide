@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/include/ansi_color.h
  * PURPOSE: Tiny ANSI color helpers for console output

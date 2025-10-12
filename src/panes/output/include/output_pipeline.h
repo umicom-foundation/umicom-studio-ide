@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/panes/output/include/output_pipeline.h
  * PURPOSE: Glue build_runner -> filters -> rich console

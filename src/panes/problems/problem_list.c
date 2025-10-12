@@ -1,4 +1,4 @@
-﻿/* ---------------------------------------------------------------------------
+/* ---------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: problem_list_shim.c
  * PURPOSE: Minimal, non-invasive implementations for the problem list API

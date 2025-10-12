@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/fs/include/file_tree.h
  * PURPOSE: Minimal GTK file tree widget wrapper

@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/file_tree.h"              /* Public API */
+#include "file_tree.h"              /* Public API */
 
 #include <string.h>                         /* strcmp for sorting */
 

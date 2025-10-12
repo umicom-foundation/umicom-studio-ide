@@ -5,7 +5,7 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "include/util_path.h"        /* Our public declarations */
+#include "util_path.h"        /* Our public declarations */
 
 /* --- Internal helper: collapse "." and ".." without touching symlinks --- */
 static gchar *norm_only(const char *p){
