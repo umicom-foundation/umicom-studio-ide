@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/app/app.c
  * PURPOSE: Implementation of top-level application shell (pure C, no XML)

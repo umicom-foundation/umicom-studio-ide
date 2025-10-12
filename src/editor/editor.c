@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/editor/editor.c
  * PURPOSE: Editor composite widget (Problems + Output) and helpers

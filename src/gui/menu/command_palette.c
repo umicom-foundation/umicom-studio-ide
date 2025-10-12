@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/menu/command_palette.c
  * PURPOSE: Minimal Command Palette (filter + list of actions) for GTK4

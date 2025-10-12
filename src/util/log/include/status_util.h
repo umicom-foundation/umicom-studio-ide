@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/log/include/status_util.h
  * PURPOSE: Small helper abstraction over GtkStatusbar

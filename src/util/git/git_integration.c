@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/platform/win_launcher.c
  * PURPOSE: Implementation of Windows GUI entry/thunk and MSYS-aware spawn

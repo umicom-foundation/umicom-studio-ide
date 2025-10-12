@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/chrome/status_bar.c
  * PURPOSE: Minimal, self-contained status bar (pure C, no external deps).

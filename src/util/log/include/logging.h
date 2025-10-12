@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/log/include/logging.h
  * PURPOSE: Central logging setup + helpers (GLib writer -> UI console/status)

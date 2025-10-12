@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/editor/editor_actions.h
  * PURPOSE: Helpers for editor operations used by UI and menus.

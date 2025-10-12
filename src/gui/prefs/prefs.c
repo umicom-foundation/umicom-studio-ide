@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/prefs/prefs.c
  * PURPOSE: Preferences dialog implementation (pure C callbacks)

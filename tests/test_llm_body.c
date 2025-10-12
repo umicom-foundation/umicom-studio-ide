@@ -1,4 +1,4 @@
-﻿/*----------------------------------------------------------------------------- 
+/*----------------------------------------------------------------------------- 
  * Umicom Studio IDE
  * File: tests/test_llm_body.c
  * PURPOSE: Test stub to satisfy umi_llm_cfg_init_from_env symbol (weak no-op)

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/search/include/rg_runner.h
  * PURPOSE: Thin wrapper to run ripgrep with our argument builder

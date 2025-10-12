@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/app/app.h
  * PURPOSE: Public app shell types and accessors for the top-level GTK app.

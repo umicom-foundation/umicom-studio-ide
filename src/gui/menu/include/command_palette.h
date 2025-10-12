@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/menu/include/command_palette.h
  * PURPOSE: Command palette dialog with filterable list of commands

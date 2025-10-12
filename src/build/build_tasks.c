@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build/build_tasks.c
  * PURPOSE: Thin helpers around the build runner to execute shell commands in a

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/fs/fs_walk.c
  * PURPOSE: Implementation of recursive walk using GDir

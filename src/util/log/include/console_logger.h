@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/log/include/console_logger.h
  * PURPOSE: Minimal text-view backed console logger (UI output pane)

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/search/include/search_panel.h
  * PURPOSE: Public API for the Search Panel widget (GTK)

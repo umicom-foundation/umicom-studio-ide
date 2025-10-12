@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/chrome/app_menu_llm.c
  * PURPOSE: Lightweight LLM menu strip for the main window (pure C, no XML).

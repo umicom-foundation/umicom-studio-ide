@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/ansi_color.c
  * PURPOSE: Parse simple ANSI SGR color escape sequences and apply GTK tags

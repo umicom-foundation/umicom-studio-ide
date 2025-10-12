@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build/build_system.c
  * PURPOSE: Implementation of build system detection and argv expansion

@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build/build_runner.c
  * PURPOSE: Launches external build processes using GIO (GSubprocess),

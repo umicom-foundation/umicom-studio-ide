@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/search/include/rg_discovery.h
  * PURPOSE: Discover ripgrep binary and capture its version

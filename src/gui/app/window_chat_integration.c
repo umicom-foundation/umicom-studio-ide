@@ -1,4 +1,4 @@
-﻿
+
 /* ---------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/ui/window_chat_integration.c

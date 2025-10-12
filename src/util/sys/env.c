@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/env.c
  * PURPOSE: Small helpers around environment variables (get/set with defaults)

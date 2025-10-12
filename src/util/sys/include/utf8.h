@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/include/utf8.h
  * PURPOSE: UTF-8 utilities (validation, normalization, conversion helpers)

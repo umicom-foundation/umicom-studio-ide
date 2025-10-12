@@ -1,4 +1,4 @@
-﻿/* -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/app/window.c
  * PURPOSE: Minimal window helper (pure C widgets; no GtkBuilder/resources)

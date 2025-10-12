@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/diagnostic_parsers.c
  * PURPOSE: Implement simple line parsers without regex

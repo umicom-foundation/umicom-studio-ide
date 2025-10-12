@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/crash_guard.c
  * PURPOSE: Minimal crash guard hook points (enable/disable and handler)

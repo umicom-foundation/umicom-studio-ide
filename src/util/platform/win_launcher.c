@@ -1,4 +1,4 @@
-﻿\
+\
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
  * File: src/win_launcher.c
@@ -42,7 +42,13 @@ static char **utf8_argv_from_windows(int *out_argc) {
     return argv;
 }
 
-int APIENTRY wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nShow) {
+/* NOTE:
+ * MinGW/CRT expose __argc/__argv for convenience; this avoids re-parsing the
+ * command line. If your 'main' expects UTF-8/UTF-16 conversion, handle that
+ * inside main() (as it already does in your tree).
+ */
+
+int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nShow) {
     (void)hInst; (void)hPrev; (void)lpCmdLine; (void)nShow;
     int argc = 0;
     char **argv = utf8_argv_from_windows(&argc);

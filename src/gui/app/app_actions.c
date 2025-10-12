@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/app/app_actions.c
  * PURPOSE: Application-level action callbacks used by menus & keymap.

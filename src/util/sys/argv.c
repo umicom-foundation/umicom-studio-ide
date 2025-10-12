@@ -1,4 +1,4 @@
-﻿/*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/sys/argv.c
  * PURPOSE: Cross-platform argv utilities (Windows quoting, join/split helpers)
