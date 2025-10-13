@@ -32,7 +32,7 @@
 #include <glib.h>
 #include <gio/gio.h>
 
-#include "src/include/umi_output_sink.h" /* decoupled sink */
+#include "umi_output_sink.h" /* decoupled sink */
 
 G_BEGIN_DECLS
 
