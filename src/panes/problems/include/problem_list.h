@@ -4,94 +4,58 @@
  * File: src/panes/problems/include/problem_list.h
  *
  * PURPOSE:
- *   Public API for the Problems pane: storage, filtering, and rendering hooks.
+ *   Public API for the Problems pane: create the list, add/clear items,
+ *   query size, and get the GTK widget to pack into UI containers.
  *
  * DESIGN:
- *   Depends on canonical diagnostic types from src/include/umi_output_sink.h. No local typedef duplication.
+ *   - The canonical diagnostics types (UmiDiag/UmiDiagSeverity) are defined
+ *     in 'umi_output_sink.h'. We DO NOT duplicate any of those here.
+ *   - This header is UI-facing; it exposes a GtkWidget* accessor so the
+ *     editor can pack the problems view into a Notebook or Paned.
+ *   - Callbacks: you can supply an optional "activate" callback that fires
+ *     when the user double-clicks a problem row.
  *
  * API:
- *   problem_list_new, problem_list_free, problem_list_add, problem_list_clear, problem_list_count, problem_list_model
+ *   typedef struct _UmiProblemList UmiProblemList;
+ *   typedef void (*UmiProblemActivateCb)(gpointer user,
+ *                                        const char *file, int line, int col);
+ *   UmiProblemList *problem_list_new(void);
+ *   UmiProblemList *problem_list_new_with_cb(UmiProblemActivateCb cb, gpointer user);
+ *   void            problem_list_free  (UmiProblemList *list);
+ *   gboolean        problem_list_add   (UmiProblemList *list, const UmiDiag *diag);
+ *   size_t          problem_list_clear (UmiProblemList *list);
+ *   size_t          problem_list_count (const UmiProblemList *list);
+ *   const void     *problem_list_model (const UmiProblemList *list);
+ *   GtkWidget      *problem_list_widget(const UmiProblemList *list);
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-
 #pragma once
 
-/*  WHY INCLUDE THIS SHARED HEADER?
- *  ───────────────────────────────
- *  The entire application must agree on the definition of diagnostic severities
- *  and the diagnostic record structure. The single source of truth is the
- *  project-wide public header "umi_output_sink.h". We *do not* locally re-define
- *  enums or structs here to avoid One-Definition-Rule drift, ABI mismatches, or
- *  subtle bugs.
- */
-#include "umi_output_sink.h"   /* UmiDiagSeverity, UmiDiag, UmiOutputSink */
+#include <gtk/gtk.h>           /* GtkWidget for widget accessor */
+#include <glib.h>              /* gboolean, gpointer, size_t   */
+#include "umi_output_sink.h"   /* UmiDiag / UmiDiagSeverity     */
 
-/*  OVERVIEW
- *  ────────────────────────────────────────────────────────────────────────────
- *  The Problems pane exposes a small, opaque handle that wraps the list/model
- *  used by the UI. This header provides a narrow API so other modules (router,
- *  build system) can push normalized diagnostics without taking a dependency on
- *  any UI widget types.
- *
- *  This keeps the module *loosely coupled*: core code can add problems, and the
- *  GUI layer decides how to render them.
- */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/*  OPAQUE HANDLE
- *  ────────────────────────────────────────────────────────────────────────────
- *  We hide the internal representation to keep callers from reaching into the
- *  model. This eliminates cross-module header bleed and allows us to change the
- *  internals without breaking other modules.
- */
+/* Opaque handle; callers never see internals. */
 typedef struct _UmiProblemList UmiProblemList;
 
-/*  CONSTRUCTOR / DESTRUCTOR
- *  ────────────────────────────────────────────────────────────────────────────
- *  The list owns its storage for problems. It does not own UI widgets.
- */
-UmiProblemList *problem_list_new   (void);
-/*  Frees list storage; does *not* touch UI widgets owned elsewhere. */
-void            problem_list_free  (UmiProblemList *list);
+/* Activation callback fires when user activates a row (e.g., double-click).
+ * 'file' may be empty; 'line'/'col' are >=0 or 0 if unknown. */
+typedef void (*UmiProblemActivateCb)(gpointer user,
+                                     const char *file, int line, int col);
 
-/*  MUTATORS
- *  ────────────────────────────────────────────────────────────────────────────
- *  Add a normalized diagnostic. The pointer is not retained after the call;
- *  we copy the record. Returns 'false' if allocation fails.
- */
-gboolean        problem_list_add   (UmiProblemList *list, const UmiDiag *diag);
+/* Constructors */
+UmiProblemList *problem_list_new(void);
+UmiProblemList *problem_list_new_with_cb(UmiProblemActivateCb cb, gpointer user);
 
-/*  Clears the internal storage. Returns number of items removed. */
-size_t          problem_list_clear (UmiProblemList *list);
+/* Lifetime */
+void   problem_list_free  (UmiProblemList *list);
 
-/*  ACCESSORS
- *  ────────────────────────────────────────────────────────────────────────────
- *  Get the current size; cheap O(1) accessor.
- */
-size_t          problem_list_count (const UmiProblemList *list);
+/* Mutators */
+gboolean problem_list_add   (UmiProblemList *list, const UmiDiag *diag);
+size_t   problem_list_clear (UmiProblemList *list);
 
-/*  OPTIONAL: expose a generic list model pointer for UI binding. The
- *  underlying type is intentionally not declared here to avoid a GTK include
- *  in this public header. Treat the returned pointer as opaque in callers.
- */
-const void     *problem_list_model (const UmiProblemList *list);
-
-/*  THREADING
- *  ────────────────────────────────────────────────────────────────────────────
- *  All calls are expected on the main thread unless otherwise documented.
- *  If a producer thread wants to push diagnostics, it should enqueue to the
- *  main loop (e.g., g_idle_add_full) and call 'problem_list_add' there.
- */
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-
-/*  END OF FILE
- *  ────────────────────────────────────────────────────────────────────────────
- *  Implementation lives in src/panes/problems/problem_list.c (not shown here).
- */
+/* Accessors */
+size_t     problem_list_count (const UmiProblemList *list);
+const void*problem_list_model (const UmiProblemList *list);
+GtkWidget *problem_list_widget(const UmiProblemList *list);

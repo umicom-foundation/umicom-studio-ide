@@ -1,15 +1,24 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/keymap.h
- * PURPOSE: Centralized keybinding table + callbacks
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-07 | MIT
+ * File: src/editor/include/keymap.h
+ * PURPOSE:
+ *   Centralized keybinding table + callbacks for window-scoped actions.
+ *
+ * DESIGN:
+ *   - Uses GTK4/GAction (no deprecated APIs).
+ *   - Lightweight C API: caller supplies callbacks and a user pointer.
+ *
+ * API:
+ *   typedef struct UmiKeymapCallbacks { ... } UmiKeymapCallbacks;
+ *   void umi_keymap_install(GtkWindow *win, const UmiKeymapCallbacks *km);
+ *
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-13 | MIT 
  *---------------------------------------------------------------------------*/
 #ifndef UMICOM_KEYMAP_H
 #define UMICOM_KEYMAP_H
 
 #include <gtk/gtk.h>
 
-/* Callbacks used by the keymap. Keep names stable to avoid churn. */
 typedef struct UmiKeymapCallbacks {
   gpointer user;
   void (*palette)(gpointer user);

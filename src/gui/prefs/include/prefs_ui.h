@@ -1,31 +1,40 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/prefs_ui.h
- * PURPOSE: Preferences dialog UI bound to json_store and settings_bus
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ * File: src/gui/prefs/include/prefs_ui.h
+ *
+ * PURPOSE:
+ *   Small Preferences UI controller that loads/saves settings via a JSON
+ *   store and emits live change events to the settings bus.
+ *
+ * DESIGN:
+ *   - Public header keeps includes light and by name (no relative paths).
+ *   - Implementation uses modern GTK4 (GtkWindow), not deprecated GtkDialog.
+ *
+ * API:
+ *   typedef struct UmiPrefsUI UmiPrefsUI;
+ *   UmiPrefsUI *umi_prefs_create(GtkWindow *parent, const char *json_path);
+ *   void        umi_prefs_show  (UmiPrefsUI *ui);
+ *   void        umi_prefs_destroy(UmiPrefsUI *ui);
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-
 #ifndef UMICOM_PREFS_UI_H
 #define UMICOM_PREFS_UI_H
 
-#include <gtk/gtk.h>
-#include "json_store.h"
-#include "../../../core/include/settings_bus.h"
+#include <gtk/gtk.h>        /* public GTK types used in the API              */
+#include "json_store.h"     /* UmiJsonStore (public JSON key/value store)    */
+#include "settings_bus.h"   /* UmiSettingsBus events (no relative paths)     */
 
-/* The Preferences UI is intentionally tiny and very explicit:
- * - It shows two fields: Theme (string) and Font Size (int).
- * - It loads/saves values from a simple JSON store (human-readable file).
- * - When the user clicks Save, it also emits settings_bus changes so that
- *   other parts of the app can update live (theme + font size).
- */
-typedef struct {
-  GtkWidget   *dialog;
-  GtkEntry    *theme_entry;
-  GtkSpinButton *font_spin;
-  UmiJsonStore *store;
+/* Opaque-ish controller struct (fields are public to keep C simple).        */
+typedef struct UmiPrefsUI {
+  GtkWindow    *window;       /* top-level window (modern, not GtkDialog)     */
+  GtkEntry     *theme_entry;  /* editable theme string                        */
+  GtkSpinButton*font_spin;    /* editor font size                             */
+  UmiJsonStore *store;        /* settings backing store                       */
 } UmiPrefsUI;
 
-UmiPrefsUI *umi_prefs_create(GtkWindow *parent, const char *json_path);
-void        umi_prefs_show(UmiPrefsUI *ui);
+UmiPrefsUI *umi_prefs_create (GtkWindow *parent, const char *json_path);
+void        umi_prefs_show   (UmiPrefsUI *ui);
+void        umi_prefs_destroy(UmiPrefsUI *ui);
 
 #endif /* UMICOM_PREFS_UI_H */

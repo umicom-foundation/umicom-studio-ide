@@ -1,22 +1,26 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/app_actions.h
- * PURPOSE: Declarations for high-level application keymap wiring.
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-08 | MIT
+ * File: src/gui/app/app_actions.h
+ *
+ * PURPOSE:
+ *   Declarations for wiring high-level application actions into a central
+ *   keymap. This header *depends on* the shared keymap API to avoid
+ *   duplicate struct definitions across modules.
+ *
+ * API:
+ *   void umi_app_fill_keymap(GtkApplication *app, UmiKeymapCallbacks *out);
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMI_APP_ACTIONS_H
 #define UMI_APP_ACTIONS_H
-#include <glib.h>
+
 #include <gtk/gtk.h>
-typedef struct UmiApp UmiApp;
-typedef void (*UmiActionFn)(gpointer user);
-typedef struct UmiKeymapCallbacks {
-  UmiActionFn palette;
-  UmiActionFn save;
-  UmiActionFn save_as;
-  UmiActionFn run;
-  UmiActionFn stop;
-  UmiActionFn focus_search;
-} UmiKeymapCallbacks;
+#include "keymap.h"   /* <- single source of truth for UmiKeymapCallbacks */
+
+G_BEGIN_DECLS
+
 void umi_app_fill_keymap(GtkApplication *app, UmiKeymapCallbacks *out);
+
+G_END_DECLS
 #endif /* UMI_APP_ACTIONS_H */

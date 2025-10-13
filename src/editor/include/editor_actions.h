@@ -1,28 +1,33 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/editor/editor_actions.h
- * PURPOSE: Helpers for editor operations used by UI and menus.
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-08 | MIT
+ *
+ * PURPOSE:
+ *   Public helpers for common editor operations (open/save/new). These are
+ *   used by menu items, toolbar actions, or keyboard shortcuts.
+ *
+ * DESIGN:
+ *   - Declares only what UI and other modules need.
+ *   - The implementation has no GUI dialogs yet (save-as is a stub).
+ *
+ * API:
+ *   gboolean umi_editor_open_file(UmiEditor *ed, const char *path, GError **err);
+ *   gboolean umi_editor_save     (UmiEditor *ed, GError **err);
+ *   gboolean umi_editor_save_as  (UmiEditor *ed, GError **err);
+ *   gboolean umi_editor_save_as_path(UmiEditor *ed, const char *path, GError **err);
+ *   void     umi_editor_new_file (UmiEditor *ed);
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMICOM_EDITOR_ACTIONS_H
 #define UMICOM_EDITOR_ACTIONS_H
 
-#include <editor.h>
+#include "editor.h"  /* UmiEditor, GtkTextBuffer */
 
-/* Open a file path (errors via GError) */
-gboolean umi_editor_open_file(UmiEditor *ed, const char *path, GError **err);
-
-/* Save current buffer to current_file (if any). */
-gboolean umi_editor_save(UmiEditor *ed, GError **err);
-
-/* Save-As wrapper expected by other modules (dialog not yet implemented).
- * Returns FALSE with G_IO_ERROR_NOT_SUPPORTED if no path chooser is provided. */
-gboolean umi_editor_save_as(UmiEditor *ed, GError **err);
-
-/* Internal: Save to an explicit path (used by callers that already have a path). */
+gboolean umi_editor_open_file   (UmiEditor *ed, const char *path, GError **err);
+gboolean umi_editor_save        (UmiEditor *ed, GError **err);
+gboolean umi_editor_save_as     (UmiEditor *ed, GError **err);
 gboolean umi_editor_save_as_path(UmiEditor *ed, const char *path, GError **err);
-
-/* Create a new untitled buffer. */
-void     umi_editor_new_file(UmiEditor *ed);
+void     umi_editor_new_file    (UmiEditor *ed);
 
 #endif /* UMICOM_EDITOR_ACTIONS_H */

@@ -1,11 +1,23 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/toolbar.c
- * PURPOSE: Implementation of toolbar with basic actions
+ *
+ * PURPOSE:
+ *   Legacy/simple toolbar with a few buttons wired to callbacks.
+ *
+ * DESIGN:
+ *   - GTK4 widgets only; no deprecated APIs.
+ *   - All callbacks optional; guards prevent NULL deref.
+ *   - Keep this file ONLY if your app uses the 'toolbar.h' API. If you've
+ *     moved to app_menu_llm.c, consider removing this module to avoid
+ *     duplicate UI bars.
+ *
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include "toolbar.h"
+#include <gtk/gtk.h>
+#include <glib.h>
+#include "toolbar.h"   /* defines UmiToolbar/UmiToolbarCallbacks */
 
 struct _UmiToolbar {
   GtkWidget *root;
@@ -13,20 +25,24 @@ struct _UmiToolbar {
   UmiToolbarCallbacks cb;
 };
 
-static GtkWidget *mk_btn(const char *txt, UmiNoArgCb cb, gpointer user){
+static GtkWidget *mk_btn(const char *txt, UmiNoArgCb cb, gpointer user)
+{
   GtkWidget *b = gtk_button_new_with_label(txt);
-  if(cb) g_signal_connect_swapped(b, "clicked", G_CALLBACK(cb), user);
+  if (cb) g_signal_connect_swapped(b, "clicked", G_CALLBACK(cb), user);
   return b;
 }
 
-UmiToolbar *umi_toolbar_new(const UmiToolbarCallbacks *cb){
-  UmiToolbar *t = g_new0(UmiToolbar,1);
-  if(cb) t->cb = *cb;
-  t->root = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-  t->btn_run     = mk_btn("Run",     t->cb.on_run,     t->cb.user);
-  t->btn_stop    = mk_btn("Stop",    t->cb.on_stop,    t->cb.user);
-  t->btn_save    = mk_btn("Save",    t->cb.on_save,    t->cb.user);
-  t->btn_palette = mk_btn("Palette", t->cb.on_palette, t->cb.user);
+UmiToolbar *umi_toolbar_new(const UmiToolbarCallbacks *cb)
+{
+  UmiToolbar *t = g_new0(UmiToolbar, 1);
+  if (cb) t->cb = *cb;
+
+  t->root       = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+  t->btn_run    = mk_btn("Run",     t->cb.on_run,     t->cb.user);
+  t->btn_stop   = mk_btn("Stop",    t->cb.on_stop,    t->cb.user);
+  t->btn_save   = mk_btn("Save",    t->cb.on_save,    t->cb.user);
+  t->btn_palette= mk_btn("Palette", t->cb.on_palette, t->cb.user);
+
   gtk_box_append(GTK_BOX(t->root), t->btn_run);
   gtk_box_append(GTK_BOX(t->root), t->btn_stop);
   gtk_box_append(GTK_BOX(t->root), t->btn_save);
@@ -34,4 +50,13 @@ UmiToolbar *umi_toolbar_new(const UmiToolbarCallbacks *cb){
   return t;
 }
 
-GtkWidget *umi_toolbar_widget(UmiToolbar *tb){ return tb?tb->root:NULL; }
+GtkWidget *umi_toolbar_widget(UmiToolbar *tb)
+{
+  return tb ? tb->root : NULL;
+}
+void umi_toolbar_free(UmiToolbar *tb)
+{
+  if (!tb) return;
+  gtk_widget_destroy(tb->root);
+  g_free(tb);
+}

@@ -1,16 +1,37 @@
-/* -----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/app/window.c
- * PURPOSE: Minimal window helper (pure C widgets; no GtkBuilder/resources)
+ *
+ * PURPOSE:
+ *   Minimal main-window helper built with GTK4 primitives (no GtkBuilder).
+ *   Creates a sane default toplevel used by the app shell.
+ *
+ * DESIGN:
+ *   - Pure C, tiny surface: a single factory function.
+ *   - Defensive guards for NULL app pointer (returns NULL).
+ *   - No deep/relative includes; headers by name only.
+ *
+ * API:
+ *   GtkWidget *window_new(GtkApplication *app);
+ *
  * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
- * Last updated: 2025-10-11
- * ---------------------------------------------------------------------------*/
+ *---------------------------------------------------------------------------*/
 
-#include <gtk/gtk.h>
+#include <gtk/gtk.h>   /* GtkApplicationWindow, gtk_window_* APIs */
 
-GtkWidget* window_new(GtkApplication *app) {
-  GtkWidget *win = gtk_application_window_new(app);
-  gtk_window_set_title(GTK_WINDOW(win), "Umicom Studio IDE");
-  gtk_window_set_default_size(GTK_WINDOW(win), 1200, 800);
-  return win;
+/* Create and configure the main application window.
+ * Returns: a GtkApplicationWindow (as GtkWidget*) or NULL if 'app' is NULL. */
+GtkWidget *window_new(GtkApplication *app)
+{
+    if (!app) return NULL;                        /* guard against misuse           */
+
+    /* Create an application-scoped toplevel (GTK4 API).                      */
+    GtkWidget *win = gtk_application_window_new(app);
+
+    /* Title + default size (tweak as needed).                                */
+    gtk_window_set_title(GTK_WINDOW(win), "Umicom Studio IDE");
+    gtk_window_set_default_size(GTK_WINDOW(win), 1200, 800);
+
+    /* Callers remain owners of the reference returned; GTK manages children. */
+    return win;
 }

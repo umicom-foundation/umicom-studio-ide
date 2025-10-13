@@ -1,22 +1,31 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/chrome/status_bar.c
- * PURPOSE: Minimal, self-contained status bar (pure C, no external deps).
+ *
+ * PURPOSE:
+ *   Minimal status bar (GTK4) with set() and flash(ms) helpers.
+ *
+ * DESIGN:
+ *   - Self-contained; the widget is a horizontal box with a left-aligned label.
+ *   - Flash timeout is cleaned before reuse to avoid leaks or double-trigger.
+ *
+ * SECURITY/ROBUSTNESS:
+ *   - All pointers guarded; flash timeout id cleared on cancel.
+ *
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
 
 #include <gtk/gtk.h>
 #include <glib.h>
-#include "status_bar.h"
+#include "status_bar.h"  /* header should declare the types & functions below */
 
 struct _UmiStatusBar {
-    GtkWidget *box;        /* container (exposed via umi_status_bar_widget) */
-    GtkWidget *label;      /* label that shows the status text              */
-    guint      flash_id;   /* timeout source id for flash()                 */
+    GtkWidget *box;        /* container exposed via umi_status_bar_widget()   */
+    GtkWidget *label;      /* shows the current status text                    */
+    guint      flash_id;   /* timeout source id for flash(); 0 when inactive  */
 };
 
-static gboolean
-flash_clear_cb(gpointer data)
+static gboolean flash_clear_cb(gpointer data)
 {
     UmiStatusBar *sb = (UmiStatusBar *)data;
     if (!sb) return G_SOURCE_REMOVE;
@@ -25,8 +34,7 @@ flash_clear_cb(gpointer data)
     return G_SOURCE_REMOVE; /* one-shot */
 }
 
-UmiStatusBar *
-umi_status_bar_new(void)
+UmiStatusBar *umi_status_bar_new(void)
 {
     UmiStatusBar *sb = g_new0(UmiStatusBar, 1);
 
@@ -41,22 +49,19 @@ umi_status_bar_new(void)
     return sb;
 }
 
-GtkWidget *
-umi_status_bar_widget(UmiStatusBar *sb)
+GtkWidget *umi_status_bar_widget(UmiStatusBar *sb)
 {
     return sb ? sb->box : NULL;
 }
 
-void
-umi_status_bar_set(UmiStatusBar *sb, const char *text)
+void umi_status_bar_set(UmiStatusBar *sb, const char *text)
 {
     if (!sb) return;
     if (sb->flash_id) { g_source_remove(sb->flash_id); sb->flash_id = 0; }
     gtk_label_set_text(GTK_LABEL(sb->label), text ? text : "");
 }
 
-void
-umi_status_bar_flash(UmiStatusBar *sb, const char *text, guint ms)
+void umi_status_bar_flash(UmiStatusBar *sb, const char *text, guint ms)
 {
     if (!sb) return;
     if (sb->flash_id) { g_source_remove(sb->flash_id); sb->flash_id = 0; }
@@ -64,4 +69,3 @@ umi_status_bar_flash(UmiStatusBar *sb, const char *text, guint ms)
     if (ms == 0) return;
     sb->flash_id = g_timeout_add(ms, flash_clear_cb, sb);
 }
-/*--- end of file ---*/

@@ -1,18 +1,17 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/gui/app/app.h
- * PURPOSE: Public app shell types and accessors for the top-level GTK app.
-* Created by: Umicom Foundation (https://umicom.foundation/)
- * Author: Sammy Hegab
- * Date: 15-09-2025
- * License: MIT
  *
- * Plain-English notes:
- * - This header exposes tiny, easy-to-understand functions that do 2 things:
- *   (1) apply the app's CSS theme to a GTK window/display, and
- *   (2) read the embedded JSON preset data as a string.
- * - We keep this API small so it's easy to use and hard to misuse.
- * - Resource files are compiled into the app via ustudio.gresource.xml.
+ * PURPOSE:
+ *   Public app shell types and accessors for the top-level GTK application.
+ *
+ * API:
+ *   GtkApplication *umi_app_new(void);
+ *   UmiApp        *umi_app_handle(GtkApplication *app);
+ *   GtkWindow     *umi_app_window(UmiApp *ua);
+ *   struct _UmiEditor *umi_app_editor(UmiApp *ua);
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMICOM_APP_H
 #define UMICOM_APP_H
@@ -22,28 +21,20 @@
 
 G_BEGIN_DECLS
 
-/* Forward decl to avoid hard dependency; actual type lives in editor headers. */
+/* forward decl to avoid hard dependency here */
 typedef struct _UmiEditor UmiEditor;
 
-/* Public app shell structure kept intentionally tiny. */
 typedef struct UmiApp {
-  GtkApplication *app;   /* owning GtkApplication                         */
-  GtkWindow      *win;   /* main window                                   */
-  GtkWidget      *root;  /* root container widget                         */
-  UmiEditor      *ed;    /* current editor instance (may be NULL)         */
+  GtkApplication *app;   /* owning application */
+  GtkWindow      *win;   /* main toplevel     */
+  GtkWidget      *root;  /* root container    */
+  UmiEditor      *ed;    /* editor instance   */
 } UmiApp;
 
-/* Create a new GtkApplication with our handlers wired. */
 GtkApplication *umi_app_new(void);
-
-/* Lookup the per-application UmiApp handle (or NULL if not created yet). */
-UmiApp    *umi_app_handle(GtkApplication *app);
-
-/* Convenience accessors. */
-GtkWindow *umi_app_window(UmiApp *ua);
-UmiEditor *umi_app_editor(UmiApp *ua);
+UmiApp         *umi_app_handle(GtkApplication *app);
+GtkWindow      *umi_app_window(UmiApp *ua);
+UmiEditor      *umi_app_editor(UmiApp *ua);
 
 G_END_DECLS
-
 #endif /* UMICOM_APP_H */
-/*--- end of file ---*/
