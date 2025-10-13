@@ -9,8 +9,9 @@
 #define UMICOM_BUILD_TASKS_H
 
 #include "build_system.h"
-#include "../../panes/output/include/output_pipeline.h"
-#include "../../panes/output/include/output_console.h"
+
+#include "umi_output_sink.h"
+
 
 typedef struct {
   UmiBuildSys *bs;

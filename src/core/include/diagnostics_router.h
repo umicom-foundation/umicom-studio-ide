@@ -7,9 +7,10 @@
 
 #ifndef UMICOM_DIAGNOSTICS_ROUTER_H
 #define UMICOM_DIAGNOSTICS_ROUTER_H
-
-#include "../../panes/problems/include/problem_list.h"
-#include "../../panes/output/include/output_pane.h"
+#include "umi_output_sink.h"
+#include "problem_list.h"
+#include "output_pane.h"
+#include "diagnostic_parsers.h"
 
 typedef struct {
   UmiProblemList *plist;

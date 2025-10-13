@@ -1,131 +1,142 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/fs/file_index.c
- * PURPOSE: Recursive file indexer
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ *
+ * PURPOSE:
+ *   Maintain a simple in-memory index of files under a root directory.
+ *   - Build the index from disk (recursive scan via fs_walk)
+ *   - Refresh it (clear + rescan)
+ *   - Free all resources
+ *
+ * NOTES:
+ *   - Matches the public API in src/util/fs/include/file_index.h exactly:
+ *       UmiFileIndex *umi_index_build(const char *root);
+ *       void          umi_index_refresh(UmiFileIndex *idx);
+ *       void          umi_index_free(UmiFileIndex *idx);
+ *   - Stores g_strdup'd, canonicalized (normalized) file paths in a GPtrArray.
+ *   - No GTK dependencies; pure GLib.
+ *
+ * THREADING:
+ *   - Synchronous; call off the GTK main loop if the tree is large.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
+#include "include/file_index.h"
+#include "include/fs_walk.h"
+#include <string.h>
 
-#include "file_index.h"           /* Public header for UmiFileIndex */
+/*---------------------------------------------------------------------------
+ * Private structure for the index. Kept internal to avoid ABI churn.
+ *-------------------------------------------------------------------------*/
+struct _UmiFileIndex {
+    char      *root;     /* Absolute, canonical root directory path      */
+    GPtrArray *files;    /* Owned array of g_strdup'd file paths         */
+};
 
-#include <glib/gstdio.h>                  /* g_file_test, etc. */
-#include <string.h>                       /* strcmp for sorting */
+/*---------------------------------------------------------------------------
+ * Helper: free all file strings and reset the array to empty.
+ *-------------------------------------------------------------------------*/
+static void
+clear_files(UmiFileIndex *idx)
+{
+    if (!idx || !idx->files) return;
+    /* GPtrArray does not have a clear-with-free; remove one by one to free. */
+    for (guint i = 0; i < idx->files->len; ++i) {
+        g_free(idx->files->pdata[i]);
+    }
+    g_ptr_array_set_size(idx->files, 0);
+}
 
-/* Internal: recursively walk 'dir' and append file paths to idx->files. */
-static void add_dir(UmiFileIndex *idx, const char *dir){
-  if(!idx || !dir)                                   /* Defensive: nothing to do without args. */
-    return;
+/*---------------------------------------------------------------------------
+ * Walker callback: collect only REGULAR FILES (not directories).
+ *-------------------------------------------------------------------------*/
+static void
+on_visit(const char *path, gboolean is_dir, gpointer user)
+{
+    UmiFileIndex *idx = (UmiFileIndex *)user;
+    if (!idx || !idx->files) return;
 
-  GDir *d = g_dir_open(dir, 0, NULL);                /* Try opening directory. */
-  if(!d)                                             /* If can't open (permission/ENOENT), stop. */
-    return;
+    if (is_dir) {
+        return;                                         /* ignore directories   */
+    }
+    /* Own a duplicate of the canonicalized path. */
+    g_ptr_array_add(idx->files, g_strdup(path));
+}
 
-  /* Collect entries to sort for deterministic order. */
-  GPtrArray *names = g_ptr_array_new_with_free_func(g_free); /* strdup'd names. */
-  const gchar *name;                                  /* Non-owned pointer per iteration. */
-  while((name = g_dir_read_name(d))){                 /* Iterate until NULL. */
-    if(name[0]=='.')                                  /* Skip hidden entries by policy. */
-      continue;
-    g_ptr_array_add(names, g_strdup(name));           /* Keep a copy for later sorting. */
-  }
-  g_dir_close(d);                                     /* Done reading directory. */
+/*---------------------------------------------------------------------------
+ * Stable sort: correctly-typed comparator (no casting warnings).
+ *-------------------------------------------------------------------------*/
+static gint
+cmp_paths(gconstpointer a, gconstpointer b, gpointer user_data)
+{
+    (void)user_data;
+    const char *sa = (const char *)a;
+    const char *sb = (const char *)b;
+    return g_strcmp0(sa, sb);
+}
 
-  g_ptr_array_sort_with_data(                         /* Stable order for reproducible builds/tests. */
-    names, (GCompareDataFunc)g_strcmp0, NULL);
+/*---------------------------------------------------------------------------
+ * Public: build a new index from 'root'.
+ *-------------------------------------------------------------------------*/
+UmiFileIndex *
+umi_index_build(const char *root)
+{
+    if (!root || !*root) return NULL;
 
-  /* Visit each entry (sorted). */
-  for(guint i=0;i<names->len;i++){
-    const char *n = (const char*)names->pdata[i];     /* Borrow current name. */
-    gchar *path = g_build_filename(dir, n, NULL);     /* Build full child path. */
+    UmiFileIndex *idx = g_new0(UmiFileIndex, 1);
+    idx->root  = g_canonicalize_filename(root, NULL);
+    idx->files = g_ptr_array_new_with_free_func(g_free);
 
-    gboolean is_dir = g_file_test(path, G_FILE_TEST_IS_DIR);        /* Check directory-ness. */
-    gboolean is_link = g_file_test(path, G_FILE_TEST_IS_SYMLINK);   /* Symlink guard. */
-
-    if(is_dir){
-      if(!is_link)                                    /* Avoid simple symlink loops into dirs. */
-        add_dir(idx, path);                           /* Recurse into subdir. */
-    }else{
-      /* Canonicalize files; store absolute-like path for consistency. */
-      gchar *canon = g_canonicalize_filename(path, idx->root); /* Root-anchored canonical path. */
-      g_ptr_array_add(idx->files, canon);             /* Takes ownership of 'canon'. */
+    /* Walk and collect; include_hidden = FALSE by default. */
+    if (!umi_fs_walk(idx->root, FALSE, on_visit, idx)) {
+        /* If walking fails, return a valid (empty) index so callers can still
+         * inspect 'root' and later attempt refresh().
+         */
     }
 
-    g_free(path);                                     /* Free child path string. */
-  }
-
-  g_ptr_array_free(names, TRUE);                      /* Free the list of names. */
+    /* Sort for deterministic iteration order. */
+    g_ptr_array_sort_with_data(idx->files, cmp_paths, NULL);
+    return idx;
 }
 
-/* Build a new file index from 'root'. */
-UmiFileIndex *umi_index_build(const char *root){
-  if(!root || !*root)                                  /* Require a root path. */
-    return NULL;
+/*---------------------------------------------------------------------------
+ * Public: refresh the existing index by clearing and re-walking.
+ *-------------------------------------------------------------------------*/
+void
+umi_index_refresh(UmiFileIndex *idx)
+{
+    if (!idx) return;
 
-  /* Allocate and initialize the index object. */
-  UmiFileIndex *idx = g_new0(UmiFileIndex, 1);         /* Zeroed struct allocation. */
-  idx->files = g_ptr_array_new_with_free_func(g_free); /* Each element is a g_strdup'd string. */
-  idx->root  = g_canonicalize_filename(root, NULL);    /* Canonical root for stable joins. */
-
-  if(!g_file_test(idx->root, G_FILE_TEST_IS_DIR)){     /* If root isn't a directory... */
-    /* If it's a file, index exactly that one. */
-    gchar *canon = g_canonicalize_filename(idx->root, NULL); /* Canonicalize file path. */
-    g_ptr_array_add(idx->files, canon);                /* Add the file to index. */
-    return idx;                                        /* Return single-file index. */
-  }
-
-  add_dir(idx, idx->root);                             /* Recursively collect files. */
-
-  /* Sort final list lexicographically for stability (in case recursion order drifted). */
-  g_ptr_array_sort_with_data(idx->files, (GCompareDataFunc)g_strcmp0, NULL);
-
-  return idx;                                          /* Return the built index. */
+    clear_files(idx);
+    (void)umi_fs_walk(idx->root, FALSE, on_visit, idx);
+    g_ptr_array_sort_with_data(idx->files, cmp_paths, NULL);
 }
 
-/* Clear and rebuild the file list for an existing index. */
-void umi_index_refresh(UmiFileIndex *idx){
-  if(!idx)                                             /* Safe on NULL. */
-    return;
+/*---------------------------------------------------------------------------
+ * Public: free the index and all owned data.
+ *-------------------------------------------------------------------------*/
+void
+umi_index_free(UmiFileIndex *idx)
+{
+    if (!idx) return;
 
-  /* Reset file list to empty (freeing all strings). */
-  for(guint i=0;i<idx->files->len;i++)                 /* Free any leftover elements (paranoia). */
-    g_free(idx->files->pdata[i]);
-  g_ptr_array_set_size(idx->files, 0);                 /* Logical length = 0; storage kept. */
-
-  /* Re-walk from stored root. */
-  if(!g_file_test(idx->root, G_FILE_TEST_IS_DIR)){     /* If root is a file... */
-    gchar *canon = g_canonicalize_filename(idx->root, NULL); /* Canonicalize and store. */
-    g_ptr_array_add(idx->files, canon);                /* Add the file. */
-    return;
-  }
-
-  add_dir(idx, idx->root);                             /* Otherwise, rescan the tree. */
-
-  /* Keep results sorted. */
-  g_ptr_array_sort_with_data(idx->files, (GCompareDataFunc)g_strcmp0, NULL);
+    clear_files(idx);
+    if (idx->files) g_ptr_array_free(idx->files, TRUE);
+    g_clear_pointer(&idx->root, g_free);
+    g_free(idx);
 }
 
-/* Correct-typed adapter that matches GCompareDataFunc signature for strings. */
-static gint cmp_cstrings(gconstpointer a, gconstpointer b, gpointer user_data) {
-    (void)user_data;                              // Unused.
-    const char *sa = a;                           // Input 'a' as C string.
-    const char *sb = b;                           // Input 'b' as C string.
-    return g_strcmp0(sa, sb);                     // Use GLib-safe strcmp.
-}
-/* Sort the indexed files lexicographically (in-place). */
-void umi_index_sort(UmiFileIndex *idx){
-  if(!idx || !idx->files)                             /* Safe on NULL. */
-    return; 
-  g_ptr_array_sort_with_data(                         /* Stable order for reproducible builds/tests. */
-    idx->files, cmp_cstrings, NULL);                  /* Use typed adapter for safety.
-}
-      
-
-/* Release all resources held by the index. */
-void umi_index_free(UmiFileIndex *idx){
-  if(!idx)                                             /* Allow free(NULL). */
-    return;
-  if(idx->files){                                      /* If list exists... */
-    g_ptr_array_free(idx->files, TRUE);                /* Free list and its strings. */
-  }
-  g_free(idx->root);                                   /* Free canonical root string. */
-  g_free(idx);                                         /* Free the struct itself. */
+/*---------------------------------------------------------------------------
+ * Public helper: expose a read-only view (non-owning) of the paths, for panels
+ * that want to render lists without copying.
+ *-------------------------------------------------------------------------*/
+const char * const *
+umi_index_files_real(const UmiFileIndex *idx, guint *out_len)
+{
+    if (!idx || !idx->files) {
+        if (out_len) *out_len = 0;
+        return NULL;
+    }
+    if (out_len) *out_len = idx->files->len;
+    return (const char * const *)idx->files->pdata;
 }

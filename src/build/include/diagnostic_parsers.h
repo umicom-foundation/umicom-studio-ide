@@ -9,7 +9,7 @@
 #define UMICOM_DIAGNOSTIC_PARSERS_H
 
 #include <glib.h>
-#include "../../panes/problems/include/problem_list.h"
+#include "umi_output_sink.h"
 
 typedef struct {
   gchar *file;

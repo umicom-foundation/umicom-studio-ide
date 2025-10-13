@@ -1,84 +1,150 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/fs/fs_walk.c
- * PURPOSE: Implementation of recursive walk using GDir
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
+ *
+ * PURPOSE:
+ *   Implementation of a deterministic, GLib-based recursive directory walker.
+ *   The walker is intentionally tiny and avoids heavy allocations:
+ *     - We use GDir to iterate entries.
+ *     - We normalize (canonicalize) paths once per visited node.
+ *     - We collect directory entries into a GPtrArray, sort them with a
+ *       correctly-typed comparator (no function-pointer casting), then iterate.
+ *
+ * WHY NOT GFileEnumerator?
+ *   - It is great, but for our use case GDir keeps dependencies minimal and
+ *     avoids async bookkeeping we do not need.
+ *
+ * WARNING CLEANUP:
+ *   - We DO NOT cast g_strcmp0 to GCompareDataFunc (which triggers -Wcast-function-type).
+ *     Instead, we provide a thin, correctly-typed adapter (see cmp_names()).
+ *
+ * THREADING:
+ *   - Synchronous; consider using a worker thread when scanning huge trees.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
+#include "include/fs_walk.h"
+#include <string.h>
 
-#include "fs_walk.h"               /* Public API */
+/*---------------------------------------------------------------------------
+ * Local, correctly-typed name comparator for GPtrArray sorting.
+ *  - 'a' and 'b' are char* elements from the array.
+ *  - Returns strcmp-like ordering using g_strcmp0.
+ *-------------------------------------------------------------------------*/
+static gint
+cmp_names(gconstpointer a, gconstpointer b, gpointer user_data)
+{
+    (void)user_data;                          /* comparator doesn't need it   */
+    const char *sa = (const char *)a;
+    const char *sb = (const char *)b;
+    return g_strcmp0(sa, sb);                 /* GLib-safe string compare     */
+}
 
-#include <string.h>                        /* strcmp (for optional sorting) */
+/*---------------------------------------------------------------------------
+ * Decide if an entry (leaf name) should be considered "hidden".
+ * On POSIX, entries starting with '.' are treated as hidden. On Windows we
+ * keep the same convention for consistency inside the IDE.
+ *-------------------------------------------------------------------------*/
+static gboolean
+is_hidden_name(const char *leaf)
+{
+    return (leaf && leaf[0] == '.');
+}
 
-/* Internal helper: optionally collect names to sort for stable output. */
-static void walk_dir(const char *root, gboolean include_hidden, UmiFsVisitCb cb, gpointer user){
-  if(!root || !cb)                        /* Validate inputs: root and callback are required. */
-    return;
+/*---------------------------------------------------------------------------
+ * Build an absolute, canonicalized path for 'parent' + 'leaf'.
+ * Uses g_build_filename + g_canonicalize_filename to ensure stable form.
+ *-------------------------------------------------------------------------*/
+static char *
+join_canonical(const char *parent, const char *leaf)
+{
+    char *p = g_build_filename(parent, leaf, NULL);    /* join with separator   */
+    char *c = g_canonicalize_filename(p, NULL);        /* canonicalize absolute */
+    g_free(p);
+    return c;                                          /* caller must g_free()  */
+}
 
-  GDir *d = g_dir_open(root, 0, NULL);    /* Try opening directory (NULL error for simplicity). */
-  if(!d)                                  /* If we failed (permissions/ENOENT), stop descending. */
-    return;
-
-  /* Read all names to allow stable sorting; avoids OS-dependent order variance. */
-  GPtrArray *names = g_ptr_array_new_with_free_func(g_free); /* Store strdup'd entry names. */
-  const gchar *name;                       /* Current directory entry pointer (non-owned). */
-  while((name = g_dir_read_name(d))){      /* Iterate until NULL (no more entries). */
-    if(!include_hidden && name[0]=='.')    /* Skip hidden names when requested. */
-      continue;
-    g_ptr_array_add(names, g_strdup(name));/* Take a copy for later processing. */
-  }
-  g_dir_close(d);                          /* Close the directory now that we buffered names. */
-
-  g_ptr_array_sort_with_data(              /* Stable order for predictable builds/tests. */
-    names,
-    (GCompareDataFunc)g_strcmp0,           /* Compare function for strings. */
-    NULL                                   /* No extra user data needed. */
-  );
-
-  /* Now visit each name (sorted). */
-  for(guint i=0;i<names->len;i++){         /* Loop through all collected names. */
-    const char *n = (const char*)names->pdata[i]; /* Borrowed pointer into array's element. */
-    gchar *path = g_build_filename(root, n, NULL);/* Build full path with platform separator. */
-    gboolean is_dir = g_file_test(path, G_FILE_TEST_IS_DIR); /* Cheap stat to see if it's a folder. */
-    cb(user, path, is_dir);                /* Notify caller about this entry. */
-    if(is_dir){                            /* If it's a directory... */
-      /* Basic symlink loop avoidance: skip if it's a symlink to a dir (don’t recurse). */
-      if(!g_file_test(path, G_FILE_TEST_IS_SYMLINK))
-        walk_dir(path, include_hidden, cb, user); /* Recurse into subdir. */
+/*---------------------------------------------------------------------------
+ * Core recursive walker.
+ *  - Gathers entries, sorts deterministically, visits (dir first to match many
+ *    tools' expectations), then dives into subdirectories.
+ *-------------------------------------------------------------------------*/
+static void
+walk_dir(const char *root, gboolean include_hidden, UmiFsVisitCb cb, gpointer user)
+{
+    /* Open the directory; bail if not readable. */
+    GError *err = NULL;
+    GDir   *dir = g_dir_open(root, 0, &err);
+    if (!dir) {
+        if (err) g_error_free(err);
+        return;
     }
-    g_free(path);                          /* Free the path we constructed. */
-  }
 
-  g_ptr_array_free(names, TRUE);           /* Free array + contained strdup'd names. */
+    /* Collect child names first for deterministic ordering. */
+    GPtrArray *names = g_ptr_array_new_with_free_func(g_free);
+    for (const char *name = g_dir_read_name(dir); name; name = g_dir_read_name(dir)) {
+        if (!include_hidden && is_hidden_name(name)) {
+            continue;                                    /* skip hidden entries  */
+        }
+        g_ptr_array_add(names, g_strdup(name));          /* own the copied name  */
+    }
+    g_dir_close(dir);
+
+    /* Sort using our correctly-typed comparator (no casting). */
+    g_ptr_array_sort_with_data(names, cmp_names, NULL);
+
+    /* First pass: visit directories (so parents precede children). */
+    for (guint i = 0; i < names->len; ++i) {
+        const char *leaf = (const char *)names->pdata[i];
+        char *full = join_canonical(root, leaf);
+        if (g_file_test(full, G_FILE_TEST_IS_DIR)) {
+            if (cb) cb(full, TRUE, user);                /* notify: directory    */
+        }
+        g_free(full);
+    }
+
+    /* Second pass: visit files, then recurse into directories. */
+    for (guint i = 0; i < names->len; ++i) {
+        const char *leaf = (const char *)names->pdata[i];
+        char *full = join_canonical(root, leaf);
+        if (g_file_test(full, G_FILE_TEST_IS_DIR)) {
+            /* Recurse after parent dir was announced in the first pass. */
+            walk_dir(full, include_hidden, cb, user);
+        } else {
+            if (cb) cb(full, FALSE, user);               /* notify: regular file */
+        }
+        g_free(full);
+    }
+
+    g_ptr_array_free(names, TRUE);                       /* free names + strings */
 }
 
-/* Public entry point. */
-void umi_fs_walk(const char *root, gboolean include_hidden, UmiFsVisitCb cb, gpointer user){
-  if(!root || !cb)                         /* Nothing useful to do if inputs are missing. */
-    return;
+/*---------------------------------------------------------------------------
+ * Public entry: umi_fs_walk()
+ *  - Validates root, normalizes it, announces the root directory itself, then
+ *    walks its content recursively.
+ *-------------------------------------------------------------------------*/
+gboolean
+umi_fs_walk(const char *root, gboolean include_hidden,
+            UmiFsVisitCb cb, gpointer user)
+{
+    if (!root || !*root) {
+        return FALSE;                                    /* invalid argument     */
+    }
 
-  if(!g_file_test(root, G_FILE_TEST_IS_DIR)){ /* If root is not a dir... */
-    cb(user, root, FALSE);                 /* ...treat it as a single file visit. */
-    return;
-  }
+    /* Normalize to an absolute, canonical path. */
+    char *canon = g_canonicalize_filename(root, NULL);
+    if (!g_file_test(canon, G_FILE_TEST_IS_DIR)) {
+        g_free(canon);
+        return FALSE;                                    /* missing/unreadable   */
+    }
 
-  walk_dir(root, include_hidden, cb, user); /* Otherwise, descend recursively. */
-}
+    /* Announce root dir to the callback for symmetry. */
+    if (cb) cb(canon, TRUE, user);
 
-/* Correct-typed adapter that matches GCompareDataFunc signature for strings. */
-static gint cmp_cstrings(gconstpointer a, gconstpointer b, gpointer user_data) {
-    (void)user_data;                              // Unused.
-    const char *sa = a;                           // Input 'a' as C string.
-    const char *sb = b;                           // Input 'b' as C string.
-    return g_strcmp0(sa, sb);                     // Use GLib-safe strcmp.
+    /* Recurse into children. */
+    walk_dir(canon, include_hidden, cb, user);
+
+    g_free(canon);
+    return TRUE;
 }
-/* Sort a list of paths lexicographically (in-place). */
-void umi_fs_sort_paths(GPtrArray *arr){
-  if(!arr)                                   /* Safe on NULL. */
-    return;
-  g_ptr_array_sort_with_data(                /* Stable order for reproducible builds/tests. */
-    arr,
-    (GCompareDataFunc)cmp_cstrings,          /* Compare function for strings. */
-    NULL                                     /* No extra user data needed. */
-  );
-}
-/* End of src/util/fs/fs_walk.c */

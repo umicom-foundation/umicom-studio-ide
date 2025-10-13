@@ -10,9 +10,10 @@
 
 #include <gtk/gtk.h>
 #include "workspace.h"
-#include "../../util/fs/include/file_index.h"
+#include "file_index.h"
+#include "status.h"
 #include "recent_files.h"
-#include "../../util/log/include/status_util.h"
+#include "umi_output_sink.h"
 
 /* The Project Manager is a tiny facade that collects common actions a contributor
  * needs when first opening Umicom Studio. The comments below explain *every* member:

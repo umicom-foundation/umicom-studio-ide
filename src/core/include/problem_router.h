@@ -7,9 +7,7 @@
 
 #ifndef UMICOM_PROBLEM_ROUTER_H
 #define UMICOM_PROBLEM_ROUTER_H
-
-#include "../../panes/problems/include/problem_list.h"
-#include "../../panes/output/include/output_pane.h"
+#include "umi_output_sink.h"
 
 typedef struct {
   UmiProblemList *plist;
