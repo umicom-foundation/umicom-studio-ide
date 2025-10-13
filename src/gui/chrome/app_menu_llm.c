@@ -3,12 +3,13 @@
  * File: src/gui/chrome/app_menu_llm.c
  *
  * PURPOSE:
- *   Lightweight LLM menu strip for the main window (pure C, no Builder XML).
+ *   Lightweight LLM menu strip for the main window (pure C, no CSS).
  *
  * DESIGN:
  *   - Header by name only (no deep paths).
- *   - Uses a tiny heap holder to store the Save callback safely (no func↔ptr casts).
+ *   - Uses a tiny heap holder to store the Save callback safely.
  *   - Optional LLM Lab module via weak symbol; if missing, we show a fallback.
+ *   - No CSS classes; spacing done via GtkBox spacing + margins.
  *
  * SECURITY/ROBUSTNESS:
  *   - All pointers guarded; no unbounded string ops.
@@ -25,11 +26,9 @@
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((weak)) GtkWidget *umi_llm_lab_new(void);
 #else
-/* If weak isn't supported, we will attempt to call directly and rely on link-time presence. */
-GtkWidget *umi_llm_lab_new(void); /* may be unresolved if not linked */
+GtkWidget *umi_llm_lab_new(void);
 #endif
 
-/* Callback holder (stored on the container object). */
 typedef void (*UmiSimpleActionFn)(gpointer user);
 typedef struct { UmiSimpleActionFn cb; gpointer user; } ActionHolder;
 
@@ -41,9 +40,9 @@ static void on_click_llm_lab(GtkButton *btn, gpointer user_data)
 
     GtkWidget *lab = NULL;
 #if defined(__GNUC__) || defined(__clang__)
-    if (umi_llm_lab_new) lab = umi_llm_lab_new();  /* only if symbol is linked */
+    if (umi_llm_lab_new) lab = umi_llm_lab_new();
 #else
-    lab = umi_llm_lab_new(); /* may or may not resolve depending on your link */
+    lab = umi_llm_lab_new();
 #endif
     if (!lab) lab = gtk_label_new("LLM Lab module not linked");
 
@@ -56,7 +55,7 @@ static void on_click_llm_lab(GtkButton *btn, gpointer user_data)
     if (parent) gtk_window_set_transient_for(GTK_WINDOW(win), parent);
     gtk_window_set_modal(GTK_WINDOW(win), FALSE);
     gtk_window_set_child(GTK_WINDOW(win), lab);
-    gtk_window_present(GTK_WINDOW(win));  /* GTK4 */
+    gtk_window_present(GTK_WINDOW(win));
 }
 
 static void on_click_save(GtkButton *btn, gpointer user_data)
@@ -69,8 +68,12 @@ static void on_click_save(GtkButton *btn, gpointer user_data)
 
 GtkWidget *umi_app_menu_llm_new(UmiSimpleAction on_save, gpointer user)
 {
-    GtkWidget *bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-    gtk_widget_add_css_class(bar, "toolbar");
+    /* Horizontal bar with spacing and margins (no CSS). */
+    GtkWidget *bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+    gtk_widget_set_margin_top   (bar, 6);
+    gtk_widget_set_margin_bottom(bar, 6);
+    gtk_widget_set_margin_start (bar, 6);
+    gtk_widget_set_margin_end   (bar, 6);
 
     GtkWidget *btn_lab = gtk_button_new_with_label("LLM Lab");
     g_signal_connect(btn_lab, "clicked", G_CALLBACK(on_click_llm_lab), NULL);
@@ -90,4 +93,10 @@ GtkWidget *umi_app_menu_llm_new(UmiSimpleAction on_save, gpointer user)
 
     g_signal_connect(btn_save, "clicked", G_CALLBACK(on_click_save), bar);
     return bar;
+}
+
+void umi_app_menu_llm_free(GtkWidget *w)
+{
+    if (!w) return;
+    gtk_widget_destroy(w);
 }

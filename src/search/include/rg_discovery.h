@@ -4,9 +4,12 @@
  * PURPOSE: Discover ripgrep binary and capture its version
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
-#pragma once
+#ifndef UMICOM_RG_DISCOVERY_H
+#define UMICOM_RG_DISCOVERY_H
 
 #include <glib.h>
+
+G_BEGIN_DECLS
 
 /*-----------------------------------------------------------------------------
  * UmiRgProbe:
@@ -19,17 +22,12 @@ typedef struct UmiRgProbe {
   gchar *version;  /* g_malloc'd string; caller must g_free(). */
 } UmiRgProbe;
 
-/*-----------------------------------------------------------------------------
- * umi_rg_discover:
- *   Try to locate a usable ripgrep (rg) executable in PATH.
- *   Returns: newly-allocated UmiRgProbe on success, or NULL if not found.
- *   Ownership: caller owns the returned struct and must call umi_rg_probe_free().
- *---------------------------------------------------------------------------*/
+/* Try to locate a usable ripgrep (rg) executable in PATH.
+ * Returns: newly-allocated UmiRgProbe on success, or NULL if not found. */
 UmiRgProbe *umi_rg_discover(void);
 
-/*-----------------------------------------------------------------------------
- * umi_rg_probe_free:
- *   Frees a UmiRgProbe produced by umi_rg_discover(). Safe with NULL.
- *---------------------------------------------------------------------------*/
+/* Frees a UmiRgProbe produced by umi_rg_discover(). Safe with NULL. */
 void umi_rg_probe_free(UmiRgProbe *p);
-/*---------------------------------------------------------------------------*/
+
+G_END_DECLS
+#endif /* UMICOM_RG_DISCOVERY_H */

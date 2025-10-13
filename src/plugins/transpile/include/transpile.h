@@ -12,7 +12,6 @@
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-01
  * License: MIT
  *---------------------------------------------------------------------------*/
-
 #ifndef UMI_TRANSPILE_H
 #define UMI_TRANSPILE_H
 
@@ -21,10 +20,8 @@
 
 G_BEGIN_DECLS
 
-/* Simple demo that translates a fixed sample and logs/statuses the result. */
 void umi_transpile_demo(void);
 
 G_END_DECLS
-
 #endif /* UMI_TRANSPILE_H */
 /*--- end of file ---*/

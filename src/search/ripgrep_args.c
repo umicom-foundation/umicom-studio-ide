@@ -1,42 +1,49 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/search/ripgrep_args.c
- * PURPOSE: Build argv lists for invoking ripgrep
+ * File: src/search/search_panel.c
+ * PURPOSE: Minimal Search Panel wiring (placeholder for full UI)
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
+#include <gtk/gtk.h>
 #include <glib.h>
-#include <string.h>
-#include "ripgrep_args.h"
+#include "search_panel.h"
 
 /*---------------------------------------------------------------------------
- * umi_rg_args_make_simple:
- *   Construct:  [ "rg", "--hidden", "--line-number", "--vimgrep",
- *                 pattern, path, NULL ]
- *   This is a beginner-friendly preset that searches hidden files and
- *   produces vimgrep-compatible output (<file>:<line>:<col>:<match>).
+ * on_clicked:
+ *   Temporary stub callback used during early UI wiring. Marked G_GNUC_UNUSED
+ *   to avoid -Wunused-function warnings until connected in the .ui file.
  *---------------------------------------------------------------------------*/
-char **umi_rg_args_make_simple(const char *pattern, const char *path) {
-  g_return_val_if_fail(pattern != NULL, NULL);
-  g_return_val_if_fail(path    != NULL, NULL);
-
-  char **argvv = g_new0(char*, 7);
-  argvv[0] = g_strdup("rg");
-  argvv[1] = g_strdup("--hidden");
-  argvv[2] = g_strdup("--line-number");
-  argvv[3] = g_strdup("--vimgrep");
-  argvv[4] = g_strdup(pattern);
-  argvv[5] = g_strdup(path);
-  argvv[6] = NULL;
-  return argvv;
+static void on_clicked(void) G_GNUC_UNUSED;
+static void on_clicked(void) {
+  g_message("SearchPanel: click handler stub");
 }
 
 /*---------------------------------------------------------------------------
- * umi_rg_args_free:
- *   Release argv array allocated by umi_rg_args_make_simple().
+ * umi_search_panel_new:
+ *   Create a trivial panel instance that wraps a plain GtkBox for now.
  *---------------------------------------------------------------------------*/
-void umi_rg_args_free(char **argvv) {
-  if (!argvv) return;
-  for (guint i = 0; argvv[i]; ++i) g_free(argvv[i]);
-  g_free(argvv);
+UmiSearchPanel *umi_search_panel_new(void) {
+  UmiSearchPanel *sp = g_new0(UmiSearchPanel, 1);
+  sp->widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+  return sp;
+}
+
+/*---------------------------------------------------------------------------
+ * umi_search_panel_widget:
+ *   Accessor for the root widget of the panel.
+ *---------------------------------------------------------------------------*/
+GtkWidget *umi_search_panel_widget(UmiSearchPanel *sp) {
+  g_return_val_if_fail(sp != NULL, NULL);
+  return sp->widget;
+}
+
+/*---------------------------------------------------------------------------
+ * umi_search_panel_run_example:
+ *   Placeholder demonstrating how the panel might kick off a search.
+ *   Currently just logs to the console to prove basic wiring works.
+ *---------------------------------------------------------------------------*/
+void umi_search_panel_run_example(UmiSearchPanel *sp) {
+  g_return_if_fail(sp != NULL);
+  g_message("SearchPanel: run_example() called (stub)");
 }
 /*---------------------------------------------------------------------------*/

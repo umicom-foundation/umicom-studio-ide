@@ -1,9 +1,10 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/gui/app/app.h
+ * File: src/gui/app/include/app.h
  *
  * PURPOSE:
  *   Public app shell types and accessors for the top-level GTK application.
+ *   Pure C, no CSS dependencies anywhere.
  *
  * API:
  *   GtkApplication *umi_app_new(void);
@@ -24,6 +25,7 @@ G_BEGIN_DECLS
 /* forward decl to avoid hard dependency here */
 typedef struct _UmiEditor UmiEditor;
 
+/* Light app handle shared across the shell (lifetime: whole app). */
 typedef struct UmiApp {
   GtkApplication *app;   /* owning application */
   GtkWindow      *win;   /* main toplevel     */

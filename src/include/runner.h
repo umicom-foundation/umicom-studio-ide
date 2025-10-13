@@ -46,104 +46,36 @@
  * Date: 2025-10-12 | License: MIT
  *---------------------------------------------------------------------------*/
 
-#pragma once                      /* Ensure this header is included only once.  */
+#pragma once
 
-#include <glib.h>                 /* Import GLib core types (gboolean, GError). */
+#include <glib.h>
 
-/*-----------------------------------------------------------------------------
- * Forward declaration:
- *   UmiRunner is intentionally opaque. Callers hold only a pointer to it and
- *   interact exclusively via the functions below. Implementation details are
- *   private to the module that defines them (e.g., src/build/*).
- *---------------------------------------------------------------------------*/
+G_BEGIN_DECLS
+
 typedef struct UmiRunner UmiRunner;  /* Opaque handle; fields are hidden.      */
 
-/*-----------------------------------------------------------------------------
- * Exit callback type:
- *   Invoked exactly once when the child process exits (normally or abnormally).
- *
- * PARAMETERS:
- *   user_data  - the same pointer you passed to umi_runner_run().
- *   exit_code  - the process exit status as an integer (platform-normalized).
- *---------------------------------------------------------------------------*/
-typedef void (*UmiRunnerExitCb)(gpointer user_data, int exit_code);  /* cb type */
+/* Exit callback: invoked once when the child exits. */
+typedef void (*UmiRunnerExitCb)(gpointer user_data, int exit_code);
 
-/*-----------------------------------------------------------------------------
- * umi_runner_new
- *
- * PURPOSE:
- *   Allocate and initialize a new runner handle. The handle encapsulates any
- *   state (thread pools, IO hooks, etc.) that the implementation needs.
- *
- * RETURNS:
- *   UmiRunner*  - a valid runner handle on success; NULL only on fatal setup
- *                 failure (rare).
- *---------------------------------------------------------------------------*/
-UmiRunner *umi_runner_new(void);                             /* constructor     */
+/* Constructor */
+UmiRunner *umi_runner_new(void);
 
-/*-----------------------------------------------------------------------------
- * umi_runner_run
- *
- * PURPOSE:
- *   Spawn a new child process using argv/envp/cwd. This call is non-blocking
- *   (it returns after the process is launched). When the child exits, the
- *   optional 'on_exit' callback is invoked.
- *
- * PARAMETERS:
- *   r         - (in) runner handle created by umi_runner_new(); must be non-NULL.
- *   argv      - (in) NULL-terminated vector of program/args (argv[0] = program).
- *   envp      - (in) NULL-terminated environment vector (key=value strings),
- *               or NULL to inherit the parent process environment.
- *   cwd       - (in) working directory for the child, or NULL to inherit.
- *   on_exit   - (in) optional callback invoked when the process terminates;
- *               pass NULL if you don’t need a notification.
- *   user_data - (in) opaque pointer passed through to 'on_exit' unchanged.
- *   error     - (out) GLib error (set on failure); may be NULL if you don’t
- *               need error details.
- *
- * RETURNS:
- *   TRUE  - the process was successfully spawned.
- *   FALSE - spawning failed; if 'error' is non-NULL it contains details.
- *
- * NOTES:
- *   - The runner does NOT take ownership of argv/envp; you remain responsible
- *     for freeing them when appropriate.
- *   - The implementation must not modify argv/envp contents.
- *---------------------------------------------------------------------------*/
+/* Spawn a child process (non-blocking). Returns TRUE on spawn success. */
 gboolean umi_runner_run(
-  UmiRunner           *r,          /* runner handle (required)                  */
-  char * const        *argv,       /* program + args (NULL-terminated)          */
-  char * const        *envp,       /* environment (NULL => inherit)             */
-  const char          *cwd,        /* working directory (NULL => inherit)       */
-  UmiRunnerExitCb      on_exit,    /* optional exit callback                     */
-  gpointer             user_data,  /* opaque pointer passed to callback          */
-  GError             **error       /* error out (may be NULL)                    */
-);                                  /* returns TRUE on spawn success             */
+  UmiRunner           *r,
+  char * const        *argv,
+  char * const        *envp,
+  const char          *cwd,
+  UmiRunnerExitCb      on_exit,
+  gpointer             user_data,
+  GError             **error
+);
 
-/*-----------------------------------------------------------------------------
- * umi_runner_stop
- *
- * PURPOSE:
- *   Request a graceful stop for the currently running child process (if any).
- *   The exact semantics are implementation-defined (e.g., send SIGTERM on
- *   POSIX / terminate process on Windows, cancel IO, etc.), but the goal is
- *   to end the child cleanly.
- *
- * PARAMETERS:
- *   r - (in) runner handle; NULL is tolerated as a no-op.
- *---------------------------------------------------------------------------*/
-void umi_runner_stop(UmiRunner *r);        /* polite termination request         */
+/* Request polite termination of the running child (if any). */
+void umi_runner_stop(UmiRunner *r);
 
-/*-----------------------------------------------------------------------------
- * umi_runner_free
- *
- * PURPOSE:
- *   Destroy the runner handle and release all associated resources. If a child
- *   is still running, the implementation should attempt to stop it first or
- *   document its behavior (best effort graceful shutdown).
- *
- * PARAMETERS:
- *   r - (in) runner handle to destroy; NULL is allowed (no-op).
- *---------------------------------------------------------------------------*/
-void umi_runner_free(UmiRunner *r);        /* destructor                          */
-/*--- end of file ---*/
+/* Destructor */
+void umi_runner_free(UmiRunner *r);
+
+G_ENDDECLS /* (typo guard) */
+G_END_DECLS

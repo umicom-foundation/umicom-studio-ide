@@ -5,11 +5,15 @@
  * PURPOSE:
  *   Application-level action callbacks for menus & keymap. This module keeps
  *   cross-module coupling *very* low by using weak references for optional
- *   features (editor, run pipeline).
+ *   features (editor, run pipeline). Pure C, no CSS, no UI dependencies here.
  *
  * SECURITY/ROBUSTNESS:
  *   - No unbounded string formatting.
  *   - All pointers are checked before use.
+ *   - Weak symbols let this compile even when optional modules are missing.
+ *
+ * API:
+ *   void umi_app_fill_keymap(GtkApplication *app, UmiKeymapCallbacks *out);
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
@@ -19,7 +23,8 @@
 #include "app_actions.h"  /* our declaration (includes keymap.h) */
 #include "app.h"          /* UmiApp struct & accessors           */
 
-/* Optional cross-module features via weak symbols (portable guards) */
+/* Optional cross-module features via weak symbols (portable guards).       */
+/* GNU/Clang: use weak references; MSVC: fall back to NULL function ptrs.   */
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((weak)) gboolean umi_editor_save   (struct _UmiEditor *ed, GError **err);
 __attribute__((weak)) gboolean umi_editor_save_as(struct _UmiEditor *ed, GError **err);
@@ -32,13 +37,13 @@ gboolean (*umi_run_pipeline_start)(gpointer,gpointer,GError**) = NULL;
 void     (*umi_run_pipeline_stop)(void) = NULL;
 #endif
 
-/* Small helper to log a line (kept UI-agnostic) */
+/* Small helper to log a line (kept UI-agnostic). */
 static inline void log_info(const char *msg)
 {
   if (msg && *msg) g_message("%s", msg);
 }
 
-/* Actions ------------------------------------------------------------------*/
+/* Run/Stop ------------------------------------------------------------------*/
 
 static void action_run(gpointer user)
 {
@@ -65,6 +70,8 @@ static void action_stop(gpointer user)
     log_info("Stop not available (runner not linked)");
   }
 }
+
+/* Save / Save As ------------------------------------------------------------*/
 
 static void action_save(gpointer user)
 {
@@ -106,6 +113,7 @@ static void action_save_as(gpointer user)
   }
 }
 
+/* Placeholders to keep keymap complete (safe no-ops). */
 static void action_palette(gpointer user)      { (void)user; log_info("Palette (not implemented yet)"); }
 static void action_focus_search(gpointer user) { (void)user; log_info("Focus search (not implemented yet)"); }
 

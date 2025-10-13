@@ -14,7 +14,8 @@
  *---------------------------------------------------------------------------*/
 
 #include "i18n_translate.h"
-#include <string.h>   /* strlen */
+#include <stdarg.h>  /* <-- needed for va_list in set_err */
+#include <string.h>  /* strlen (defensive; not strictly required) */
 
 /* Small helper: safe snprintf into errbuf. */
 static void
@@ -50,13 +51,10 @@ umi_translate_text(const char *input_text,
       (src_lang && *src_lang) ? src_lang : "auto-detected language",
       dst_lang);
 
-  /* Output (returned via **out_text) per llm.h contract. */
-  char *out_text = NULL;
+  char *out_text = NULL; /* allocated by backend; caller g_free()s */
 
-  /* Scratch error buffer for the LLM call (separate from our public errbuf). */
   char call_err[512] = {0};
 
-  /* Call the simple chat entry-point. */
   const gboolean ok = umi_llm_chat_simple(cfg,
                                           system_prompt,           /* system role */
                                           input_text,              /* user text   */
@@ -67,7 +65,6 @@ umi_translate_text(const char *input_text,
     return NULL;
   }
 
-  /* Take ownership: we return g_malloc memory compatible with g_free. */
   return out_text;
 }
 /*--- end of file ---*/

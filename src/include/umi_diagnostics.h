@@ -1,57 +1,93 @@
 /*-----------------------------------------------------------------------------
- * Umicom Studio IDE
+ * Umicom Studio IDE : OpenSource IDE for developers and Content Creators
+ * Repository: https://github.com/umicom-foundation/umicom-studio-ide
  * File: src/include/umi_diagnostics.h
  *
  * PURPOSE:
- *   Provide a single, canonical definition of diagnostics severity used
- *   throughout Umicom Studio IDE (build system, problems pane, console sink).
+ *   Canonical, project-wide definitions for build/runtime diagnostics
+ *   (severity enum + UmiDiag record). Every module that emits or consumes
+ *   diagnostics must use these types to stay ABI- and API-consistent.
  *
- * WHY THIS EXISTS:
- *   Historically, multiple modules (e.g. problems list and output sink) each
- *   declared their own UmiDiagSeverity, sometimes with different *ordering*.
- *   That caused ODR-like conflicts and subtle sorting discrepancies.
- *   This header centralizes the enum to prevent redefinitions and guarantees
- *   consistent mapping between tooling (ninja/msvc/gcc) and our UI layers.
+ * DESIGN:
+ *   - This is the **single source of truth** for UmiDiagSeverity.
+ *   - Lightweight, UI-agnostic, no GTK dependency — only GLib basics.
+ *   - Safe defaults: all pointers may be NULL; numbers are size_t.
  *
- * USAGE:
- *   - Include this header anywhere you need the severity type or names.
- *   - Do NOT redeclare UmiDiagSeverity locally anywhere else.
- *   - If you previously declared the enum in a module header, remove it and
- *     include this file instead.
+ * API:
+ *   typedef enum UmiDiagSeverity { ... } UmiDiagSeverity;
+ *   typedef struct UmiDiag { ... } UmiDiag;
  *
- * THREADING:
- *   - None — it is a pure type definition.
+ *   // Convenience helpers (header-only, inline):
+ *   static inline const char *umi_diag_severity_name(UmiDiagSeverity s);
+ *   static inline void        umi_diag_clear(UmiDiag *d);
  *
- * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
+ * INTEGRATION NOTES:
+ *   - UI consumers (Problems pane, output consoles) include this header
+ *     *directly*, and must NOT redeclare the enum or record.
+ *   - Sinks/routers that forward diagnostics should depend only on this file.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-#ifndef UMI_DIAGNOSTICS_H
-#define UMI_DIAGNOSTICS_H
+#ifndef UMICOM_USIDE_UMI_DIAGNOSTICS_H
+#define UMICOM_USIDE_UMI_DIAGNOSTICS_H
 
-/*---------------------------------------------------------------------------
- * Minimal dependency: GLib for gboolean where helpful in signatures that
- * might consume this header.  (Safe and ubiquitous in our codebase.)
- *---------------------------------------------------------------------------*/
-#include <glib.h>
+#include <glib.h>   /* size_t, gboolean */
 
-/*---------------------------------------------------------------------------
- * Canonical diagnostics severity (stable order)
- *
- * NOTE:
- *   The ordinal values are part of the "contract" used by various sort and
- *   filter routines across the app.  Keep NOTE < WARNING < ERROR.
- *---------------------------------------------------------------------------*/
-typedef enum UmiDiagSeverity_ {
-    UMI_DIAG_NOTE    = 0,   /* Lowest severity: general note/info            */
-    UMI_DIAG_WARNING = 1,   /* Medium severity: potential issues              */
-    UMI_DIAG_ERROR   = 2    /* Highest severity: build failed or hard error   */
+/*----------------------------------------------------------------------------
+ * UmiDiagSeverity:
+ *   Ordered from highest to lowest priority. The integer values are stable
+ *   and may be persisted in logs or IPC, so do not change their numeric
+ *   assignments without a migration plan.
+ *--------------------------------------------------------------------------*/
+typedef enum UmiDiagSeverity {
+    UMI_DIAG_ERROR   = 0,  /* Highest priority: build-breaking / critical        */
+    UMI_DIAG_WARNING = 1,  /* Medium priority: suspicious but not fatal          */
+    UMI_DIAG_NOTE    = 2   /* Lowest priority: info, notes, hints                */
 } UmiDiagSeverity;
 
-/*---------------------------------------------------------------------------
- * Helpers for readability — tiny inline predicates are header-only so they
- * impose no linkage/ABI burden and keep callsites tidy.
- *---------------------------------------------------------------------------*/
-static inline gboolean umi_diag_is_error   (UmiDiagSeverity s){ return s == UMI_DIAG_ERROR; }
-static inline gboolean umi_diag_is_warning (UmiDiagSeverity s){ return s == UMI_DIAG_WARNING; }
-static inline gboolean umi_diag_is_note    (UmiDiagSeverity s){ return s == UMI_DIAG_NOTE; }
+/*----------------------------------------------------------------------------
+ * UmiDiag:
+ *   A single diagnostic event. All fields are optional; consumers must guard
+ *   NULL strings and treat (line,column)==0 as "unknown".
+ *
+ *   file    : path of the file related to the diag (UTF-8; may be NULL/"")
+ *   line    : 1-based line number, or 0 if unknown
+ *   column  : 1-based column number, or 0 if unknown
+ *   severity: one of UMI_DIAG_{ERROR,WARNING,NOTE}
+ *   message : human-readable explanation (UTF-8; may be NULL/"")
+ *--------------------------------------------------------------------------*/
+typedef struct UmiDiag {
+    const char      *file;      /* not owned; producer retains ownership       */
+    size_t           line;      /* 0 when unknown                             */
+    size_t           column;    /* 0 when unknown                             */
+    UmiDiagSeverity  severity;  /* enum above                                 */
+    const char      *message;   /* not owned; may be NULL                     */
+} UmiDiag;
 
-#endif /* UMI_DIAGNOSTICS_H */
+/*----------------------------------------------------------------------------
+ * Helpers (inline, header-only)
+ *--------------------------------------------------------------------------*/
+
+/* Convert severity to a short, user-friendly string. Never returns NULL. */
+static inline const char *umi_diag_severity_name(UmiDiagSeverity s)
+{
+    switch (s) {
+        case UMI_DIAG_ERROR:   return "error";
+        case UMI_DIAG_WARNING: return "warning";
+        case UMI_DIAG_NOTE:    return "note";
+        default:               return "note";
+    }
+}
+
+/* Reset a diag to safe "empty" defaults. */
+static inline void umi_diag_clear(UmiDiag *d)
+{
+    if (!d) return;
+    d->file = NULL;
+    d->line = 0u;
+    d->column = 0u;
+    d->severity = UMI_DIAG_NOTE;
+    d->message = NULL;
+}
+
+#endif /* UMICOM_USIDE_UMI_DIAGNOSTICS_H */

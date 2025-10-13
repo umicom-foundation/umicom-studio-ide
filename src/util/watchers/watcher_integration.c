@@ -1,57 +1,47 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/watchers/watcher_integration.c
+ *
  * PURPOSE:
- *   Implementation of the integration layer that connects recursive file
- *   watchers to our UI’s FileTree and (optionally) Workspace state.
+ *   Integration layer: owns a recursive watcher and routes its callback to
+ *   refresh UI components (FileTree), optionally touching Workspace state.
  *
  * DESIGN:
- *   - Own a UmiWatcherRec and route its callback to refresh the FileTree.
- *   - No heavy logic here; it’s a “glue” module by design.
+ *   - Very thin by design; keep work minimal in callback.
+ *   - Future: debounce/throttle refresh via g_timeout_add if needed.
  *
- * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-01
- * License: MIT
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-#include "watcher_integration.h"
 
+#include "watcher_integration.h"
 #include <gio/gio.h>
 #include <glib.h>
 
-/* These are intentionally forward-declared in the header to keep includes light. */
+/* Forward declare UI refresh to avoid heavy includes. */
+void umi_file_tree_refresh(struct _FileTree *tree);
+
 struct _UmiWatcherIntegration {
-    FileTree       *tree;   /* Borrowed; not owned */
-    WorkspaceState *ws;     /* Borrowed; optional; not used here yet */
-    UmiWatcherRec  *rec;    /* Owned; created on first add */
+    FileTree       *tree;   /* borrowed */
+    WorkspaceState *ws;     /* borrowed (unused for now) */
+    UmiWatcherRec  *rec;    /* owned */
 };
 
-/* External function from the FileTree module. We declare here to avoid heavy
- * includes. This matches your existing symbol used in other code paths. */
-void umi_file_tree_refresh(FileTree *tree);
-
-/*-----------------------------------------------------------------------------
- * Callback from the recursive watcher
- *---------------------------------------------------------------------------*/
 static void on_evt(gpointer u, const char *path)
 {
-    (void)path; /* For now we refresh everything; future: selective updates */
-
+    (void)path; /* refresh whole tree; future: selective refresh */
     UmiWatcherIntegration *g = (UmiWatcherIntegration*)u;
     if (!g || !g->tree) return;
 
-    /* Keep it small & safe: schedule a refresh; if you require marshaling
-     * into the GTK main context, do it here with g_idle_add_full(). */
+    /* If you must marshal to GTK main thread explicitly, use g_idle_add(). */
     umi_file_tree_refresh(g->tree);
 }
 
-/*-----------------------------------------------------------------------------
- * Public API
- *---------------------------------------------------------------------------*/
 UmiWatcherIntegration *umi_watch_integ_new(FileTree *tree, WorkspaceState *ws)
 {
     UmiWatcherIntegration *wi = g_new0(UmiWatcherIntegration, 1);
     wi->tree = tree;
     wi->ws   = ws;
-    wi->rec  = NULL; /* lazy creation on first add */
+    wi->rec  = NULL;
     return wi;
 }
 
@@ -59,32 +49,19 @@ gboolean umi_watch_integ_add(UmiWatcherIntegration *wi, const UmiPathWatch *req)
 {
     if (!wi || !req || !req->path || !*req->path) return FALSE;
 
-    /* Lazily create a recursive watcher on first use; the initial root is the
-     * first added path. Subsequent calls add more roots/dirs. */
     if (!wi->rec) {
-        /* If the request points to a file, umi_watchrec_new() will still work;
-         * it will resolve the parent dir before attaching monitors. */
         wi->rec = umi_watchrec_new(req->path, on_evt, wi);
         if (!wi->rec) return FALSE;
     } else {
-        if (!umi_watchrec_add(wi->rec, req->path))
-            return FALSE;
+        if (!umi_watchrec_add(wi->rec, req->path)) return FALSE;
     }
-
-    /* We don’t need to special-case req->recursive here because the recursive
-     * watcher always monitors subdirectories by construction. */
-    (void)req->recursive;
-
+    (void)req->recursive; /* recursive by construction */
     return TRUE;
 }
 
 void umi_watch_integ_free(UmiWatcherIntegration *wi)
 {
     if (!wi) return;
-    if (wi->rec) {
-        umi_watchrec_free(wi->rec);
-        wi->rec = NULL;
-    }
-    /* 'tree' and 'ws' are borrowed; do not free. */
+    if (wi->rec) { umi_watchrec_free(wi->rec); wi->rec = NULL; }
     g_free(wi);
 }

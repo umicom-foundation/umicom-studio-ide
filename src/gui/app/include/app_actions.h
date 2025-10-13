@@ -1,11 +1,11 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/gui/app/app_actions.h
+ * File: src/gui/app/include/app_actions.h
  *
  * PURPOSE:
  *   Declarations for wiring high-level application actions into a central
  *   keymap. This header *depends on* the shared keymap API to avoid
- *   duplicate struct definitions across modules.
+ *   duplicate struct definitions across modules. Pure C; no CSS.
  *
  * API:
  *   void umi_app_fill_keymap(GtkApplication *app, UmiKeymapCallbacks *out);

@@ -1,81 +1,53 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/util/watchers/include/path_watcher.h
+ *
  * PURPOSE:
- *   Public API for a thin, non-recursive path watcher built on GFileMonitor.
- *   This header matches the implementation in path_watcher.c and exposes:
- *     - UmiPathWatcher (opaque handle)
- *     - UmiPathEvt     (callback type: user + path string)
- *     - umi_pathwatch_new/add/stop/free
+ *   Public API for a thin, NON-RECURSIVE path watcher built on GFileMonitor.
+ *   Use this when you only need to watch a handful of directories at the
+ *   top level. For deep trees, prefer watcher_recursive.h.
  *
- * Notes:
- *   - Non-recursive: each added directory is watched at a single level.
- *   - Threading: GLib/GIO signal callbacks run on the main context.
- *   - Lifetime: stop() detaches signals and unreferences monitors; free()
- *               releases the container afterwards.
+ * DESIGN:
+ *   - Opaque handle (UmiPathWatcher); construction injects a callback.
+ *   - One GFileMonitor per added directory; no cross-module includes.
+ *   - GLib/GIO main-context delivery; keep callbacks fast.
  *
- * Created by: Umicom Foundation | Author: Sammy Hegab | MIT
+ * API:
+ *   typedef struct _UmiPathWatch { char *path; gboolean recursive; }  // compat
+ *   typedef void (*UmiPathEvt)(gpointer user, const char *path);
+ *   UmiPathWatcher *umi_pathwatch_new (UmiPathEvt cb, gpointer user);
+ *   gboolean        umi_pathwatch_add (UmiPathWatcher *w, const char *dir_path);
+ *   void            umi_pathwatch_stop(UmiPathWatcher *w);
+ *   void            umi_pathwatch_free(UmiPathWatcher *w);
+ *
+ * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMICOM_PATH_WATCHER_H
 #define UMICOM_PATH_WATCHER_H
 
-#include <glib.h>   /* gboolean, gpointer */
+#include <glib.h>
 
 G_BEGIN_DECLS
 
-/*-----------------------------------------------------------------------------
- * Compatibility struct used elsewhere (e.g., recursive watcher helpers).
- * Keep as-is so other modules that include this header keep compiling.
- *---------------------------------------------------------------------------*/
+/* Kept for compatibility with call sites that pass "recursive" intents. */
 typedef struct _UmiPathWatch {
   char     *path;        /* directory path to watch                          */
-  gboolean  recursive;   /* whether caller intends recursive monitoring       */
+  gboolean  recursive;   /* ignored by this module (non-recursive by design) */
 } UmiPathWatch;
 
-/*-----------------------------------------------------------------------------
- * UmiPathEvt: user callback signature
- * @user: user data provided at construction time
- * @path: path string related to the change (never NULL; a placeholder like
- *        "(unknown)" may be passed if GIO didn’t provide one)
- *---------------------------------------------------------------------------*/
+/* User callback signature:
+ *  - @user : opaque pointer from constructor
+ *  - @path : UTF-8 path related to the change (never NULL; may be "(unknown)")
+ */
 typedef void (*UmiPathEvt)(gpointer user, const char *path);
 
-/* Opaque watcher handle (defined privately in path_watcher.c). */
+/* Opaque watcher handle. */
 typedef struct _UmiPathWatcher UmiPathWatcher;
 
-/*-----------------------------------------------------------------------------
- * umi_pathwatch_new
- * Create an empty watcher container with a user callback.
- * The watcher owns the list of monitors you add later with add().
- *---------------------------------------------------------------------------*/
 UmiPathWatcher *umi_pathwatch_new(UmiPathEvt cb, gpointer user);
-
-/*-----------------------------------------------------------------------------
- * umi_pathwatch_add
- * Start watching a single directory (non-recursive).
- *
- * Returns:
- *   TRUE  -> monitoring started for this directory
- *   FALSE -> could not create a monitor (permissions, backend, invalid path)
- *---------------------------------------------------------------------------*/
 gboolean        umi_pathwatch_add(UmiPathWatcher *w, const char *dir_path);
-
-/*-----------------------------------------------------------------------------
- * umi_pathwatch_stop
- * Disconnect signals and unref all underlying monitors.
- * Safe to call multiple times.
- *---------------------------------------------------------------------------*/
 void            umi_pathwatch_stop(UmiPathWatcher *w);
-
-/*-----------------------------------------------------------------------------
- * umi_pathwatch_free
- * Free the watcher container itself. Call stop() first if you want to detach
- * monitors explicitly; free() will also ensure resources are released.
- * Safe on NULL.
- *---------------------------------------------------------------------------*/
 void            umi_pathwatch_free(UmiPathWatcher *w);
 
 G_END_DECLS
-
 #endif /* UMICOM_PATH_WATCHER_H */
-/*--- end of file ---*/

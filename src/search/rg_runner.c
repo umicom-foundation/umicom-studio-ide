@@ -5,7 +5,6 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 #include <glib.h>
-#include <string.h>
 #include "rg_runner.h"
 
 /*---------------------------------------------------------------------------
@@ -34,7 +33,6 @@ gboolean umi_rg_run(char **argvv, GString *out, GString *err, int *exit_status) 
                     &stderr_str,       /* capture stderr */
                     &status,           /* exit status */
                     &spawn_err)) {
-    /* Propagate error text to 'err' buffer for visibility. */
     if (spawn_err) {
       g_string_append(err, spawn_err->message);
       g_error_free(spawn_err);

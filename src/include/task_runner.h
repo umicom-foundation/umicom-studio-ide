@@ -20,35 +20,25 @@
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
-
 #ifndef UMICOM_TASK_RUNNER_H
 #define UMICOM_TASK_RUNNER_H
 
-/* Include GLib for thread pool, basic types, and gpointer.                  */
-#include <glib.h>     /* <- provides GThreadPool, gpointer, GError, etc.    */
+#include <glib.h>
 
-/* Forward declaration of the opaque runner type.                            */
-/* We hide its definition in the .c file to keep modules loosely-coupled.    */
+G_BEGIN_DECLS
+
 typedef struct UmiTaskRunner UmiTaskRunner;
 
-/* Define the function type a task must implement.                           */
-/* Each job is: void (*fn)(gpointer user_data)                               */
-/* This allows passing any context pointer without capturing global state.   */
 typedef void (*UmiTaskFn)(gpointer user_data);
 
-/* Create a runner with up to 'max_threads' worker threads.                  */
-/* If max_threads <= 0, we clamp to 1 to avoid undefined GLib behavior.      */
-/* Returns a heap-allocated runner, or NULL on allocation error.             */
+/* Create a runner with up to 'max_threads' worker threads (clamped to >= 1). */
 UmiTaskRunner *umi_task_runner_new(int max_threads);
 
-/* Destroy the runner, freeing underlying resources.                         */
-/* Any queued but not-yet-started jobs are dropped when freeing the pool.    */
+/* Destroy the runner and its thread pool. */
 void           umi_task_runner_free(UmiTaskRunner *r);
 
-/* Queue a job for asynchronous execution.                                   */
-/* 'fn'   : function pointer to call on a worker thread.                     */
-/* 'user' : opaque pointer passed as the sole argument to 'fn'.              */
-/* Safe to call from the GTK main thread. Returns immediately.               */
+/* Queue a job for asynchronous execution on the pool. */
 void           umi_task_runner_queue(UmiTaskRunner *r, UmiTaskFn fn, gpointer user);
 
+G_END_DECLS
 #endif /* UMICOM_TASK_RUNNER_H */

@@ -4,12 +4,11 @@
  *
  * PURPOSE:
  *   Minimal main-window helper built with GTK4 primitives (no GtkBuilder).
- *   Creates a sane default toplevel used by the app shell.
+ *   Creates a sane default toplevel used by the app shell. Pure C, no CSS.
  *
  * DESIGN:
- *   - Pure C, tiny surface: a single factory function.
+ *   - Tiny surface: a single factory function.
  *   - Defensive guards for NULL app pointer (returns NULL).
- *   - No deep/relative includes; headers by name only.
  *
  * API:
  *   GtkWidget *window_new(GtkApplication *app);
@@ -35,3 +34,6 @@ GtkWidget *window_new(GtkApplication *app)
     /* Callers remain owners of the reference returned; GTK manages children. */
     return win;
 }
+/*-----------------------------------------------------------------------------
+ * Configuration
+ *---------------------------------------------------------------------------*/

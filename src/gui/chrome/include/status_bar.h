@@ -17,6 +17,7 @@
  *   GtkWidget    *umi_status_bar_widget(UmiStatusBar *sb);   // pack this
  *   void          umi_status_bar_set  (UmiStatusBar *sb, const char *text);
  *   void          umi_status_bar_flash(UmiStatusBar *sb, const char *text, guint ms);
+ *   void          umi_status_bar_free (UmiStatusBar *sb);
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
@@ -28,20 +29,13 @@
 
 G_BEGIN_DECLS
 
-/* Opaque handle; lifetime managed by the caller (free via g_object unrefs on widget tree). */
 typedef struct _UmiStatusBar UmiStatusBar;
 
-/* Create a new status bar instance. */
 UmiStatusBar *umi_status_bar_new(void);
-
-/* Retrieve the GTK widget to pack into layouts (do NOT free). */
 GtkWidget    *umi_status_bar_widget(UmiStatusBar *sb);
-
-/* Set persistent text on the bar (overwrites any flashing text). */
-void          umi_status_bar_set(UmiStatusBar *sb, const char *text);
-
-/* Show text temporarily for `ms` milliseconds, then clear back to empty. */
+void          umi_status_bar_set  (UmiStatusBar *sb, const char *text);
 void          umi_status_bar_flash(UmiStatusBar *sb, const char *text, guint ms);
+void          umi_status_bar_free (UmiStatusBar *sb);
 
 G_END_DECLS
 

@@ -6,12 +6,12 @@
  *   Implement the top-level GTK application shell with minimal dependencies.
  *   Provides a window, a very small toolbar, and placeholders for editor and
  *   file tree panes. Actions are wired in a decoupled way (weak refs).
+ *   Pure C; no CSS or style classes used anywhere.
  *
  * DESIGN:
  *   - Weak function refs let this compile/link even if editor/run modules
  *     are not yet included in a particular build configuration.
  *   - No deprecated GTK APIs (GTK4 only).
- *   - No deep includes; headers by name only.
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
@@ -23,22 +23,21 @@
 /* Forward declare editor type to avoid heavy includes. */
 typedef struct _UmiEditor UmiEditor;
 
-/* Weak cross-module hooks (portable guards) */
+/* Weak cross-module hooks (portable guards). */
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((weak)) gboolean umi_run_pipeline_start(gpointer out, gpointer problems, gpointer reserved);
 __attribute__((weak)) void     umi_run_pipeline_stop(void);
 __attribute__((weak)) gboolean umi_editor_save(UmiEditor *ed, GError **error);
 #else
-/* On non-GNU/Clang toolchains, omit weak refs and fall back to NULL checks. */
 gboolean (*umi_run_pipeline_start)(gpointer,gpointer,gpointer) = NULL;
 void     (*umi_run_pipeline_stop)(void) = NULL;
 gboolean (*umi_editor_save)(UmiEditor*,GError**) = NULL;
 #endif
 
-/* Keep one UmiApp per GtkApplication */
+/* Keep one UmiApp per GtkApplication. */
 static GHashTable *g_map = NULL;
 
-/* Actions (small wrappers) */
+/* Toolbar actions (tiny wrappers). */
 static void do_run(gpointer u){
   (void)u;
   if (umi_run_pipeline_start) (void)umi_run_pipeline_start(NULL, NULL, NULL);
@@ -55,7 +54,7 @@ static void do_save(gpointer u){
   }
 }
 
-/* Tiny toolbar */
+/* Tiny toolbar (pure C margins/spacing). */
 static GtkWidget* make_toolbar(UmiApp *ua){
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
   GtkWidget *btn_run  = gtk_button_new_with_label("Run");
@@ -70,7 +69,8 @@ static GtkWidget* make_toolbar(UmiApp *ua){
   return box;
 }
 
-/* Lifecycle */
+/* Lifecycle ----------------------------------------------------------------*/
+
 static void on_activate(GtkApplication *app, gpointer user)
 {
   (void)user;
@@ -115,7 +115,8 @@ static void on_startup(GtkApplication *app, gpointer user)
   if (!g_map) g_map = g_hash_table_new(g_direct_hash, g_direct_equal);
 }
 
-/* Public API */
+/* Public API ----------------------------------------------------------------*/
+
 GtkApplication *umi_app_new(void)
 {
   GtkApplication *app = gtk_application_new("org.umicom.studio", G_APPLICATION_HANDLES_OPEN);

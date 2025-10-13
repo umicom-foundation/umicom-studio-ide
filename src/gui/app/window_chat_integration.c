@@ -1,10 +1,11 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/ui/window_chat_integration.c
+ * File: src/gui/app/window_chat_integration.c
  *
  * PURPOSE:
  *   Wire the Chat pane into the main window and register an application
  *   action "app.toggle-chat" that shows/hides the right-side box.
+ *   Pure C; no CSS or style classes.
  *
  * DESIGN:
  *   - GTK4 only; no deprecated APIs.
@@ -56,3 +57,6 @@ void ustudio_chat_mount_and_actions(GtkApplication *app, GtkWindow *win, GtkWidg
         gtk_widget_set_visible(right_box, TRUE);
     }
 }
+/*-----------------------------------------------------------------------------
+ * Configuration
+ *---------------------------------------------------------------------------*/
