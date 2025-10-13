@@ -1,61 +1,61 @@
 /*-----------------------------------------------------------------------------
- * Umicom Studio IDE : OpenSource IDE for developers and Content Creators
- * Repository: https://github.com/umicom-foundation/umicom-studio-ide
+ * Umicom Studio IDE
  * File: src/panes/problems/include/problem_list.h
  *
  * PURPOSE:
- *   Public API for the Problems pane: create the list, add/clear items,
- *   query size, and get the GTK widget to pack into UI containers.
+ *   In-memory list of parsed diagnostics (“Problems” pane model).
  *
  * DESIGN:
- *   - The canonical diagnostics types (UmiDiag/UmiDiagSeverity) are defined
- *     in 'umi_output_sink.h'. We DO NOT duplicate any of those here.
- *   - This header is UI-facing; it exposes a GtkWidget* accessor so the
- *     editor can pack the problems view into a Notebook or Paned.
- *   - Callbacks: you can supply an optional "activate" callback that fires
- *     when the user double-clicks a problem row.
+ *   - Pure model types; no GTK/UI dependencies.
+ *   - Uses UmiDiagSeverity from umi_diagnostics.h (no local enum!).
+ *   - Parser(s) append problems; views subscribe to changes.
  *
- * API:
- *   typedef struct _UmiProblemList UmiProblemList;
- *   typedef void (*UmiProblemActivateCb)(gpointer user,
- *                                        const char *file, int line, int col);
- *   UmiProblemList *problem_list_new(void);
- *   UmiProblemList *problem_list_new_with_cb(UmiProblemActivateCb cb, gpointer user);
- *   void            problem_list_free  (UmiProblemList *list);
- *   gboolean        problem_list_add   (UmiProblemList *list, const UmiDiag *diag);
- *   size_t          problem_list_clear (UmiProblemList *list);
- *   size_t          problem_list_count (const UmiProblemList *list);
- *   const void     *problem_list_model (const UmiProblemList *list);
- *   GtkWidget      *problem_list_widget(const UmiProblemList *list);
+ * API (minimal and stable across modules):
+ *   typedef struct UmiProblem      UmiProblem;
+ *   typedef struct UmiProblemList  UmiProblemList;
+ *
+ *   UmiProblemList* umi_problem_list_new(void);
+ *   void            umi_problem_list_free(UmiProblemList *pl);
+ *   void            umi_problem_list_clear(UmiProblemList *pl);
+ *
+ *   /* Parse one compiler/build line; append to list if it matches.
+ *    * Returns true if a problem was recognized and appended. * /
+ *   bool            umi_problem_parse_any(UmiProblemList *pl, const char *line_utf8);
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-#pragma once
+#ifndef UMI_PROBLEM_LIST_H
+#define UMI_PROBLEM_LIST_H
 
-#include <gtk/gtk.h>           /* GtkWidget for widget accessor */
-#include <glib.h>              /* gboolean, gpointer, size_t   */
-#include "umi_output_sink.h"   /* UmiDiag / UmiDiagSeverity     */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* Opaque handle; callers never see internals. */
-typedef struct _UmiProblemList UmiProblemList;
+#include <stdbool.h>
+#include "umi_diagnostics.h"  /* <- canonical severity, do NOT redeclare */
+#include <stddef.h>
 
-/* Activation callback fires when user activates a row (e.g., double-click).
- * 'file' may be empty; 'line'/'col' are >=0 or 0 if unknown. */
-typedef void (*UmiProblemActivateCb)(gpointer user,
-                                     const char *file, int line, int col);
+/* One diagnostic entry recognized by a parser. */
+typedef struct UmiProblem {
+    UmiDiagSeverity severity; /* error / warning / note                        */
+    const char     *file;     /* may be NULL if unknown                        */
+    int             line;     /* 1-based, or 0 if unknown                      */
+    int             col;      /* 1-based, or 0 if unknown                      */
+    const char     *message;  /* human-readable                                */
+} UmiProblem;
 
-/* Constructors */
-UmiProblemList *problem_list_new(void);
-UmiProblemList *problem_list_new_with_cb(UmiProblemActivateCb cb, gpointer user);
+/* Opaque list type. */
+typedef struct UmiProblemList UmiProblemList;
 
-/* Lifetime */
-void   problem_list_free  (UmiProblemList *list);
+/* Lifecycle. */
+UmiProblemList* umi_problem_list_new(void);
+void            umi_problem_list_free(UmiProblemList *pl);
+void            umi_problem_list_clear(UmiProblemList *pl);
 
-/* Mutators */
-gboolean problem_list_add   (UmiProblemList *list, const UmiDiag *diag);
-size_t   problem_list_clear (UmiProblemList *list);
+/* Parsing entry point — tries multiple known formats (gcc/clang/msvc/etc.). */
+bool            umi_problem_parse_any(UmiProblemList *pl, const char *line_utf8);
 
-/* Accessors */
-size_t     problem_list_count (const UmiProblemList *list);
-const void*problem_list_model (const UmiProblemList *list);
-GtkWidget *problem_list_widget(const UmiProblemList *list);
+#ifdef __cplusplus
+}
+#endif
+#endif /* UMI_PROBLEM_LIST_H */

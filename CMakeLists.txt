@@ -33,6 +33,15 @@ option(USIDE_ENABLE_UAENGINE    "Add UAEngine public headers to include path" OF
 # Historically palette.c was excluded; expose as a toggle (default ON to mimic prior state)
 option(USIDE_EXCLUDE_PALETTE    "Exclude src/gui/theme/palette.c from build" ON)
 
+# Optionally exclude unit tests or experimental dirs from the main target
+option(USIDE_EXCLUDE_TESTS      "Exclude src/tests/* from the main target" ON)
+
+# Enable SSE flags on MinGW/GCC x86 to mirror your previous command line
+option(USIDE_ENABLE_SSE         "Enable -mfpmath=sse -msse -msse2 on GCC/Clang x86" ON)
+
+# Define LIBDEFLATE_DLL if your environment expects it (mirrors previous builds)
+option(USIDE_LIBDEFLATE_DLL     "Define LIBDEFLATE_DLL for compatibility" ON)
+
 # =============================================================================
 # LANGUAGE STANDARD & GLOBAL SETTINGS
 # =============================================================================
@@ -91,7 +100,6 @@ set(USIDE_ENTRY_CLI  "${CMAKE_CURRENT_SOURCE_DIR}/src/entry/cli_entry.c")
 # Remove both entries from the glob list; then add exactly one back
 list(REMOVE_ITEM USIDE_SOURCES "${USIDE_ENTRY_MAIN}" "${USIDE_ENTRY_CLI}")
 
-# Choose the single entry that matches the option.
 if(USIDE_GUI)
   if(EXISTS "${USIDE_ENTRY_MAIN}")
     list(APPEND USIDE_SOURCES "${USIDE_ENTRY_MAIN}")
@@ -108,26 +116,32 @@ endif()
 
 # Optional modules — exclude whole folders when OFF (no dead code compiled)
 if(NOT USIDE_ENABLE_LLM_LAB)
-  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/gui/llm_lab/.*\.c$")
+  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/gui/llm_lab/.*\\.c$")
 endif()
 if(NOT USIDE_ENABLE_TRANSPILE)
-  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/plugins/transpile/.*\.c$")
+  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/plugins/transpile/.*\\.c$")
+endif()
+if(USIDE_EXCLUDE_TESTS)
+  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/tests/.*\\.c$")
 endif()
 
 # Legacy palette exclusion via toggle (default ON)
 if(USIDE_EXCLUDE_PALETTE)
-  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/gui/theme/palette\.c$")
+  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/gui/theme/palette\\.c$")
 endif()
 
 # =============================================================================
 # INCLUDE DIRECTORIES (PUBLIC HEADERS ONLY)
 # =============================================================================
-# Collect every module's public include dir (src/*/include). This ensures
-# headers are included by NAME only (e.g., "umi_output_sink.h"), never as deep
-# relative paths like "src/foo/include/bar.h".
-file(GLOB_RECURSE USIDE_INCLUDE_DIRS LIST_DIRECTORIES TRUE
+# Collect every module's public include dir (src/*/include and src/*/includes).
+# This lets us write #include <status_util.h> etc. NO deep relative paths.
+file(GLOB_RECURSE USIDE_INCLUDE_DIRS_INC  LIST_DIRECTORIES TRUE
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*/include"
 )
+file(GLOB_RECURSE USIDE_INCLUDE_DIRS_INCS LIST_DIRECTORIES TRUE
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*/includes"
+)
+set(USIDE_INCLUDE_DIRS ${USIDE_INCLUDE_DIRS_INC} ${USIDE_INCLUDE_DIRS_INCS})
 
 # Ensure canonical project-wide public headers are visible explicitly
 list(APPEND USIDE_INCLUDE_DIRS
@@ -135,8 +149,28 @@ list(APPEND USIDE_INCLUDE_DIRS
   "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
-# UAEngine headers are connected but should be optional to avoid accidental
-# cross-coupling. Gate behind USIDE_ENABLE_UAENGINE.
+# EXPLICIT FIXES from your log:
+# - diagnostics_router.c couldn’t find diagnostic_parsers.h
+# - run_pipeline.c couldn’t find build_runner.h
+# Both live under src/build/include — add it explicitly to be safe.
+list(APPEND USIDE_INCLUDE_DIRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/build/include"
+)
+
+# Specific legacy include folders (compatibility while we converge on /include)
+foreach(path
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/includes"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/styles"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/llm/includes"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/llm/providers"
+)
+  if(EXISTS "${path}")
+    list(APPEND USIDE_INCLUDE_DIRS "${path}")
+  endif()
+endforeach()
+
+# UAEngine headers optional to avoid accidental cross-coupling.
 if(USIDE_ENABLE_UAENGINE)
   list(APPEND USIDE_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/umicom/uengine/include"
@@ -151,12 +185,15 @@ list(REMOVE_DUPLICATES USIDE_INCLUDE_DIRS)
 # =============================================================================
 add_executable(umicom-studio-ide ${USIDE_SOURCES})
 
-# Provide compile-time define for entry selection
-# (usable in C via `#if USIDE_GUI`)
+# Provide compile-time define for entry selection (usable in C via `#if USIDE_GUI`)
 target_compile_definitions(umicom-studio-ide PRIVATE USIDE_GUI=$<BOOL:${USIDE_GUI}>)
 
+# Mirror prior builds that defined LIBDEFLATE_DLL
+if(USIDE_LIBDEFLATE_DLL)
+  target_compile_definitions(umicom-studio-ide PRIVATE LIBDEFLATE_DLL)
+endif()
+
 # Windows: use GUI subsystem when USIDE_GUI=ON
-enable_language(C)
 if(WIN32 AND USIDE_GUI)
   set_target_properties(umicom-studio-ide PROPERTIES WIN32_EXECUTABLE YES)
   # For MinGW, WIN32_EXECUTABLE is typically enough; add -mwindows if required:
@@ -171,6 +208,11 @@ if(MSVC)
   target_compile_options(umicom-studio-ide PRIVATE /W4)
 else()
   target_compile_options(umicom-studio-ide PRIVATE -Wall -Wextra -Wpedantic -Wno-unused-parameter)
+endif()
+
+# Optional SSE flags to match earlier command lines (GCC/Clang on x86 only)
+if(USIDE_ENABLE_SSE AND (CMAKE_C_COMPILER_ID MATCHES "GNU|Clang") AND (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|i.86"))
+  target_compile_options(umicom-studio-ide PRIVATE -mfpmath=sse -msse -msse2)
 endif()
 
 # Link libraries via pkg-config imported targets
@@ -246,3 +288,4 @@ list(APPEND USIDE_INCLUDE_DIRS
 ]]
 
 # END OF FILE
+# =============================================================================
