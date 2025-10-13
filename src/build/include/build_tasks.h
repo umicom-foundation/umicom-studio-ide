@@ -1,44 +1,48 @@
 /*-----------------------------------------------------------------------------
- * Umicom Studio IDE
+ * Umicom Studio IDE : OpenSource IDE for developers and Content Creators
+ * Repository: https://github.com/umicom-foundation/umicom-studio-ide
  * File: src/build/include/build_tasks.h
  *
  * PURPOSE:
- *   High-level "Build Tasks" façade that coordinates:
- *     - selecting the active build system (ninja/make/msbuild/custom),
- *     - invoking the Build Runner (child process w/ streamed output),
- *     - routing output lines to a UI-agnostic UmiOutputSink,
- *     - simple helpers to Build / Run / Test a project rooted at 'root'.
+ *   High-level operations for a project root (build / run / test).
+ *   Wraps the lower-level UmiBuildRunner and a detected UmiBuildSys.
  *
- * DECOUPLING:
- *   Avoid direct includes of UI console types. Instead depend only on the tiny
- *   callback contract declared in src/include/umi_output_sink.h.
+ * DESIGN:
+ *   - No UI headers here; caller provides an UmiOutputSink instance.
+ *   - Opaque UmiBuildTasks handle; implementation is private to .c
  *
- * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
+ * API:
+ *   UmiBuildTasks *umi_build_tasks_new   (const char *root, UmiOutputSink *sink);
+ *   void           umi_build_tasks_free  (UmiBuildTasks *t);
+ *   void           umi_build_tasks_set_sink(UmiBuildTasks *t, UmiOutputSink *sink);
+ *   gboolean       umi_build_tasks_build (UmiBuildTasks *t, GError **error);
+ *   gboolean       umi_build_tasks_run   (UmiBuildTasks *t, GError **error);
+ *   gboolean       umi_build_tasks_test  (UmiBuildTasks *t, GError **error);
+ *   const char    *umi_build_tasks_root  (const UmiBuildTasks *t);
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-#ifndef UMICOM_BUILD_TASKS_H
-#define UMICOM_BUILD_TASKS_H
+#ifndef UMI_BUILD_TASKS_H
+#define UMI_BUILD_TASKS_H
 
 #include <glib.h>
-#include "umi_output_sink.h"
-#include "build_runner.h"
-#include "build_system.h"
+#include <umi_output_sink.h>  /* decoupled sink */
 
-typedef struct _UmiBuildTasks UmiBuildTasks;
+G_BEGIN_DECLS
 
-/* Construct / destroy. The sink may be NULL (output is dropped). */
-UmiBuildTasks *umi_build_tasks_new(const char *root, UmiOutputSink sink, gpointer sink_user);
-void           umi_build_tasks_free(UmiBuildTasks *bt);
+typedef struct _UmiBuildTasks UmiBuildTasks; /* opaque */
 
-/* Change output routing after construction. */
-void           umi_build_tasks_set_sink(UmiBuildTasks *bt, UmiOutputSink sink, gpointer sink_user);
+UmiBuildTasks *umi_build_tasks_new(const char *root, UmiOutputSink *sink);
+void           umi_build_tasks_free(UmiBuildTasks *t);
 
-/* Actions. Return TRUE if process launch succeeded (not tool success). */
-gboolean       umi_build_tasks_build(UmiBuildTasks *bt, GString *err);
-gboolean       umi_build_tasks_run  (UmiBuildTasks *bt, GString *err);
-gboolean       umi_build_tasks_test (UmiBuildTasks *bt, GString *err);
+void           umi_build_tasks_set_sink(UmiBuildTasks *t, UmiOutputSink *sink);
 
-/* Read-only information. */
-const char    *umi_build_tasks_root(const UmiBuildTasks *bt);
+gboolean       umi_build_tasks_build(UmiBuildTasks *t, GError **error);
+gboolean       umi_build_tasks_run  (UmiBuildTasks *t, GError **error);
+gboolean       umi_build_tasks_test (UmiBuildTasks *t, GError **error);
 
-#endif /* UMICOM_BUILD_TASKS_H */
-/*---------------------------------------------------------------------------*/
+const char    *umi_build_tasks_root (const UmiBuildTasks *t);
+
+G_END_DECLS
+
+#endif /* UMI_BUILD_TASKS_H */

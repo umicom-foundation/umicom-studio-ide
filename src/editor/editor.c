@@ -9,9 +9,9 @@
 
 /* Project headers */
 #include <editor.h>          /* UmiEditor struct & public API */
-#include "../panes/problems/include/problem_list.h"    /* UmiProblemList, UmiProblemActivateCb */
-#include "../panes/output/include/output_pane.h"     /* UmiOutputPane, umi_output_pane_* */
-#include "../util/log/include/status_util.h"     /* UmiStatus (optional) */
+#include "problem_list.h"    /* UmiProblemList, UmiProblemActivateCb */
+#include "output_pane.h"     /* UmiOutputPane, umi_output_pane_* */
+#include "status_util.h"     /* UmiStatus (optional) */
 
 /* Forward: local activate handler invoked by UmiProblemList */
 static void on_problem_activate(gpointer user, const char *file, int line, int col);

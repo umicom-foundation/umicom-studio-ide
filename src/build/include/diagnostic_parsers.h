@@ -3,53 +3,42 @@
  * File: src/build/include/diagnostic_parsers.h
  *
  * PURPOSE:
- *   Parse raw compiler/linker output lines into structured diagnostics that
- *   the rest of the app can consume (Problems pane, output sinks, etc.).
+ *   Helpers to parse compiler/tool output lines into structured diagnostics
+ *   that the UI can then display in a Problems pane (or any other consumer).
  *
  * DECOUPLING:
- *   - This header is intentionally UI-agnostic and sink-agnostic.  It only
- *     exposes a plain C API and types from src/include/umi_diagnostics.h.
- *   - Callers may forward results to any UmiOutputSink or custom handler.
+ *   - Depends only on umi_output_sink.h for the UmiDiagSeverity enum.
  *
- * API OVERVIEW:
- *   - umi_dparse_try_gcc_like():     GCC/Clang-style "file:line:col: warning: msg"
- *   - umi_dparse_try_msvc_like():    MSVC "file(line,col): error C####: msg"
- *   - umi_dparse_try_generic_note(): Generic "note:" detector to enrich context
+ * API:
+ *   typedef struct UmiParsedDiag { ... } UmiParsedDiag;
+ *   gboolean umi_diag_parse_gcc(const char *line, UmiParsedDiag *out);
+ *   gboolean umi_diag_parse_msvc(const char *line, UmiParsedDiag *out);
+ *   gboolean umi_diag_parse_clang(const char *line, UmiParsedDiag *out);
  *
- * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMI_DIAGNOSTIC_PARSERS_H
 #define UMI_DIAGNOSTIC_PARSERS_H
 
 #include <glib.h>
-#include "umi_diagnostics.h"  /* canonical UmiDiagSeverity */
+#include "src/include/umi_output_sink.h"  /* UmiDiagSeverity */
 
-/*---------------------------------------------------------------------------
- * Result value object for one parsed diagnostic line.
- *---------------------------------------------------------------------------*/
-typedef struct UmiDiagParseResult_ {
-    UmiDiagSeverity sev;     /* severity of the message                       */
-    char           *file;    /* path to source file (g_strdup'd)              */
-    int             line;    /* 1-based source line                           */
-    int             column;  /* 1-based source column (0 if unavailable)      */
-    char           *message; /* human-readable message (g_strdup'd)           */
-} UmiDiagParseResult;
+G_BEGIN_DECLS
 
-/*---------------------------------------------------------------------------
- * Memory management helpers.
- *---------------------------------------------------------------------------*/
-static inline void umi_dparse_result_clear(UmiDiagParseResult *r){
-    if (!r) return;
-    g_clear_pointer(&r->file, g_free);
-    g_clear_pointer(&r->message, g_free);
-    r->line = 0; r->column = 0; r->sev = UMI_DIAG_NOTE;
-}
+typedef struct UmiParsedDiag
+{
+    UmiDiagSeverity sev;     /* note/warning/error */
+    char           *file;    /* optional */
+    int             line;    /* 1-based; 0 -> unknown */
+    char           *message; /* never NULL (empty OK) */
+} UmiParsedDiag;
 
-/*---------------------------------------------------------------------------
- * Parse attempts — return TRUE if 'line' matched and 'out' was filled.
- *---------------------------------------------------------------------------*/
-gboolean umi_dparse_try_gcc_like    (const char *line, UmiDiagParseResult *out);
-gboolean umi_dparse_try_msvc_like   (const char *line, UmiDiagParseResult *out);
-gboolean umi_dparse_try_generic_note(const char *line, UmiDiagParseResult *out);
+gboolean umi_diag_parse_gcc  (const char *line, UmiParsedDiag *out);
+gboolean umi_diag_parse_msvc (const char *line, UmiParsedDiag *out);
+gboolean umi_diag_parse_clang(const char *line, UmiParsedDiag *out);
+
+void     umi_parsed_diag_clear(UmiParsedDiag *d);
+
+G_END_DECLS
 
 #endif /* UMI_DIAGNOSTIC_PARSERS_H */

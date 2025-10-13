@@ -9,7 +9,7 @@
 #define UMICOM_WORKSPACE_H
 
 #include <gtk/gtk.h>
-#include "../../util/fs/include/file_tree.h"
+#include "file_tree.h"
 
 typedef struct _UmiWorkspace {
   gchar *root_dir;

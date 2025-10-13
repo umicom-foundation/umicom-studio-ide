@@ -33,3 +33,6 @@ build-ninja/CMakeCache.txt
 config/env/*.env
 !/config/env/secrets.env.template
 
+links.txt
+tree.txt
+umicom-studio-ide-project.zip

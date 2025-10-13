@@ -1,0 +1,16 @@
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE : OpenSource IDE for developers and Content Creators
+ * Repository: https://github.com/umicom-foundation/umicom-studio-ide
+ * File: {RELATIVE_PATH}
+ *
+ * PURPOSE:
+ *   {PURPOSE}
+ *
+ * DESIGN:
+ *   {DESIGN}
+ *
+ * API:
+ *   {API}
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: {DATE} | MIT
+ *---------------------------------------------------------------------------*/

@@ -9,7 +9,7 @@
 #define UMICOM_SETTINGS_APPLY_H
 
 #include "settings_bus.h"
-#include "../../gui/theme/include/theme.h"
+#include "theme.h"
 #include "prefs.h"
 
 /* After saving preferences, call to emit changes (e.g., theme) */
