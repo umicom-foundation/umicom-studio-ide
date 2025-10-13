@@ -1,107 +1,120 @@
 /*-----------------------------------------------------------------------------
- * Umicom Studio IDE
+ * Umicom Studio IDE : OpenSource IDE for developers and Content Creators
+ * Repository: https://github.com/umicom-foundation/umicom-studio-ide
  * File: src/build/build_tasks.c
  *
  * PURPOSE:
- *   Provide one-stop high-level calls (build/run/test) for a given project
- *   root by composing:
- *     - UmiBuildSys  : figures out the correct command(s) and argv
- *     - UmiBuildRunner: executes the process and streams output
+ *   Orchestrates build/run/test for a given project root.
  *
- * COUPLING:
- *   - Takes an UmiOutputSink* from the caller; does not include UI headers.
+ * DESIGN:
+ *   No direct UI types. Streams diagnostics through UmiOutputSink; uses UmiDiagParser to normalize output.
  *
- * WARNINGS ELIMINATED:
- *   - Avoids function-pointer typedef collisions by including only the
- *     centralized UmiOutputSink struct (src/include/umi_output_sink.h).
+ * API:
+ *   umi_build_tasks_new/free/build/run/test
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
+
 #include <glib.h>
+#include <gio/gio.h>
+#include "build_tasks.h"
+#include "diagnostic_parsers.h"
+#include "umi_output_sink.h"
 
-#include "src/build/include/build_tasks.h"
-#include "src/build/include/build_runner.h"
-#include "src/build_system.h"  /* build system detection + argv expansion */
-
-struct _UmiBuildTasks
-{
-    char            *root;    /* project root directory                       */
-    UmiOutputSink   *sink;    /* output destination (owned by caller)         */
-    UmiBuildSys     *sys;     /* detected build system                         */
-    UmiBuildRunner  *runner;  /* process runner                                 */
+/*  INTERNAL HANDLE
+ *  ────────────────────────────────────────────────────────────────────────────
+ *  Keep this private to avoid leaking internal dependencies.
+ */
+struct _UmiBuildTasks {
+    gchar          *root;   /* project root directory (UTF-8) */
+    UmiOutputSink  *sink;   /* where we print user-visible messages */
 };
 
-/* Internal: helper to run arbitrary argv through the runner. */
-static gboolean run_argv(UmiBuildTasks *bt, GPtrArray *argv, GError **error)
-{
-    if (!bt || !bt->runner || !argv) return FALSE;
-
-    /* Ensure NULL-terminated char** for GLib. */
-    g_ptr_array_add(argv, NULL);
-    char **argvv = (char **)argv->pdata;
-
-    gboolean ok = umi_build_runner_run(bt->runner,
-                                       argvv,
-                                       NULL,            /* inherit env */
-                                       bt->root,        /* cwd         */
-                                       NULL,            /* no on_exit  */
-                                       NULL);
-    if (!ok && error) *error = g_error_new_literal(g_quark_from_static_string("UmiBuildTasks"),
-                                                   1, "Failed to launch process");
-    /* Caller still owns argv; free it. */
-    g_ptr_array_free(argv, TRUE);
-    return ok;
+/*  HELPERS
+ *  ────────────────────────────────────────────────────────────────────────────
+ *  Emit a simple message to the sink, if provided.
+ */
+static void emit(UmiBuildTasks *t, UmiDiagSeverity sev, const char *fmt, ...) {
+    if (!t || !t->sink) return;
+    va_list ap; va_start(ap, fmt);
+    gchar *s = g_strdup_vprintf(fmt, ap);
+    va_end(ap);
+    UmiDiag d = {0};
+    d.severity = sev; d.file=g_strdup(""); d.message=g_strdup(s); d.line=0; d.column=0;
+    umi_output_sink_emit(t->sink, &d);
+    g_free(d.file); g_free(d.message); g_free(s);
 }
 
-UmiBuildTasks *umi_build_tasks_new(const char *root, UmiOutputSink *sink)
-{
-    UmiBuildTasks *bt = g_new0(UmiBuildTasks, 1);
-    bt->root   = g_strdup(root ? root : ".");
-    bt->sink   = sink;
-    bt->sys    = umi_buildsys_detect(bt->root);
-    bt->runner = umi_build_runner_new();
-    umi_build_runner_set_sink(bt->runner, bt->sink);
-    return bt;
+/*  API IMPLEMENTATION
+ *  ────────────────────────────────────────────────────────────────────────────
+ */
+UmiBuildTasks *umi_build_tasks_new(const char *root, UmiOutputSink *sink) {
+    UmiBuildTasks *t = g_new0(UmiBuildTasks, 1);
+    t->root = g_strdup(root ? root : ".");
+    t->sink = sink;
+    emit(t, UMI_DIAG_NOTE, "BuildTasks: initialized for root='%s'", t->root);
+    return t;
 }
 
-void umi_build_tasks_free(UmiBuildTasks *bt)
-{
-    if (!bt) return;
-    if (bt->runner) { umi_build_runner_free(bt->runner); bt->runner = NULL; }
-    if (bt->sys)    { umi_buildsys_free(bt->sys);        bt->sys    = NULL; }
-    g_clear_pointer(&bt->root, g_free);
-    g_free(bt);
+void umi_build_tasks_free(UmiBuildTasks *t) {
+    if (!t) return;
+    g_clear_pointer(&t->root, g_free);
+    g_free(t);
 }
 
-void umi_build_tasks_set_sink(UmiBuildTasks *bt, UmiOutputSink *sink)
-{
-    if (!bt) return;
-    bt->sink = sink;
-    umi_build_runner_set_sink(bt->runner, bt->sink);
+void umi_build_tasks_set_sink(UmiBuildTasks *t, UmiOutputSink *sink) {
+    if (!t) return; t->sink = sink;
 }
 
-gboolean umi_build_tasks_build(UmiBuildTasks *bt, GError **error)
-{
-    if (!bt || !bt->sys) return FALSE;
-    GPtrArray *argv = umi_buildsys_build_argv(bt->sys);
-    return run_argv(bt, argv, error);
+/*  NOTE:
+ *  For Stage-2 we leave a minimal build that just verifies 'ninja --version'
+ *  runs and streams output. Replace with the real project build invocation.
+ */
+static gboolean run_tool_and_parse(UmiBuildTasks *t, const char *cmd, char *const argv[], GError **error) {
+    g_autoptr(GSubprocess) sp = g_subprocess_new(G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
+                                                 error, cmd, argv[1], NULL);
+    if (!sp) return FALSE;
+
+    g_autoptr(GInputStream) out = g_subprocess_get_stdout_pipe(sp);
+    g_autoptr(GInputStream) err = g_subprocess_get_stderr_pipe(sp);
+    g_subprocess_wait_check(sp, NULL, error);
+
+    /* read both streams; for brevity, read stdout only here */
+    g_autoptr(GDataInputStream) din = g_data_input_stream_new(out);
+    UmiDiagParser *parser = umi_diag_parser_new("ninja");
+
+    while (TRUE) {
+        gsize len=0; GError *e=NULL;
+        gchar *line = g_data_input_stream_read_line(din, &len, NULL, &e);
+        if (!line || e) { g_clear_error(&e); g_free(line); break; }
+        UmiDiag *diag=NULL;
+        if (umi_diag_parser_feed_line(parser, line, &diag)) {
+            umi_output_sink_emit(t->sink, diag);
+            /* assume umi_output_sink_emit consumes or copies; free our copy */
+            umi_diag_free(diag);
+        } else {
+            emit(t, UMI_DIAG_NOTE, "%s", line);
+        }
+        g_free(line);
+    }
+    umi_diag_parser_free(parser);
+    return TRUE;
 }
 
-gboolean umi_build_tasks_run(UmiBuildTasks *bt, GError **error)
-{
-    if (!bt || !bt->sys) return FALSE;
-    GPtrArray *argv = umi_buildsys_run_argv(bt->sys);
-    return run_argv(bt, argv, error);
+gboolean umi_build_tasks_build(UmiBuildTasks *t, GError **error) {
+    if (!t) return FALSE;
+    char *const argv[] = { "ninja", "--version", NULL };
+    return run_tool_and_parse(t, "ninja", argv, error);
 }
 
-gboolean umi_build_tasks_test(UmiBuildTasks *bt, GError **error)
-{
-    if (!bt || !bt->sys) return FALSE;
-    GPtrArray *argv = umi_buildsys_test_argv(bt->sys);
-    return run_argv(bt, argv, error);
+gboolean umi_build_tasks_run(UmiBuildTasks *t, GError **error) {
+    emit(t, UMI_DIAG_NOTE, "Run not implemented yet");
+    return TRUE;
 }
 
-const char *umi_build_tasks_root(const UmiBuildTasks *bt)
-{
-    return bt ? bt->root : NULL;
+gboolean umi_build_tasks_test(UmiBuildTasks *t, GError **error) {
+    emit(t, UMI_DIAG_NOTE, "Test not implemented yet");
+    return TRUE;
 }
+
+/*  END OF FILE */

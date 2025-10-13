@@ -6,7 +6,7 @@
  *---------------------------------------------------------------------------*/
 
 #include "prefs.h"
-#include "../../util/log/include/status_util.h"
+#include "status_util.h"
 #include <json-glib/json-glib.h>
 
 typedef struct {
@@ -109,11 +109,15 @@ GtkWidget* umi_prefs_dialog_new(GtkWindow *parent, UmiSettings *in_out){
   UmiSettings *s = in_out ? in_out : defaults();
   PrefsCtx *ctx = g_new0(PrefsCtx,1); ctx->s = s;
 
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   GtkWidget *dlg = gtk_dialog_new();
+G_GNUC_END_IGNORE_DEPRECATIONS
   if(parent) gtk_window_set_transient_for(GTK_WINDOW(dlg), parent);
   gtk_window_set_title(GTK_WINDOW(dlg), "Preferences");
 
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   GtkWidget *area = gtk_dialog_get_content_area(GTK_DIALOG(dlg));
+G_GNUC_END_IGNORE_DEPRECATIONS
   GtkWidget *v = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
   gtk_box_append(GTK_BOX(area), v);
 

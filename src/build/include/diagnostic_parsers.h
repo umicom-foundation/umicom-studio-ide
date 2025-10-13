@@ -1,44 +1,61 @@
 /*-----------------------------------------------------------------------------
- * Umicom Studio IDE
+ * Umicom Studio IDE : OpenSource IDE for developers and Content Creators
+ * Repository: https://github.com/umicom-foundation/umicom-studio-ide
  * File: src/build/include/diagnostic_parsers.h
  *
  * PURPOSE:
- *   Helpers to parse compiler/tool output lines into structured diagnostics
- *   that the UI can then display in a Problems pane (or any other consumer).
+ *   Public declarations for normalizing build tool output into canonical UmiDiag records.
  *
- * DECOUPLING:
- *   - Depends only on umi_output_sink.h for the UmiDiagSeverity enum.
+ * DESIGN:
+ *   UI-free. Pure parsing utilities used by BuildRunner and DiagnosticsRouter.
  *
  * API:
- *   typedef struct UmiParsedDiag { ... } UmiParsedDiag;
- *   gboolean umi_diag_parse_gcc(const char *line, UmiParsedDiag *out);
- *   gboolean umi_diag_parse_msvc(const char *line, UmiParsedDiag *out);
- *   gboolean umi_diag_parse_clang(const char *line, UmiParsedDiag *out);
+ *   UmiDiagParser, umi_diag_parser_new, umi_diag_parser_free, umi_diag_parser_feed_line
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-#ifndef UMI_DIAGNOSTIC_PARSERS_H
-#define UMI_DIAGNOSTIC_PARSERS_H
 
-#include <glib.h>
-#include "src/include/umi_output_sink.h"  /* UmiDiagSeverity */
+#pragma once
 
-G_BEGIN_DECLS
+/*  RATIONALE
+ *  ────────────────────────────────────────────────────────────────────────────
+ *  Downstream modules (core router, problems pane) do not want to know about
+ *  the raw build tool line formats. This module converts raw text lines into
+ *  UmiDiag records that capture severity, file, range, and message.
+ *
+ *  We include ONLY the canonical diagnostics types:
+ */
+#include "umi_output_sink.h"  /* brings UmiDiag/UmiDiagSeverity */
 
-typedef struct UmiParsedDiag
-{
-    UmiDiagSeverity sev;     /* note/warning/error */
-    char           *file;    /* optional */
-    int             line;    /* 1-based; 0 -> unknown */
-    char           *message; /* never NULL (empty OK) */
-} UmiParsedDiag;
+/*  FORWARD TYPES
+ *  ────────────────────────────────────────────────────────────────────────────
+ *  Opaque parser instance. Internals are private to diagnostic_parsers.c
+ */
+typedef struct _UmiDiagParser UmiDiagParser;
 
-gboolean umi_diag_parse_gcc  (const char *line, UmiParsedDiag *out);
-gboolean umi_diag_parse_msvc (const char *line, UmiParsedDiag *out);
-gboolean umi_diag_parse_clang(const char *line, UmiParsedDiag *out);
+/*  LIFETIME
+ *  ────────────────────────────────────────────────────────────────────────────
+ *  'tool_name' is a hint (e.g., "gcc", "clang", "msvc", "ninja") to enable
+ *  specialized parse paths. Unknown tools fall back to heuristics.
+ */
+UmiDiagParser *umi_diag_parser_new (const char *tool_name);
+/*  Destroy a parser and free resources. */
+void           umi_diag_parser_free(UmiDiagParser *p);
 
-void     umi_parsed_diag_clear(UmiParsedDiag *d);
+/*  FEED LINES
+ *  ────────────────────────────────────────────────────────────────────────────
+ *  Feed a single raw output line from the build tool. If a diagnostic is
+ *  recognized, '*out' is set to a newly allocated UmiDiag which the caller
+ *  must free with 'umi_diag_free' (defined alongside UmiDiag).
+ *
+ *  Returns TRUE if a diagnostic was produced for this line; FALSE otherwise.
+ *  Non-diagnostic lines should simply return FALSE.
+ */
+gboolean       umi_diag_parser_feed_line(UmiDiagParser *p,
+                                         const char   *raw_line,
+                                         UmiDiag     **out);
 
-G_END_DECLS
-
-#endif /* UMI_DIAGNOSTIC_PARSERS_H */
+/*  THREADING
+ *  ────────────────────────────────────────────────────────────────────────────
+ *  Parsers are not thread-safe; feed them on the same thread that created them.
+ */

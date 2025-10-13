@@ -74,7 +74,8 @@ umi_llm_chat_stream_ex(const UmiLlmCfg *cfg,
 
 typedef struct {
     /* Controls */
-    GtkComboBoxText *provider;
+    GtkDropDown *provider;
+    GtkStringList *provider_model;
     GtkSwitch       *stream_sw;
     GtkCheckButton  *show_alts;
     GtkEntry        *entry;
@@ -191,11 +192,13 @@ on_send(GtkButton *btn, gpointer user_data)
     }
 
     /* Provider selection (GtkComboBoxText API returns newly-allocated string). */
-    char *prov = gtk_combo_box_text_get_active_text(lab->provider);
+    guint _idx = gtk_drop_down_get_selected(GTK_DROP_DOWN(lab->provider));
+    const char *prov = _idx != GTK_INVALID_LIST_POSITION ?
+        gtk_string_list_get_string(lab->provider_model, _idx) : "zai";
     if (prov) {
         if (g_ascii_strcasecmp(prov, "openai") == 0) cfg.provider = UMI_LLM_PROVIDER_OPENAI;
         else                                         cfg.provider = UMI_LLM_PROVIDER_ZAI;
-        g_free(prov);
+        /* no free needed: GtkStringList returns const string */
     }
 
     cfg.stream = gtk_switch_get_active(lab->stream_sw);
@@ -230,10 +233,13 @@ build_lab(LlmLab **out_state)
     gtk_widget_set_hexpand(grid, TRUE);
     gtk_widget_set_vexpand(grid, TRUE);
 
-    lab->provider = GTK_COMBO_BOX_TEXT(gtk_combo_box_text_new());
-    gtk_combo_box_text_append_text(lab->provider, "zai");
-    gtk_combo_box_text_append_text(lab->provider, "openai");
-    gtk_combo_box_set_active(GTK_COMBO_BOX(lab->provider), 0);
+    lab->provider_model = gtk_string_list_new(NULL);
+    gtk_string_list_append(lab->provider_model, "zai");
+    gtk_string_list_append(lab->provider_model, "openai");
+    lab->provider = GTK_DROP_DOWN(gtk_drop_down_new(G_LIST_MODEL(lab->provider_model), NULL));
+    /* moved into GtkStringList above */
+    /* moved into GtkStringList above */
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(lab->provider), 0);
 
     lab->stream_sw = GTK_SWITCH(gtk_switch_new());
     gtk_switch_set_active(lab->stream_sw, TRUE);

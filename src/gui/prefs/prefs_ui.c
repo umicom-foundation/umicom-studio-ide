@@ -96,7 +96,8 @@ UmiPrefsUI *umi_prefs_create(GtkWindow *parent, const char *json_path){
   ui->store = umi_json_store_load(json_path ? json_path : "config/settings.json");
 
   /* Create a simple dialog with “Save” and “Cancel” buttons.                 */
-  ui->dialog = gtk_dialog_new_with_buttons("Preferences", parent,
+  ui->dialog = G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+gtk_dialog_new_with_buttons("Preferences", parent,
                                            0 /* flags */,
                                            "Save",   GTK_RESPONSE_OK,
                                            "Cancel", GTK_RESPONSE_CANCEL,
@@ -129,7 +130,10 @@ UmiPrefsUI *umi_prefs_create(GtkWindow *parent, const char *json_path){
 
   /* Wire the explicit Save button click so flow is easy to follow/maintain.  */
   GtkWidget *save_btn =
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     gtk_dialog_get_widget_for_response(GTK_DIALOG(ui->dialog), GTK_RESPONSE_OK);
+G_GNUC_END_IGNORE_DEPRECATIONS
+G_GNUC_END_IGNORE_DEPRECATIONS
   g_signal_connect(save_btn, "clicked", G_CALLBACK(on_save), ui);
 
   return ui;

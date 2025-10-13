@@ -28,7 +28,9 @@ UmiThemePalette *umi_theme_palette_new(void) {
     UmiThemePalette *p = g_new0(UmiThemePalette, 1);        // Allocate and zero state.
     /* NOTE: GtkDialog is deprecated in GTK4. We’ll migrate to GtkAlertDialog /
      * GtkWindow + custom content in Phase 2. For now we keep it compiling. */
-    p->dialog = gtk_dialog_new();                            // Create dialog (deprecated).
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    p->dialog = gtk_dialog_new();
+    G_GNUC_END_IGNORE_DEPRECATIONS                            // Create dialog (deprecated).
     return p;                                                // Return allocated state.
 }
 
@@ -36,7 +38,8 @@ UmiThemePalette *umi_theme_palette_new(void) {
 void umi_theme_palette_open(UmiThemePalette *p, GtkWindow *parent) {
     g_return_if_fail(p != NULL);                             // Defensive null check.
     gtk_window_set_transient_for(GTK_WINDOW(p->dialog), parent); // Parent relationship.
-    gtk_widget_show(p->dialog);                              // Show dialog widget.
+    gtk_widget_set_visible(p->dialog, TRUE);
+    if (GTK_IS_WINDOW(p->dialog)) gtk_window_present(GTK_WINDOW(p->dialog));                              // Show dialog widget.
 }
 
 /* Destroy the theme palette object. */
