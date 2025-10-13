@@ -1,0 +1,35 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{208BA388-4CEE-2CBF-559C-5607C099C1F8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{29C0FA52-4EA2-E1C0-04B6-3162E2848A9C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{367A34F2-D1E7-9ECF-6C85-AA1035560F37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hello", "docs\examples\templates\csharp-hello\hello.csproj", "{5AF2F91C-8477-C67A-4FB2-4E30B53DC13F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5AF2F91C-8477-C67A-4FB2-4E30B53DC13F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AF2F91C-8477-C67A-4FB2-4E30B53DC13F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AF2F91C-8477-C67A-4FB2-4E30B53DC13F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AF2F91C-8477-C67A-4FB2-4E30B53DC13F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{29C0FA52-4EA2-E1C0-04B6-3162E2848A9C} = {208BA388-4CEE-2CBF-559C-5607C099C1F8}
+		{367A34F2-D1E7-9ECF-6C85-AA1035560F37} = {29C0FA52-4EA2-E1C0-04B6-3162E2848A9C}
+		{5AF2F91C-8477-C67A-4FB2-4E30B53DC13F} = {367A34F2-D1E7-9ECF-6C85-AA1035560F37}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5264CBE6-49B5-46CB-9991-A7A36384DCCD}
+	EndGlobalSection
+EndGlobal

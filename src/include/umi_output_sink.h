@@ -3,65 +3,91 @@
  * File: src/include/umi_output_sink.h
  *
  * PURPOSE:
- *   A tiny, cross-module interface for "output sinks" — a loosely coupled
- *   callback used by producers (build, run, tools) to stream text lines to
- *   consumers (output console, problems pane, log window, etc.).
+ *   Define a small, GUI-agnostic "output sink" interface that the build
+ *   subsystem can write to (stdout/stderr lines, begin/end groups, etc.).
+ *   This allows build code to remain loosely coupled: it does not include
+ *   headers from UI panes (console/problems) and vice versa.
  *
- *   This header deliberately lives in:  src/include/
- *   which is already part of the global include path in CMake, so any
- *   submodule can include it without using fragile relative paths.
+ * NOTES ON COUPLING:
+ *   - Depends only on GLib and the canonical diagnostics enum in
+ *     src/include/umi_diagnostics.h.
+ *   - NO Gtk types or widget structs appear here.
  *
- * MOTIVATION (ARCHITECTURE):
- *   Previously, files in src/build/ included pane-specific headers via:
- *       #include "../../panes/output/include/output_console.h"
- *       #include "../../panes/output/include/output_pipeline.h"
- *   That created bidirectional coupling and brittle relative paths.
- *   With this abstraction, the build system only depends on this header,
- *   and the UI layer provides an adapter that implements the callback.
+ * CHANGELOG (Design Rationale):
+ *   - Centralized severity in umi_diagnostics.h to avoid enum duplication and
+ *     redefinition errors previously seen when different modules declared their
+ *     own severities with mismatched ordering.
  *
- * HOW IT WORKS:
- *   - Producers push complete, UTF-8 lines (without trailing '\n' required;
- *     adapters may normalize).
- *   - The 'is_err' flag lets a consumer style stderr differently.
- *   - The opaque 'user' pointer lets a consumer carry context (e.g. a
- *     UmiOutputConsole* instance, a GtkTextBuffer*, etc.).
- *
- *   The producer never includes any pane or GTK headers—only this file.
- *
- * THREADING:
- *   Callbacks are invoked on the GLib main context in this codebase.
- *   If a producer is multi-threaded, it must marshal into the main loop
- *   before calling a UI-backed sink.
- *
- * LIFETIME / OWNERSHIP:
- *   - The producer does not own 'user' and must not free it.
- *   - Strings passed to the sink are read-only for the duration of the call.
- *
- * VERSIONING:
- *   Keep this header minimal and stable. Add fields by adding new functions
- *   (e.g., a struct-based sink) rather than changing this signature.
- *
- * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMI_OUTPUT_SINK_H
 #define UMI_OUTPUT_SINK_H
 
-#include <glib.h>   /* gboolean, gpointer */
+/*---------------------------------------------------------------------------
+ * Minimal includes: keep this header lightweight to avoid deep dependency
+ * chains.  We need GLib for gboolean/gpointer and the canonical severity.
+ *---------------------------------------------------------------------------*/
+#include <glib.h>
+#include "umi_diagnostics.h"
 
 G_BEGIN_DECLS
 
-/*-------------------------------------------------------------------------*/
-/* UmiOutputSink
+/*---------------------------------------------------------------------------
+ * UmiOutputSink:
+ *   A tiny callback bundle used by CLI/build-facing code to emit structured
+ *   lines and lifecycle signals.  Any UI or logger can implement this.
  *
- *  A generic, line-oriented sink function pointer. The meaning of 'user'
- *  is defined by the consumer (the party that provides the sink).
- *
- *  Parameters:
- *    user   - opaque pointer supplied by the consumer when wiring the sink.
- *    line   - a UTF-8 string for one logical line of output (may be empty).
- *    is_err - TRUE if the line came from stderr; FALSE for stdout.
- *-------------------------------------------------------------------------*/
-typedef void (*UmiOutputSink)(gpointer user, const char *line, gboolean is_err);
+ * IMPLEMENTATION GUIDELINES FOR SINKS:
+ *   - All callbacks are optional; NULL is a no-op.
+ *   - Implementations must be thread-aware if called off main thread.
+ *---------------------------------------------------------------------------*/
+typedef struct UmiOutputSink_ {
+    /*-----------------------------------------------------------------------
+     * Emit one logical line of output.
+     *   - 'line' should be a single line without trailing newline.
+     *   - 'is_stderr' distinguishes stdout vs stderr for styling.
+     *-----------------------------------------------------------------------*/
+    void (*write_line)(void *user, const char *line, gboolean is_stderr);
+
+    /*-----------------------------------------------------------------------
+     * Emit a parsed diagnostic (if available).
+     *   - severity + file:line:col + message
+     *   - File path may be absolute or workspace-relative depending on caller.
+     *-----------------------------------------------------------------------*/
+    void (*emit_diagnostic)(void *user,
+                            UmiDiagSeverity sev,
+                            const char     *file,
+                            int             line,
+                            int             column,
+                            const char     *message);
+    /*-----------------------------------------------------------------------
+     * Lifecycle hooks (optional).
+     *-----------------------------------------------------------------------*/
+    void (*begin_group)(void *user, const char *label);
+    void (*end_group)  (void *user);
+
+    /*-----------------------------------------------------------------------
+     * Opaque user pointer forwarded to every callback.
+     *-----------------------------------------------------------------------*/
+    void *user;
+} UmiOutputSink;
+
+/*---------------------------------------------------------------------------
+ * Small helpers to safely invoke callbacks if the sink is partially filled.
+ *---------------------------------------------------------------------------*/
+static inline void umi_sink_write(UmiOutputSink *s, const char *line, gboolean is_stderr){
+    if (s && s->write_line) s->write_line(s->user, line, is_stderr);
+}
+static inline void umi_sink_diag(UmiOutputSink *s, UmiDiagSeverity sev,
+                                 const char *file, int line, int column, const char *msg){
+    if (s && s->emit_diagnostic) s->emit_diagnostic(s->user, sev, file, line, column, msg);
+}
+static inline void umi_sink_begin(UmiOutputSink *s, const char *label){
+    if (s && s->begin_group) s->begin_group(s->user, label);
+}
+static inline void umi_sink_end(UmiOutputSink *s){
+    if (s && s->end_group) s->end_group(s->user);
+}
 
 G_END_DECLS
 

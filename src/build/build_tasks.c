@@ -1,78 +1,102 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build/build_tasks.c
- * PURPOSE:
- *   Thin helpers around the build runner to execute shell commands in a
- *   controlled, cross-platform way for the IDE's task system.
  *
- * NOTES:
- *   - Matches build_runner.h signatures exactly (argv/envp are char* const*).
- *   - Keeps implementation tiny; captures/stdout routing is handled by the
- *     runner sink (see umi_build_runner_set_sink()).
+ * PURPOSE:
+ *   Loosely-coupled implementation of the "Build Tasks" façade declared in
+ *   src/build/include/build_tasks.h. All text is sent through UmiOutputSink.
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-12 | MIT
  *---------------------------------------------------------------------------*/
+#include <glib.h>
+#include "build_tasks.h"
 
-#include <glib.h>                 /* gboolean, GString, GError                 */
+struct _UmiBuildTasks {
+  gchar          *root;        /* Project root directory                     */
+  UmiBuildSys    *sys;         /* Build system descriptor                     */
+  UmiBuildRunner *runner;      /* Process runner                              */
+  UmiOutputSink   sink;        /* Output line callback (may be NULL)          */
+  gpointer        sink_user;   /* Opaque user-data passed to sink             */
+};
 
-#include "build_tasks.h"          /* this module’s header (public helpers)     */
-#include "build_runner.h"         /* UmiBuildRunner API                         */
-
-/* Execute a command with no extra args; forward any error text to 'err'.      */
-gboolean
-umi_run_command_simple(const char *cmd, const char *cwd, GString *out, GString *err)
+static inline void append_gerror(GString *err, const GError *gerr)
 {
-    /* Validate cmd early.                                                     */
-    if (G_UNLIKELY(!cmd || !*cmd)) {
-        if (err) g_string_append(err, "umi_run_command_simple: empty command\n");
-        return FALSE;
-    }
-
-    /* argv must be NULL-terminated; cast is safe (we never modify strings).   */
-    char *argvv[] = { (char *)cmd, NULL };
-
-    /* envp: NULL => inherit.                                                  */
-    char * const *envp = NULL;
-
-    /* Normalize working directory.                                            */
-    const char *work_dir = (cwd && *cwd) ? cwd : ".";
-
-    /* Create runner.                                                          */
-    UmiBuildRunner *runner = umi_build_runner_new();
-    if (!runner) {
-        if (err) g_string_append(err, "umi_run_command_simple: runner alloc failed\n");
-        return FALSE;
-    }
-
-    /* We don’t need a sink here (GUI usually wires it elsewhere).             */
-    /* umi_build_runner_set_sink(runner, my_sink, my_user); */
-
-    GError *gerr = NULL;
-    gboolean ok = umi_build_runner_run(
-        runner,               /* runner instance                               */
-        argvv,                /* argv: { cmd, NULL }                           */
-        envp,                 /* envp: inherit                                 */
-        work_dir,             /* cwd                                           */
-        NULL,                 /* on_exit (unused here)                         */
-        NULL,                 /* user (unused here)                            */
-        &gerr                 /* error details                                 */
-    );
-
-    if (!ok) {
-        if (gerr) {
-            if (err) g_string_append_printf(err, "runner error: %s\n",
-                                            gerr->message ? gerr->message : "unknown");
-            g_clear_error(&gerr);
-        } else {
-            if (err) g_string_append(err, "runner error (no message)\n");
-        }
-    } else {
-        (void)out; /* Current runner version streams to sink; silence unused. */
-    }
-
-    /* If you add umi_build_runner_free() in the header later, call it here.   */
-    /* umi_build_runner_free(runner); */
-
-    return ok;
+  if (!err) return;
+  if (gerr && gerr->message) g_string_append_printf(err, "%s\n", gerr->message);
+  else                       g_string_append(err, "unknown error\n");
 }
-/*--- end of file ---*/
+
+UmiBuildTasks *umi_build_tasks_new(const char *root, UmiOutputSink sink, gpointer sink_user)
+{
+  UmiBuildTasks *bt = g_new0(UmiBuildTasks, 1);
+  bt->root      = g_strdup(root ? root : ".");
+  bt->sys       = umi_buildsys_detect(bt->root);
+  bt->runner    = umi_build_runner_new();
+  bt->sink      = sink;
+  bt->sink_user = sink_user;
+  /* Ensure runner forwards output to our sink. */
+  umi_build_runner_set_sink(bt->runner, bt->sink, bt->sink_user);
+  return bt;
+}
+
+void umi_build_tasks_free(UmiBuildTasks *bt)
+{
+  if (!bt) return;
+  if (bt->runner) { umi_build_runner_free(bt->runner); bt->runner = NULL; }
+  if (bt->sys)    { umi_buildsys_free(bt->sys);         bt->sys    = NULL; }
+  g_clear_pointer(&bt->root, g_free);
+  g_free(bt);
+}
+
+void umi_build_tasks_set_sink(UmiBuildTasks *bt, UmiOutputSink sink, gpointer sink_user)
+{
+  if (!bt) return;
+  bt->sink      = sink;
+  bt->sink_user = sink_user;
+  umi_build_runner_set_sink(bt->runner, bt->sink, bt->sink_user);
+}
+
+/* Small helper to run a prepared argv vector via the runner. */
+static gboolean run_argv(UmiBuildTasks *bt, GPtrArray *argv, GString *err)
+{
+  if (!bt || !bt->runner || !argv) return FALSE;
+  char * const *argvv = (char * const *)argv->pdata;
+  GError *gerr = NULL;
+  gboolean ok = umi_build_runner_run(bt->runner, argvv, NULL, bt->root,
+                                     /* on_exit */ NULL, /* user */ bt,
+                                     &gerr);
+  if (!ok) append_gerror(err, gerr), g_clear_error(&gerr);
+  return ok;
+}
+
+gboolean umi_build_tasks_build(UmiBuildTasks *bt, GString *err)
+{
+  if (!bt || !bt->sys) return FALSE;
+  GPtrArray *argv = umi_buildsys_build_argv(bt->sys);
+  gboolean ok = run_argv(bt, argv, err);
+  if (argv) g_ptr_array_free(argv, TRUE);
+  return ok;
+}
+
+gboolean umi_build_tasks_run(UmiBuildTasks *bt, GString *err)
+{
+  if (!bt || !bt->sys) return FALSE;
+  GPtrArray *argv = umi_buildsys_run_argv(bt->sys);
+  gboolean ok = run_argv(bt, argv, err);
+  if (argv) g_ptr_array_free(argv, TRUE);
+  return ok;
+}
+
+gboolean umi_build_tasks_test(UmiBuildTasks *bt, GString *err)
+{
+  if (!bt || !bt->sys) return FALSE;
+  GPtrArray *argv = umi_buildsys_test_argv(bt->sys);
+  gboolean ok = run_argv(bt, argv, err);
+  if (argv) g_ptr_array_free(argv, TRUE);
+  return ok;
+}
+
+const char *umi_build_tasks_root(const UmiBuildTasks *bt)
+{
+  return bt ? bt->root : NULL;
+}
