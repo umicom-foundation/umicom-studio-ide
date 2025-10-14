@@ -17,7 +17,7 @@ umi_status_new(GtkStatusbar *bar)
     UmiStatus *st = g_new0(UmiStatus, 1);                      /* Allocate zeroed struct */
     st->bar = bar;                                             /* Borrowed UI pointer */
 
-    /* GtkStatusbar is deprecated in GTK4; keep for now and silence warnings. */
+     /* GtkStatusbar is deprecated in GTK4; keep for now and silence warnings. */
 #if defined(G_GNUC_BEGIN_IGNORE_DEPRECATIONS)
     G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 #endif
@@ -36,10 +36,11 @@ umi_status_push(UmiStatus *st, const char *msg)
 #if defined(G_GNUC_BEGIN_IGNORE_DEPRECATIONS)
     G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 #endif
-    /* GtkStatusbar shows the top of a per-context stack; use push()/pop() as needed. */
-    if (!msg || !*msg) {
-        /* Empty: clear by pushing a blank or popping — push blank keeps behavior simple. */
-        gtk_statusbar_push(st->bar, st->ctx_id, "");           /* Show empty text */
+ /* GtkStatusbar shows the top of a per-context stack; use push()/pop() as needed. */
+if (!msg || !*msg) {
+
+       /* Empty: clear by pushing a blank or popping — push blank keeps behavior simple. */    
+       gtk_statusbar_push(st->bar, st->ctx_id, "");           /* Show empty text */
     } else {
         gtk_statusbar_push(st->bar, st->ctx_id, msg);          /* Show provided message */
     }
@@ -53,9 +54,4 @@ umi_status_free(UmiStatus *st)
 {
     g_free(st);                                                /* Free wrapper (no UI destroy) */
 }
-/*-----------------------------------------------------------------------------
- * Umicom Studio IDE
- * File: src/util/git/git_integration.c
- * PURPOSE: Implementation of Git helpers (child process + capture)
- * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
- *---------------------------------------------------------------------------*/
+/*  END OF FILE */

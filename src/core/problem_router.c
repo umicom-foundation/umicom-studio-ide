@@ -26,6 +26,7 @@
 #include "umi_output_sink.h"       /* UmiDiag severity/type if needed          */
 
 /* --- Tiny compatibility adapters ----------------------------------------- */
+
 #ifndef umi_problem_list_clear
 #define umi_problem_list_clear problem_list_clear
 #endif
@@ -38,14 +39,16 @@
  * - Emit a small banner in the Output pane (optional, UX-friendly).         */
 void umi_problem_router_begin(UmiProblemRouter *r)
 {
-  if (!r) return;                                   /* tolerate NULL router            */
+  if (!r) return;
 
-  /* Problems model may be absent in headless/CLI scenarios; guard pointers. */
+ /* Problems model may be absent in headless/CLI scenarios; guard pointers. */
+
   if (r->plist) {
-    (void)umi_problem_list_clear(r->plist);         /* returns removed count (unused) */
+    (void)umi_problem_list_clear(r->plist);
   }
 
-  /* Output pane is optional; mirror a small “start” marker for context.     */
+ /* Output pane is optional; mirror a small “start” marker for context.     */
+
   if (r->out) {
     umi_output_pane_append_line(r->out, "[problems] started");
   }
@@ -55,30 +58,33 @@ void umi_problem_router_begin(UmiProblemRouter *r)
  * - Try to parse into a UmiDiag (severity, file, line, message…).
  * - If parsed, add it to the Problems model.
  * - Always mirror the raw line to the Output pane for transparency.         */
+
 void umi_problem_router_feed(UmiProblemRouter *r, const char *line)
 {
-  if (!r || !line) return;                           /* nothing to do                   */
+  if (!r || !line) return;
 
-  /* Mirror first so users see the exact tool output even if parsing fails.  */
+ /* Mirror first so users see the exact tool output even if parsing fails.  */
+
   if (r->out) {
     umi_output_pane_append_line(r->out, line);
   }
 
   /* Try to parse as a diagnostic and push into the Problems list.           */
+
   if (r->plist) {
-    UmiDiagParser *p = umi_diag_parser_new(NULL);    /* generic parser (auto/heur)     */
+    UmiDiagParser *p = umi_diag_parser_new(NULL);
     UmiDiag *diag = NULL;
 
     if (umi_diag_parser_feed_line(p, line, &diag) && diag) {
-      (void)umi_problem_list_add(r->plist, diag);   /* take a copy into the model      */
-      umi_diag_free(diag);                           /* free our temporary copy         */
+      (void)umi_problem_list_add(r->plist, diag);
+      umi_diag_free(diag);
     }
 
-    umi_diag_parser_free(p);                         /* release parser instance         */
+    umi_diag_parser_free(p);
   }
 }
-
 /* End of session:                                                            */
+
 void umi_problem_router_end(UmiProblemRouter *r)
 {
   if (!r) return;

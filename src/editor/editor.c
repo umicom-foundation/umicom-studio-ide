@@ -19,8 +19,8 @@
 #include <gtk/gtk.h>
 
 #include "editor.h"          /* UmiEditor struct & API               */
-#include "problem_list.h"    /* problem_list_* API                  */
-#include "output_pane.h"     /* UmiOutputPane + widget accessor     */
+#include "problem_list.h"    /* problem_list_* / umi_problem_list_*  */
+#include "output_pane.h"     /* UmiOutputPane + widget accessor      */
 #include "status.h"          /* shim → forwards to status_util.h     */
 
 /* --- Tiny compatibility: prefer umi_ names but fall back to legacy -------- */

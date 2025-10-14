@@ -56,8 +56,8 @@ void umi_build_tasks_free(UmiBuildTasks *t) {
 }
 
 void umi_build_tasks_set_sink(UmiBuildTasks *t, UmiOutputSink *sink) {
-  if (!t) return;
-  t->sink = sink;   /* (fixed misleading indentation warning) */
+  if (!t) { return; }          /* (fixed misleading indentation warning) */
+  t->sink = sink;
 }
 
 /* Accessor declared in the header. */
@@ -125,4 +125,5 @@ gboolean umi_build_tasks_test(UmiBuildTasks *t, GError **error) {
   emit(t, UMI_DIAG_NOTE, "Test not implemented yet");
   return TRUE;
 }
+
 /*  END OF FILE */
