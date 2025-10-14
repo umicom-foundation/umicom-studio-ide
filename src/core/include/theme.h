@@ -8,7 +8,7 @@
  *
  * DESIGN:
  *   - Only declarations are provided here.
- *   - Implementations live in src/gui/theme/*.c.
+ *   - Implementations live in the GUI theme directory (src/gui/theme/).
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/

@@ -15,37 +15,25 @@
  *---------------------------------------------------------------------------*/
 
 #include "diagnostics_router.h"  /* our struct + API                             */
-#include "problem_list.h"        /* problem_list_clear/add (legacy names)        */
+#include "problem_list.h"        /* umi_problem_list_* API                       */
 #include "output_pane.h"         /* umi_output_pane_* API                        */
-#include "diagnostic_parsers.h"  /* UmiDiagParser / feed_line                     */
-#include "umi_output_sink.h"     /* UmiDiag / severity                            */
-
-/* --- Tiny compatibility adapters ----------------------------------------- */
-/* Prefer the “umi_” names locally; fall back to legacy if the header only
- * provides the old symbols. This avoids build-system macro aliasing.        */
-
-#ifndef umi_problem_list_clear
-#define umi_problem_list_clear problem_list_clear
-#endif
-#ifndef umi_problem_list_add
-#define umi_problem_list_add   problem_list_add
-#endif
+#include "diagnostic_parsers.h"  /* UmiDiagParser / feed_line                    */
+#include "umi_output_sink.h"     /* UmiDiag / severity                           */
 
 /* Start a routing session:
  * - Create internal parser (generic, tool autodetect/heuristic).
  * - Clear Problems model and print a small banner.                            */
-
 void umi_diag_router_begin(UmiDiagRouter *dr)
 {
   if (!dr) return;
-/* Reset any previous parser first (defensive programming).                 */
+
+  /* Reset any previous parser first (defensive programming).                 */
   if (dr->parser) {
     umi_diag_parser_free(dr->parser);
     dr->parser = NULL;
   }
 
- /* Fresh parser — leave tool_name NULL for generic heuristics.              */
-
+  /* Fresh parser — leave tool_name NULL for generic heuristics.              */
   dr->parser = umi_diag_parser_new(NULL);
 
   if (dr->plist) (void)umi_problem_list_clear(dr->plist);
@@ -55,7 +43,6 @@ void umi_diag_router_begin(UmiDiagRouter *dr)
 /* Feed a raw line:
  * - Always mirror to Output.
  * - If parser recognizes a diagnostic, add it to Problems.                   */
-
 void umi_diag_router_feed(UmiDiagRouter *dr, const char *line)
 {
   if (!dr || !line) return;
@@ -74,7 +61,6 @@ void umi_diag_router_feed(UmiDiagRouter *dr, const char *line)
 /* End a routing session:
  * - Free internal parser.
  * - Print a closing banner; counters can be added later.                     */
-
 void umi_diag_router_end(UmiDiagRouter *dr)
 {
   if (!dr) return;
@@ -86,3 +72,4 @@ void umi_diag_router_end(UmiDiagRouter *dr)
 
   if (dr->out) umi_output_pane_append_line(dr->out, "[diag] parsing done");
 }
+/*  END OF FILE */

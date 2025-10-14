@@ -17,7 +17,6 @@ project(umicom_studio_ide LANGUAGES C)
 # -----------------------------------------------------------------------------
 # Version / policy notes (kept as-is)
 # -----------------------------------------------------------------------------
-# (… your existing comments and notes here remain unchanged …)
 set(UMICOM_STUDIO_IDE_VERSION_MAJOR 0)
 set(UMICOM_STUDIO_IDE_VERSION_MINOR 9)
 set(UMICOM_STUDIO_IDE_VERSION_PATCH 0)
@@ -64,7 +63,7 @@ pkg_check_modules(CURL       REQUIRED IMPORTED_TARGET libcurl)
 
 # GUI stack
 pkg_check_modules(GTK4       REQUIRED IMPORTED_TARGET gtk4)
-pkg_check_modules(GDK_PIXBUF REQUIRED IMPORTED_TARGET gdk-pixbuf-2.0) # ← fixed underscore
+pkg_check_modules(GDK_PIXBUF REQUIRED IMPORTED_TARGET gdk-pixbuf-2.0)
 pkg_check_modules(CAIRO      REQUIRED IMPORTED_TARGET cairo)
 pkg_check_modules(PANGO      REQUIRED IMPORTED_TARGET pango)
 pkg_check_modules(HARFBUZZ   REQUIRED IMPORTED_TARGET harfbuzz)
@@ -134,7 +133,7 @@ endif()
 # =============================================================================
 # INCLUDE DIRECTORIES
 # =============================================================================
-# Build an include list that matches our header-by-name strategy (e.g., #include "app.h")
+# Base include list that matches our header-by-name strategy (e.g., #include "app.h")
 set(USIDE_INCLUDE_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src"
@@ -170,6 +169,13 @@ set(USIDE_INCLUDE_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/ui/partials"
 )
 
+# --- NEW: auto-add every .../include folder under src/** ---------------------
+# This closes the gap for headers like problem_list.h, app.h, etc.,
+# which live in per-module include/ directories.
+file(GLOB_RECURSE USIDE_AUTO_INCLUDE_DIRS LIST_DIRECTORIES true
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/*/include")
+list(APPEND USIDE_INCLUDE_DIRS ${USIDE_AUTO_INCLUDE_DIRS})
+
 if(USIDE_ENABLE_UAENGINE)
   list(APPEND USIDE_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/umicom/uengine/include"
@@ -204,8 +210,8 @@ target_compile_definitions(umicom-studio-ide PRIVATE USIDE_GUI=$<BOOL:${USIDE_GU
 
 target_compile_definitions(umicom-studio-ide PRIVATE
   gtk_widget_destroy=g_object_unref
-  # NOTE (2025-10-14): We removed any OutputPane→Sink aliasing here.
-)
+# NOTE (2025-10-14): We removed any OutputPane→Sink aliasing here.
+  )
 
 # =============================================================================
 # APPLY INCLUDE DIRS / WARNINGS / FLAGS
@@ -268,6 +274,7 @@ endif()
 # )
 
 # target_sources(umicom-studio-ide PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/ustudio_gresource.c)
+
 
 # =============================================================================
 # INSTALL (optional)

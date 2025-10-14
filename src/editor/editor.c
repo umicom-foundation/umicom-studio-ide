@@ -19,17 +19,9 @@
 #include <gtk/gtk.h>
 
 #include "editor.h"          /* UmiEditor struct & API               */
-#include "problem_list.h"    /* problem_list_* / umi_problem_list_*  */
+#include "problem_list.h"    /* umi_problem_list_* API               */
 #include "output_pane.h"     /* UmiOutputPane + widget accessor      */
 #include "status.h"          /* shim → forwards to status_util.h     */
-
-/* --- Tiny compatibility: prefer umi_ names but fall back to legacy -------- */
-#ifndef umi_problem_list_new_with_cb
-#define umi_problem_list_new_with_cb problem_list_new_with_cb
-#endif
-#ifndef umi_problem_list_widget
-#define umi_problem_list_widget      problem_list_widget
-#endif
 
 static void on_problem_activate(gpointer user, const char *file, int line, int col)
 {
@@ -68,7 +60,7 @@ UmiEditor *umi_editor_new(void)
                            umi_output_pane_widget(ed->out),
                            out_tab);
 
-  /* Problems list — use callback-enabled constructor (umi_ name preferred) */
+  /* Problems list — use callback-enabled constructor (umi_ name) */
   ed->problems = umi_problem_list_new_with_cb(on_problem_activate, ed);
   GtkWidget *prb_tab = gtk_label_new("Problems");
   gtk_notebook_append_page(GTK_NOTEBOOK(nb),
