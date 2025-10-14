@@ -21,9 +21,8 @@
 #include "editor.h"          /* UmiEditor struct & API               */
 #include "problem_list.h"    /* problem_list_* API                  */
 #include "output_pane.h"     /* UmiOutputPane + widget accessor     */
-#include "status_util.h"     /* optional status messaging           */
+#include "status.h"          /* shim → forwards to status_util.h     */
 
-/* Local activation callback invoked by the Problems list. */
 static void on_problem_activate(gpointer user, const char *file, int line, int col)
 {
   UmiEditor *ed = (UmiEditor *)user;
@@ -91,3 +90,4 @@ void umi_editor_free(UmiEditor *ed)
   if (ed->root)   g_object_unref(ed->root); /* children destroyed with root */
   g_free(ed);
 }
+/*  END OF FILE */

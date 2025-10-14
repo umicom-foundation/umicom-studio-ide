@@ -27,6 +27,8 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 
+G_BEGIN_DECLS  /* allow clean inclusion from C++ units if needed */
+
 /* Forward declarations to keep this header light */
 typedef struct _UmiOutputPane  UmiOutputPane;
 typedef struct _UmiProblemList UmiProblemList;
@@ -51,3 +53,6 @@ void       umi_editor_free(UmiEditor *ed);
 gboolean umi_editor_open_file(UmiEditor *ed, const char *path, GError **err);
 gboolean umi_editor_save     (UmiEditor *ed, GError **err);
 gboolean umi_editor_save_as  (UmiEditor *ed, GError **err); /* wrapper (no dialog yet) */
+
+G_END_DECLS
+/*  END OF FILE */

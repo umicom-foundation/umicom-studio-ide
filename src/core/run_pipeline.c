@@ -19,7 +19,7 @@
 #include "run_pipeline.h"         /* public API we expose                */
 #include "run_config.h"           /* umi_run_config_* helpers            */
 #include "build_runner.h"         /* umi_build_runner_* APIs             */
-#include "diagnostics_router.h"   /* UmiDiagRouter for line routing     "
+#include "diagnostics_router.h"   /* UmiDiagRouter for line routing      */
 
 /* Small context that wires runner callbacks to our diagnostics router.       */
 typedef struct {

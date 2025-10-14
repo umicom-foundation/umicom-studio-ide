@@ -62,13 +62,13 @@ UmiRunner *umi_runner_new(void);
 
 /* Spawn a child process (non-blocking). Returns TRUE on spawn success. */
 gboolean umi_runner_run(
-  UmiRunner           *r,
-  char * const        *argv,
-  char * const        *envp,
-  const char          *cwd,
-  UmiRunnerExitCb      on_exit,
-  gpointer             user_data,
-  GError             **error
+  UmiRunner                 *r,
+  const char * const        *argv,     /* corrected const-qualification       */
+  const char * const        *envp,     /* corrected const-qualification       */
+  const char                *cwd,
+  UmiRunnerExitCb            on_exit,
+  gpointer                   user_data,
+  GError                   **error
 );
 
 /* Request polite termination of the running child (if any). */
@@ -77,5 +77,5 @@ void umi_runner_stop(UmiRunner *r);
 /* Destructor */
 void umi_runner_free(UmiRunner *r);
 
-G_ENDDECLS /* (typo guard) */
 G_END_DECLS
+/*  END OF FILE */
