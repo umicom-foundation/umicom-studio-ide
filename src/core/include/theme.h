@@ -17,7 +17,11 @@
 
 #include <gtk/gtk.h>
 
+/* Apply a named theme to the given window. */
 void umi_theme_apply(GtkWindow *win, const char *theme_name);
+
+/* Apply the default theme to the given window. */
 void umi_theme_apply_default(GtkWindow *win);
 
 #endif /* UMI_THEME_H */
+/*  END OF FILE */

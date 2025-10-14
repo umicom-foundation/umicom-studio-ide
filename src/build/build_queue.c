@@ -1,4 +1,3 @@
-\
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE (USIDE)
  * File: src/build/build_queue.c
@@ -16,6 +15,8 @@
 __attribute__((unused))
 #endif
 static void on_done(void *user, int code) { (void)user; (void)code; }
+
 /*-----------------------------------------------------------------------------
  * Lifecycle
  *---------------------------------------------------------------------------*/
+/* (Intentionally left stubbed; no behavior changes without the public header) */

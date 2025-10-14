@@ -11,9 +11,9 @@
  * DESIGN:
  *   - Public header is minimal and forward-declares consumer types to keep
  *     coupling low. Here in the .c we include the concrete public headers:
- *       • problem_list.h   (append/clear model)
- *       • output_pane.h    (append lines to UI)
- *       • diagnostic_parsers.h (normalize tool output to UmiDiag)
+ *       • problem_list.h        (append/clear model)
+ *       • output_pane.h         (append lines to UI)
+ *       • diagnostic_parsers.h  (normalize tool output to UmiDiag)
  *   - Never uses deep/relative include paths — headers are included by name.
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
@@ -21,9 +21,17 @@
 
 #include "problem_router.h"        /* our own API surface                      */
 #include "problem_list.h"          /* model operations                         */
-#include "output_pane.h"           /* output mirror                            */
-#include "diagnostic_parsers.h"    /* UmiDiagParser / UmiDiag                 "
+#include "output_pane.h"           /* umi_output_pane_* API                    */
+#include "diagnostic_parsers.h"    /* UmiDiagParser / UmiDiag                  */
 #include "umi_output_sink.h"       /* UmiDiag severity/type if needed          */
+
+/* --- Tiny compatibility adapters ----------------------------------------- */
+#ifndef umi_problem_list_clear
+#define umi_problem_list_clear problem_list_clear
+#endif
+#ifndef umi_problem_list_add
+#define umi_problem_list_add   problem_list_add
+#endif
 
 /* Begin a new routing session:
  * - Clear the Problems model so the user sees only fresh diagnostics.
@@ -34,13 +42,12 @@ void umi_problem_router_begin(UmiProblemRouter *r)
 
   /* Problems model may be absent in headless/CLI scenarios; guard pointers. */
   if (r->plist) {
-    /* Clear old diagnostics so counts/lists start from zero.                */
-    (void)problem_list_clear(r->plist);             /* returns removed count (unused) */
+    (void)umi_problem_list_clear(r->plist);         /* returns removed count (unused) */
   }
 
   /* Output pane is optional; mirror a small “start” marker for context.     */
   if (r->out) {
-    output_pane_append_line(r->out, "[problems] started");
+    umi_output_pane_append_line(r->out, "[problems] started");
   }
 }
 
@@ -54,16 +61,16 @@ void umi_problem_router_feed(UmiProblemRouter *r, const char *line)
 
   /* Mirror first so users see the exact tool output even if parsing fails.  */
   if (r->out) {
-    output_pane_append_line(r->out, line);
+    umi_output_pane_append_line(r->out, line);
   }
 
   /* Try to parse as a diagnostic and push into the Problems list.           */
   if (r->plist) {
-    UmiDiagParser *p = umi_diag_parser_new(NULL);    /* generic parser (tool auto/heur) */
+    UmiDiagParser *p = umi_diag_parser_new(NULL);    /* generic parser (auto/heur)     */
     UmiDiag *diag = NULL;
 
     if (umi_diag_parser_feed_line(p, line, &diag) && diag) {
-      (void)problem_list_add(r->plist, diag);       /* take a copy into the model      */
+      (void)umi_problem_list_add(r->plist, diag);   /* take a copy into the model      */
       umi_diag_free(diag);                           /* free our temporary copy         */
     }
 
@@ -71,17 +78,13 @@ void umi_problem_router_feed(UmiProblemRouter *r, const char *line)
   }
 }
 
-/* End of session:
- * - Optionally compute/print a summary later (count errors/warnings/notes).
- * - Emit an “end” banner for Output so the user knows we’re done.           */
+/* End of session:                                                            */
 void umi_problem_router_end(UmiProblemRouter *r)
 {
   if (!r) return;
 
   if (r->out) {
-    output_pane_append_line(r->out, "[problems] done");
+    umi_output_pane_append_line(r->out, "[problems] done");
   }
 }
-/*-----------------------------------------------------------------------------
- * Configuration
- *---------------------------------------------------------------------------*/
+/*  END OF FILE */

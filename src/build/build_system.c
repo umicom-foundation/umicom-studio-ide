@@ -5,9 +5,12 @@
  * Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
  *---------------------------------------------------------------------------*/
 
-#include <build_system.h>
+#include <glib.h>          /* GPtrArray, g_shell_parse_argv, etc. */
+#include <string.h>        /* strchr */
+#include "build_system.h"  /* public types/prototypes */
 
-static gchar *dup(const char *s){ return g_strdup(s ? s : ""); }
+/* avoid clashing with POSIX dup(); use a private helper name */
+static gchar *sdup(const char *s) { return g_strdup(s ? s : ""); }
 
 UmiBuildSys *umi_buildsys_detect(const char *root){
   (void)root;
@@ -15,36 +18,36 @@ UmiBuildSys *umi_buildsys_detect(const char *root){
 #ifdef G_OS_WIN32
   if (g_file_test("build.ninja", G_FILE_TEST_EXISTS)) {
     b->tool = UMI_TOOL_NINJA;
-    b->build_cmd = dup("ninja");
-    b->run_cmd   = dup("ninja run");
-    b->test_cmd  = dup("ninja test");
+    b->build_cmd = sdup("ninja");
+    b->run_cmd   = sdup("ninja run");
+    b->test_cmd  = sdup("ninja test");
   } else if (g_file_test("Makefile", G_FILE_TEST_EXISTS)) {
     b->tool = UMI_TOOL_MAKE;
-    b->build_cmd = dup("mingw32-make -j");
-    b->run_cmd   = dup("mingw32-make run");
-    b->test_cmd  = dup("mingw32-make test");
+    b->build_cmd = sdup("mingw32-make -j");
+    b->run_cmd   = sdup("mingw32-make run");
+    b->test_cmd  = sdup("mingw32-make test");
   } else {
     b->tool = UMI_TOOL_MSBUILD;
-    b->build_cmd = dup("msbuild /m");
-    b->run_cmd   = dup("build\\app.exe");
-    b->test_cmd  = dup("ctest");
+    b->build_cmd = sdup("msbuild /m");
+    b->run_cmd   = sdup("build\\app.exe");
+    b->test_cmd  = sdup("ctest");
   }
 #else
   if (g_file_test("build.ninja", G_FILE_TEST_EXISTS)) {
     b->tool = UMI_TOOL_NINJA;
-    b->build_cmd = dup("ninja");
-    b->run_cmd   = dup("ninja run");
-    b->test_cmd  = dup("ninja test");
+    b->build_cmd = sdup("ninja");
+    b->run_cmd   = sdup("ninja run");
+    b->test_cmd  = sdup("ninja test");
   } else if (g_file_test("Makefile", G_FILE_TEST_EXISTS)) {
     b->tool = UMI_TOOL_MAKE;
-    b->build_cmd = dup("make -j");
-    b->run_cmd   = dup("make run");
-    b->test_cmd  = dup("make test");
+    b->build_cmd = sdup("make -j");
+    b->run_cmd   = sdup("make run");
+    b->test_cmd  = sdup("make test");
   } else {
     b->tool = UMI_TOOL_CUSTOM;
-    b->build_cmd = dup("sh -lc 'echo build'");
-    b->run_cmd   = dup("sh -lc './app'");
-    b->test_cmd  = dup("sh -lc 'ctest'");
+    b->build_cmd = sdup("sh -lc 'echo build'");
+    b->run_cmd   = sdup("sh -lc './app'");
+    b->test_cmd  = sdup("sh -lc 'ctest'");
   }
 #endif
   return b;
@@ -55,9 +58,9 @@ void umi_buildsys_set(UmiBuildSys *bs, const char *build, const char *run, const
   g_free(bs->build_cmd);
   g_free(bs->run_cmd);
   g_free(bs->test_cmd);
-  bs->build_cmd = dup(build);
-  bs->run_cmd   = dup(run);
-  bs->test_cmd  = dup(test);
+  bs->build_cmd = sdup(build);
+  bs->run_cmd   = sdup(run);
+  bs->test_cmd  = sdup(test);
 }
 
 /*-----------------------------------------------------------------------------
@@ -108,3 +111,4 @@ void umi_buildsys_free(UmiBuildSys *b){
   g_free(b);
 }
 /*---------------------------------------------------------------------------*/
+/*  END OF FILE */

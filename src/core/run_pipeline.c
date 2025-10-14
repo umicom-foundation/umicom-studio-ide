@@ -20,19 +20,18 @@
 #include "run_config.h"           /* umi_run_config_* helpers            */
 #include "build_runner.h"         /* umi_build_runner_* APIs             */
 #include "diagnostics_router.h"   /* UmiDiagRouter for line routing      */
+#include "umi_output_sink.h"      /* umi_output_sink_new for callback    */
 
 /* Small context that wires runner callbacks to our diagnostics router.       */
 typedef struct {
   UmiDiagRouter router;           /* holds plist + out + internal parser */
 } UmiRunPipelineCtx;
-UmiOutputSink *sink = umi_output_sink_new(on_runner_line, NULL, s_ctx);
-umi_build_runner_set_sink(s_runner, sink);
+
 static UmiBuildRunner    *s_runner = NULL;   /* reusable runner instance     */
 static UmiRunPipelineCtx *s_ctx    = NULL;   /* alive while child is running */
 
-/* Forward: line and exit callbacks expected by build_runner.                 */
+/* Forward: line callback expected by output sink.                            */
 static void on_runner_line(gpointer user, const char *line, gboolean is_err);
-static void on_runner_exit(gpointer user, int exit_code);
 
 /* Start the run pipeline.                                                    */
 gboolean
@@ -89,25 +88,37 @@ umi_run_pipeline_start(UmiOutputPane *out, UmiProblemList *plist, GError **err)
   char **envp = umi_run_config_to_envp(rc);        /* may be NULL (inherit)  */
   const char *cwd = rc->cwd ? rc->cwd : ".";
 
-  /* Wire callbacks and spawn.                                                */
-  umi_build_runner_set_sink(s_runner, on_runner_line, s_ctx);
+  /* Build a sink that forwards lines to our router.                          */
+  UmiOutputSink *sink = umi_output_sink_new(on_runner_line, NULL, s_ctx);
+  umi_build_runner_set_sink(s_runner, sink);       /* set concrete sink       */
 
+  /* Split exe and argv-rest for the runner API.                              */
+  const char *exe = argv[0];
+  const char * const *argv_rest = (const char * const *)(argv + 1);
+
+  /* Spawn and synchronously stream until child exits (runner blocks).        */
   gboolean ok = umi_build_runner_run(
                   s_runner,
-                  (char * const *)argv,
-                  (char * const *)envp,
                   cwd,
-                  on_runner_exit,
-                  s_ctx,
-                  err);
+                  exe,
+                  argv_rest,
+                  (const char * const *)envp,
+                  TRUE /* merge stderr to stdout */);
 
-  /* Free transient vectors and config now that we've asked the runner to go. */
+  /* Cleanup transient vectors and config.                                    */
   if (argv) g_strfreev(argv);
   if (envp) g_strfreev(envp);
   umi_run_config_free(rc);
 
+  /* Finalise router and context.                                             */
+  umi_diag_router_end(&s_ctx->router);
+  g_free(s_ctx); s_ctx = NULL;
+
+  /* NOTE: if umi_output_sink_free() exists in your tree, call it here.       */
+
   if (!ok) {
-    g_free(s_ctx); s_ctx = NULL;
+    g_set_error(err, g_quark_from_static_string("uside-run"), 6,
+                "run target exited with failure");
     return FALSE;
   }
   return TRUE;
@@ -117,9 +128,8 @@ umi_run_pipeline_start(UmiOutputPane *out, UmiProblemList *plist, GError **err)
 void
 umi_run_pipeline_stop(void)
 {
-  if (!s_runner) return;
-  umi_build_runner_stop(s_runner);
-  /* s_ctx will be released by on_runner_exit() once the child terminates.    */
+  /* Current runner implementation executes synchronously; nothing to stop.   */
+  g_warning("umi_run_pipeline_stop: stop not supported by current runner");
 }
 
 /* Build runner line callback: route through diagnostics.                     */
@@ -131,18 +141,4 @@ on_runner_line(gpointer user, const char *line, gboolean is_err)
   if (!ctx || !line) return;
   umi_diag_router_feed(&ctx->router, line);
 }
-
-/* Build runner exit callback: finalize diagnostics and free context.         */
-static void
-on_runner_exit(gpointer user, int exit_code)
-{
-  UmiRunPipelineCtx *ctx = (UmiRunPipelineCtx *)user;
-  if (ctx) {
-    umi_diag_router_end(&ctx->router);
-    g_free(ctx);
-    s_ctx = NULL;
-  }
-  if (exit_code != 0) {
-    g_warning("run-pipeline: child exited with code=%d", exit_code);
-  }
-}
+/*  END OF FILE */
