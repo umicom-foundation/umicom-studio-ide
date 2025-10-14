@@ -3,59 +3,55 @@
  * File: src/panes/problems/include/problem_list.h
  *
  * PURPOSE:
- *   In-memory list of parsed diagnostics (“Problems” pane model).
+ *   Minimal model+view wrapper for displaying parsed diagnostics as a list.
+ *   Kept UI-level but lightweight to avoid coupling parsers to widgets.
  *
  * DESIGN:
- *   - Pure model types; no GTK/UI dependencies.
- *   - Uses UmiDiagSeverity from umi_diagnostics.h (no local enum!).
- *   - Parser(s) append problems; views subscribe to changes.
+ *   - Forward-declared struct _UmiProblemList (matches other headers).
+ *   - Optional row-activate callback to let editors jump-to-location.
+ *   - Public API mirrors the data ops used from routers.
  *
- * API (minimal and stable across modules):
- *   typedef struct UmiProblem      UmiProblem;
- *   typedef struct UmiProblemList  UmiProblemList;
- *
- *   UmiProblemList* umi_problem_list_new(void);
- *   void            umi_problem_list_free(UmiProblemList *pl);
- *   void            umi_problem_list_clear(UmiProblemList *pl);
- *
- *   /* Parse one compiler/build line; append to list if it matches.
- *    * Returns true if a problem was recognized and appended. * /
- *   bool            umi_problem_parse_any(UmiProblemList *pl, const char *line_utf8);
+ * API (typical):
+ *   UmiProblemList *umi_problem_list_new(void);
+ *   UmiProblemList *umi_problem_list_new_with_cb(UmiProblemActivateCb, gpointer);
+ *   gboolean        umi_problem_list_add(UmiProblemList*, const UmiDiag*);
+ *   unsigned        umi_problem_list_clear(UmiProblemList*);
+ *   GtkWidget      *umi_problem_list_widget(UmiProblemList*);
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-#ifndef UMI_PROBLEM_LIST_H
-#define UMI_PROBLEM_LIST_H
+#ifndef PROBLEM_LIST_H
+#define PROBLEM_LIST_H
+
+#include <glib.h>
+#include <gtk/gtk.h>
+#include "umi_diag_types.h"  /* UmiDiag */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdbool.h>
-#include "umi_diagnostics.h"  /* <- canonical severity, do NOT redeclare */
-#include <stddef.h>
+/* Use the same forward name other headers already used to avoid typedef clashes */
+typedef struct _UmiProblemList UmiProblemList;
 
-/* One diagnostic entry recognized by a parser. */
-typedef struct UmiProblem {
-    UmiDiagSeverity severity; /* error / warning / note                        */
-    const char     *file;     /* may be NULL if unknown                        */
-    int             line;     /* 1-based, or 0 if unknown                      */
-    int             col;      /* 1-based, or 0 if unknown                      */
-    const char     *message;  /* human-readable                                */
-} UmiProblem;
+/* Row-activate callback: pass file/line/col so the editor can jump */
+typedef void (*UmiProblemActivateCb)(gpointer user, const char *file, int line, int col);
 
-/* Opaque list type. */
-typedef struct UmiProblemList UmiProblemList;
-
-/* Lifecycle. */
-UmiProblemList* umi_problem_list_new(void);
+/* Lifecycle */
+UmiProblemList *umi_problem_list_new(void);
+UmiProblemList *umi_problem_list_new_with_cb(UmiProblemActivateCb cb, gpointer user);
 void            umi_problem_list_free(UmiProblemList *pl);
-void            umi_problem_list_clear(UmiProblemList *pl);
 
-/* Parsing entry point — tries multiple known formats (gcc/clang/msvc/etc.). */
-bool            umi_problem_parse_any(UmiProblemList *pl, const char *line_utf8);
+/* Model / widget accessors */
+GtkWidget      *umi_problem_list_widget(UmiProblemList *pl);
+const void     *umi_problem_list_model(UmiProblemList *pl); /* for future: return underlying list */
+
+/* Data ops */
+gboolean        umi_problem_list_add(UmiProblemList *pl, const UmiDiag *diag); /* appends one row */
+unsigned        umi_problem_list_clear(UmiProblemList *pl);                    /* returns removed count */
+unsigned        umi_problem_list_count(UmiProblemList *pl);
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* UMI_PROBLEM_LIST_H */
+#endif /* PROBLEM_LIST_H */

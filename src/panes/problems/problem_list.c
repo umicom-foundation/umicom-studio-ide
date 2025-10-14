@@ -3,166 +3,129 @@
  * File: src/panes/problems/problem_list.c
  *
  * PURPOSE:
- *   Concrete implementation of the Problems pane model + widget.
- *   Stores diagnostics, renders them in a GtkListBox, and optionally calls
- *   back into the app when the user activates a row.
- *
- * DESIGN:
+ *   GTK4 list implementation backing the Problems pane. Accepts UmiDiag
+ *   entries and renders them as rows with severity and message; rows carry
+ *   jump metadata (file, line, col) for editor navigation.
+* DESIGN:
  *   - Strictly use public headers by name; no deep includes.
  *   - Copy incoming UmiDiag data to owned GObjects/strings to avoid aliasing.
  *   - GTK4-only code paths; no deprecated APIs.
  *
- * SECURITY/ROBUSTNESS:
- *   - Escape text with g_markup_escape_text before rendering.
- *   - Bound copies and avoid unchecked pointer arithmetic.
- *   - All pointers guarded; functions are no-ops when given NULL.
+ *
+ * SECURITY:
+ *   - No dynamic format strings; labels created from sanitized inputs.
+ *   - All allocations are cleaned; row payload freed on row destroy.
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-
-#include <gtk/gtk.h>
 #include <glib.h>
-#include "problem_list.h"      /* public API */
+#include <gtk/gtk.h>
+#include "problem_list.h"
+
+typedef struct RowPayload {
+    char *file;
+    int   line;
+    int   col;
+} RowPayload;
 
 struct _UmiProblemList {
-    GtkWidget *scroller;       /* GtkScrolledWindow – top-level widget */
-    GtkWidget *list;           /* GtkListBox – holds rows              */
-    size_t     count;          /* number of rows                       */
-    UmiProblemActivateCb on_activate; /* optional row-activate callback */
-    gpointer   on_activate_user;       /* user data for callback         */
+    GtkWidget            *scroller;
+    GtkWidget            *list;
+    unsigned              count;
+    UmiProblemActivateCb  on_activate;
+    gpointer              user;
 };
 
-/* Internal row payload so we can trigger navigation on activation. */
-typedef struct {
-    gchar *file;               /* may be empty string */
-    int    line;               /* >=0 (0 if unknown)  */
-    int    col;                /* >=0 (0 if unknown)  */
-} UmiProblemRowData;
-
-/* Free row payload (safe on NULL). */
-static void row_data_free(gpointer p)
-{
+/* signal handler for "row-activated" */
+static void on_row_activated(GtkListBox *box, GtkListBoxRow *row, gpointer user_data) {
+    (void)box;
+    UmiProblemList *pl = (UmiProblemList*)user_data;
+    if (!pl || !pl->on_activate) return;
+    RowPayload *p = (RowPayload*)g_object_get_data(G_OBJECT(row), "umi.payload");
     if (!p) return;
-    UmiProblemRowData *d = (UmiProblemRowData*)p;
-    g_free(d->file);
-    g_free(d);
+    pl->on_activate(pl->user, p->file ? p->file : "", p->line, p->col);
 }
 
-/* Create or initialize the visual container (scroller+list). */
-static void init_widgets(UmiProblemList *pl)
-{
+static void row_payload_free(gpointer data) {
+    RowPayload *p = (RowPayload*)data;
+    if (!p) return;
+    g_free(p->file);
+    g_free(p);
+}
+
+static GtkWidget *mk_row(const char *severity, const char *file, int line, int col, const char *msg) {
+    GtkWidget *row  = gtk_list_box_row_new();
+    GtkWidget *box  = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+    GtkWidget *lbl1 = gtk_label_new(severity ? severity : "");
+    GtkWidget *lbl2 = gtk_label_new(msg ? msg : "");
+    gtk_label_set_xalign(GTK_LABEL(lbl1), 0.0f);
+    gtk_label_set_xalign(GTK_LABEL(lbl2), 0.0f);
+    gtk_widget_add_css_class(lbl1, "dim-label");
+
+    gtk_list_box_row_set_child(GTK_LIST_BOX_ROW(row), box);
+    gtk_box_append(GTK_BOX(box), lbl1);
+    gtk_box_append(GTK_BOX(box), lbl2);
+
+    RowPayload *p = g_new0(RowPayload, 1);
+    p->file = g_strdup(file ? file : "");
+    p->line = line;
+    p->col  = col;
+    g_object_set_data_full(G_OBJECT(row), "umi.payload", p, row_payload_free);
+
+    return row;
+}
+
+/* public API */
+UmiProblemList *umi_problem_list_new(void) {
+    return umi_problem_list_new_with_cb(NULL, NULL);
+}
+
+UmiProblemList *umi_problem_list_new_with_cb(UmiProblemActivateCb cb, gpointer user) {
+    UmiProblemList *pl = g_new0(UmiProblemList, 1);
     pl->scroller = gtk_scrolled_window_new();
     pl->list     = gtk_list_box_new();
+    pl->on_activate = cb;
+    pl->user        = user;
+
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(pl->scroller), pl->list);
-
-    /* Row activation: translate to client callback if provided. */
-    g_signal_connect(pl->list, "row-activated", G_CALLBACK(+[](
-        GtkListBox *box, GtkListBoxRow *row, gpointer user)
-    {
-        (void)box;
-        UmiProblemList *self = (UmiProblemList*)user;
-        if (!self || !self->on_activate) return;
-
-        UmiProblemRowData *d = (UmiProblemRowData*)
-            g_object_get_data(G_OBJECT(row), "umi-problem-row-data");
-        const char *f = d && d->file ? d->file : "";
-        const int   l = d ? d->line : 0;
-        const int   c = d ? d->col  : 0;
-        self->on_activate(self->on_activate_user, f, l, c);
-    }), pl);
-}
-
-UmiProblemList *problem_list_new(void)
-{
-    return problem_list_new_with_cb(NULL, NULL);
-}
-
-UmiProblemList *problem_list_new_with_cb(UmiProblemActivateCb cb, gpointer user)
-{
-    UmiProblemList *pl = g_new0(UmiProblemList, 1);
-    pl->on_activate      = cb;
-    pl->on_activate_user = user;
-    init_widgets(pl);
+    g_signal_connect(pl->list, "row-activated", G_CALLBACK(on_row_activated), pl);
     return pl;
 }
 
-void problem_list_free(UmiProblemList *pl)
-{
+void umi_problem_list_free(UmiProblemList *pl) {
     if (!pl) return;
     if (pl->list) {
-        /* Remove all rows and free their payloads. */
         GtkWidget *child = gtk_widget_get_first_child(pl->list);
         while (child) {
             GtkWidget *next = gtk_widget_get_next_sibling(child);
-            GtkListBoxRow *row = GTK_LIST_BOX_ROW(child);
-            UmiProblemRowData *d = (UmiProblemRowData*)
-                g_object_get_data(G_OBJECT(row), "umi-problem-row-data");
-            row_data_free(d);
             gtk_list_box_remove(GTK_LIST_BOX(pl->list), child);
             child = next;
         }
+        g_object_unref(pl->list);
     }
     if (pl->scroller) g_object_unref(pl->scroller);
-    /* 'pl->list' is a child of scroller and is destroyed with it. */
     g_free(pl);
 }
 
-/* Render a single diagnostic into a new row. */
-gboolean problem_list_add(UmiProblemList *pl, const UmiDiag *diag)
-{
-    if (!pl || !diag) return FALSE;
-
-    /* Prepare safe strings for UI. */
-    const gchar *file_in = diag->file ? diag->file : "";
-    gchar *file = g_strdup(file_in); /* own a copy; used in callback data */
-
-    /* Human-friendly prefix based on severity. */
-    const char *sev =
+gboolean umi_problem_list_add(UmiProblemList *pl, const UmiDiag *diag) {
+    if (!pl || !pl->list || !diag) return FALSE;
+    const char *file = diag->file ? diag->file : "";
+    const char *msg  = diag->message ? diag->message : "";
+    const char *sev  =
         (diag->severity == UMI_DIAG_ERROR)   ? "error"   :
-        (diag->severity == UMI_DIAG_WARNING) ? "warning" :
-                                              "note";
-
-    /* Escape message content for GTK markup safety. */
-    const gchar *msg_in = diag->message ? diag->message : "";
-    g_autofree gchar *msg = g_markup_escape_text(msg_in, -1);
-
-    /* Compose a compact single-line label. */
-    g_autofree gchar *line = g_strdup_printf("%s:%d:%d: %s: %s",
-                                             *file ? file : "(unknown)",
-                                             (int)diag->line,
-                                             (int)diag->column,
-                                             sev,
-                                             msg ? msg : "");
-
-    GtkWidget *row = gtk_list_box_row_new();
-    GtkWidget *lbl = gtk_label_new(line);
-    gtk_label_set_xalign(GTK_LABEL(lbl), 0.0f);
-    gtk_list_box_row_set_child(GTK_LIST_BOX_ROW(row), lbl);
-
-    /* Attach payload for activation callback. */
-    UmiProblemRowData *payload = g_new0(UmiProblemRowData, 1);
-    payload->file = file; /* take ownership */
-    payload->line = (int)diag->line;
-    payload->col  = (int)diag->column;
-    g_object_set_data_full(G_OBJECT(row), "umi-problem-row-data", payload, row_data_free);
-
+        (diag->severity == UMI_DIAG_WARNING) ? "warning" : "info";
+    GtkWidget *row = mk_row(sev, file, (int)diag->line, (int)diag->column, msg);
     gtk_list_box_append(GTK_LIST_BOX(pl->list), row);
     pl->count++;
     return TRUE;
 }
 
-size_t problem_list_clear(UmiProblemList *pl)
-{
-    if (!pl || !pl->list) return 0;
-
-    size_t removed = 0;
+unsigned umi_problem_list_clear(UmiProblemList *pl) {
+    if (!pl || !pl->list) return 0u;
+    unsigned removed = 0;
     GtkWidget *child = gtk_widget_get_first_child(pl->list);
     while (child) {
         GtkWidget *next = gtk_widget_get_next_sibling(child);
-        GtkListBoxRow *row = GTK_LIST_BOX_ROW(child);
-        UmiProblemRowData *d = (UmiProblemRowData*)
-            g_object_get_data(G_OBJECT(row), "umi-problem-row-data");
-        row_data_free(d);
         gtk_list_box_remove(GTK_LIST_BOX(pl->list), child);
         child = next;
         removed++;
@@ -171,20 +134,14 @@ size_t problem_list_clear(UmiProblemList *pl)
     return removed;
 }
 
-size_t problem_list_count(const UmiProblemList *pl)
-{
+unsigned umi_problem_list_count(UmiProblemList *pl) {
     return pl ? pl->count : 0u;
 }
 
-/* Expose a generic pointer for compatibility (e.g., binding models elsewhere).
- * Here we return the underlying GtkListBox as a void* (read-only to callers). */
-const void *problem_list_model(const UmiProblemList *pl)
-{
+const void *umi_problem_list_model(UmiProblemList *pl) {
     return pl ? (const void*)pl->list : NULL;
 }
 
-/* The widget callers should pack into their UI (ScrolledWindow). */
-GtkWidget *problem_list_widget(const UmiProblemList *pl)
-{
+GtkWidget *umi_problem_list_widget(UmiProblemList *pl) {
     return pl ? pl->scroller : NULL;
 }

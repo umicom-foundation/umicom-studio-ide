@@ -25,7 +25,8 @@
 typedef struct {
   UmiDiagRouter router;           /* holds plist + out + internal parser */
 } UmiRunPipelineCtx;
-
+UmiOutputSink *sink = umi_output_sink_new(on_runner_line, NULL, s_ctx);
+umi_build_runner_set_sink(s_runner, sink);
 static UmiBuildRunner    *s_runner = NULL;   /* reusable runner instance     */
 static UmiRunPipelineCtx *s_ctx    = NULL;   /* alive while child is running */
 

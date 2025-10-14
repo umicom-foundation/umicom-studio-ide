@@ -35,6 +35,7 @@ option(USIDE_EXCLUDE_PALETTE    "Exclude src/gui/theme/palette.c from build" ON)
 
 # Optionally exclude unit tests or experimental dirs from the main target
 option(USIDE_EXCLUDE_TESTS      "Exclude src/tests/* from the main target" ON)
+option(USIDE_EXCLUDE_PREFS      "Exclude src/gui/prefs/* from the main target" ON)
 
 # Enable SSE flags on MinGW/GCC x86 to mirror your previous command line
 option(USIDE_ENABLE_SSE         "Enable -mfpmath=sse -msse -msse2 on GCC/Clang x86" ON)
@@ -116,26 +117,31 @@ endif()
 
 # Optional modules — exclude whole folders when OFF (no dead code compiled)
 if(NOT USIDE_ENABLE_LLM_LAB)
-  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/gui/llm_lab/.*\\.c$")
+  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/gui/llm_lab/.*\.c$")
 endif()
 if(NOT USIDE_ENABLE_TRANSPILE)
-  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/plugins/transpile/.*\\.c$")
+  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/plugins/transpile/.*\.c$")
 endif()
 if(USIDE_EXCLUDE_TESTS)
-  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/tests/.*\\.c$")
+  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/tests/.*\.c$")
+endif()
+
+if(USIDE_EXCLUDE_PREFS)
+  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/gui/prefs/.*\.c$")
 endif()
 
 # Legacy palette exclusion via toggle (default ON)
 if(USIDE_EXCLUDE_PALETTE)
-  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/gui/theme/palette\\.c$")
+  list(FILTER USIDE_SOURCES EXCLUDE REGEX "/src/gui/theme/palette\.c$")
 endif()
 
 # =============================================================================
 # INCLUDE DIRECTORIES (PUBLIC HEADERS ONLY)
 # =============================================================================
 # Collect every module's public include dir (src/*/include and src/*/includes).
-# This lets us write #include <status_util.h> etc. NO deep relative paths.
-file(GLOB_RECURSE USIDE_INCLUDE_DIRS_INC  LIST_DIRECTORIES TRUE
+# This ensures headers are included by NAME only (e.g., "umi_output_sink.h"),
+# never as deep relative paths like "src/foo/include/bar.h".
+file(GLOB_RECURSE USIDE_INCLUDE_DIRS_INC LIST_DIRECTORIES TRUE
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*/include"
 )
 file(GLOB_RECURSE USIDE_INCLUDE_DIRS_INCS LIST_DIRECTORIES TRUE
@@ -149,15 +155,8 @@ list(APPEND USIDE_INCLUDE_DIRS
   "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
-# EXPLICIT FIXES from your log:
-# - diagnostics_router.c couldn’t find diagnostic_parsers.h
-# - run_pipeline.c couldn’t find build_runner.h
-# Both live under src/build/include — add it explicitly to be safe.
-list(APPEND USIDE_INCLUDE_DIRS
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/build/include"
-)
-
-# Specific legacy include folders (compatibility while we converge on /include)
+# Specific legacy include folders that appear in your previous command line.
+# Keep these for compatibility while we converge modules on /include naming.
 foreach(path
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/includes"
@@ -170,13 +169,18 @@ foreach(path
   endif()
 endforeach()
 
-# UAEngine headers optional to avoid accidental cross-coupling.
+# UAEngine headers are connected but should be optional to avoid accidental
+# cross-coupling. Gate behind USIDE_ENABLE_UAENGINE.
 if(USIDE_ENABLE_UAENGINE)
   list(APPEND USIDE_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/umicom/uengine/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/umicom/uengine/include/ueng"
   )
 endif()
+
+list(APPEND USIDE_INCLUDE_DIRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/theme"
+)
 
 list(REMOVE_DUPLICATES USIDE_INCLUDE_DIRS)
 
@@ -185,8 +189,19 @@ list(REMOVE_DUPLICATES USIDE_INCLUDE_DIRS)
 # =============================================================================
 add_executable(umicom-studio-ide ${USIDE_SOURCES})
 
-# Provide compile-time define for entry selection (usable in C via `#if USIDE_GUI`)
+# Provide compile-time define for entry selection
+# (usable in C via `#if USIDE_GUI`)
 target_compile_definitions(umicom-studio-ide PRIVATE USIDE_GUI=$<BOOL:${USIDE_GUI}>)
+# GTK4 compatibility shims used by some legacy C files
+# - gtk_widget_destroy() was removed in GTK4; map to g_object_unref()
+# - output_pane_append_line() legacy symbol -> umi_output_sink_append_line()
+# - umi_output_pane_append_line() legacy symbol -> umi_output_sink_append_line()
+# These are compile-time aliases only and keep old code compiling.
+target_compile_definitions(umicom-studio-ide PRIVATE
+  gtk_widget_destroy=g_object_unref
+  output_pane_append_line=umi_output_sink_append_line
+  umi_output_pane_append_line=umi_output_sink_append_line
+)
 
 # Mirror prior builds that defined LIBDEFLATE_DLL
 if(USIDE_LIBDEFLATE_DLL)

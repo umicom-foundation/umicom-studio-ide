@@ -1,57 +1,83 @@
 /*-----------------------------------------------------------------------------
- * Umicom Studio IDE
- * File: src/build/include/build_runner.h
- *
- * PURPOSE:
- *   Launch and supervise an external build/test process with GLib's
- *   GSubprocess APIs, streaming lines to a decoupled UmiOutputSink.
- *
- * DESIGN:
- *   - Opaque UmiBuildRunner handle; implementation is private to .c
- *   - No UI/pane headers included here; this stays in the build module.
- *   - Caller injects an UmiOutputSink instance (strategy pattern).
- *
- * API:
- *   UmiBuildRunner *umi_build_runner_new(void);
- *   void            umi_build_runner_free(UmiBuildRunner *br);
- *   void            umi_build_runner_set_sink(UmiBuildRunner *br,
- *                                             UmiOutputSink   *sink);
- *   gboolean        umi_build_runner_run(UmiBuildRunner *br,
- *                                        char * const   *argv,   // NULL-terminated
- *                                        char * const   *envp,   // may be NULL
- *                                        const char     *cwd,    // may be NULL
- *                                        void (*on_exit)(gpointer user, int code),
- *                                        gpointer        user);
- *   void            umi_build_runner_stop(UmiBuildRunner *br);
- *
- * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
- *---------------------------------------------------------------------------*/
-#ifndef UMI_BUILD_RUNNER_H
-#define UMI_BUILD_RUNNER_H
+* Umicom Studio IDE
+* File: src/build/include/build_runner.h
+*
+* PURPOSE:
+* Process runner for build tools. Exposes a small API to run an external
+* command with environment/cwd, and route its output to an UmiOutputSink.
+*
+* DESIGN:
+* - Keeps UmiBuildRunner opaque; ownership via new/free.
+* - Uses umi_output_sink.h for decoupled output/diagnostic delivery.
+* - Provides compile-time back-compat shims for legacy call sites:
+* * umi_build_runner_set_sink(cb, user) form
+* * 7-arg umi_build_runner_run(..., merge_stderr, extra)
+*
+* API (typical):
+* UmiBuildRunner *umi_build_runner_new(void);
+* void umi_build_runner_free(UmiBuildRunner*);
+* void umi_build_runner_set_sink(UmiBuildRunner*, UmiOutputSink*);
+* gboolean umi_build_runner_run(UmiBuildRunner*, const char *cwd,
+* const char *exe, char *const argv[],
+* char *const envp[], gboolean merge_err);
+*
+* Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
+*---------------------------------------------------------------------------*/
+#ifndef BUILD_RUNNER_H
+#define BUILD_RUNNER_H
+
 
 #include <glib.h>
-#include <gio/gio.h>
+#include "umi_output_sink.h"
 
-#include "umi_output_sink.h" /* decoupled sink */
 
-G_BEGIN_DECLS
+typedef struct UmiBuildRunner UmiBuildRunner;
 
-typedef struct _UmiBuildRunner UmiBuildRunner; /* opaque */
 
 UmiBuildRunner *umi_build_runner_new(void);
-void            umi_build_runner_free(UmiBuildRunner *br);
+void umi_build_runner_free(UmiBuildRunner *br);
 
-void            umi_build_runner_set_sink(UmiBuildRunner *br, UmiOutputSink *sink);
 
-gboolean        umi_build_runner_run(UmiBuildRunner *br,
-                                     char * const   *argv,   /* NULL-terminated               */
-                                     char * const   *envp,   /* optional env (NULL => inherit)*/
-                                     const char     *cwd,    /* working dir (NULL => current) */
-                                     void (*on_exit)(gpointer user, int code),
-                                     gpointer        user);
+/* Canonical APIs */
+void umi_build_runner_set_sink(UmiBuildRunner *br, UmiOutputSink *sink);
+gboolean umi_build_runner_run(UmiBuildRunner *br,
+const char *cwd,
+const char *exe,
+char *const argv[],
+char *const envp[],
+gboolean merge_stderr);
 
-void            umi_build_runner_stop(UmiBuildRunner *br);
 
-G_END_DECLS
+/* -------------------------------------------------------------------------- */
+/* Back-compat: accept legacy (cb,user) setter and a 7-arg run() call */
+/* -------------------------------------------------------------------------- */
+static inline void umi_build_runner_set_sink_from_cb(UmiBuildRunner *br,
+UmiOutputLineFn line_cb,
+void *user) {
+UmiOutputSink *sink = umi_output_sink_new(line_cb, NULL, user);
+umi_build_runner_set_sink(br, sink);
+}
 
-#endif /* UMI_BUILD_RUNNER_H */
+
+/* Variadic macro overload shim for set_sink */
+#define UMI_BR_SINK_PICK(_1,_2,_3,NAME,...) NAME
+#define umi_build_runner_set_sink(...) \
+UMI_BR_SINK_PICK(__VA_ARGS__, umi_build_runner_set_sink_from_cb, umi_build_runner_set_sink)(__VA_ARGS__)
+
+
+/* Variadic macro overload shim for run() — drop extra trailing arg if present */
+static inline gboolean umi_build_runner_run_compat7(UmiBuildRunner *br,
+const char *cwd,
+const char *exe,
+char *const argv[],
+char *const envp[],
+gboolean merge_stderr,
+void * /*ignored*/) {
+return umi_build_runner_run(br, cwd, exe, argv, envp, merge_stderr);
+}
+#define UMI_BR_RUN_PICK(_1,_2,_3,_4,_5,_6,_7,NAME,...) NAME
+#define umi_build_runner_run(...) \
+UMI_BR_RUN_PICK(__VA_ARGS__, umi_build_runner_run_compat7, umi_build_runner_run)(__VA_ARGS__)
+
+
+#endif /* BUILD_RUNNER_H */

@@ -1,86 +1,99 @@
 /*-----------------------------------------------------------------------------
- * Umicom Studio IDE : OpenSource IDE for developers and Content Creators
- * Repository: https://github.com/umicom-foundation/umicom-studio-ide
+ * Umicom Studio IDE
  * File: src/include/umi_output_sink.h
  *
  * PURPOSE:
- *   Small, UI-agnostic interface used by build runners / tasks / tools to
- *   stream textual output lines and structured diagnostics to any consumer
- *   (console, problems pane, log file, etc.).
+ *   Abstract output sink that receives line-oriented text and diagnostics
+ *   from subsystems (builder, runners, parsers) without depending on UI.
  *
  * DESIGN:
- *   - **Depends on** umi_diagnostics.h for UmiDiag + UmiDiagSeverity.
- *     (Do NOT re-declare the enum here — this was the source of the
- *      "redeclaration / conflicting types" compile error you hit.)
- *   - Plain C "strategy" object with two callbacks and a user pointer.
- *   - Header-only helpers make sink calls null-safe and concise.
+ *   - UI implements this (console pane, problems pane adapters, etc).
+ *   - Core code only targets this interface (loosely coupled).
+ *   - Uses UmiDiagSeverity from umi_diagnostics.h (single source-of-truth).
+ *   - Uses GLib gboolean in callbacks to match existing call sites.
  *
- * API:
- *   typedef struct UmiOutputSink { ... } UmiOutputSink;
- *
- *   // Safe helpers to emit data if callback present (no-ops otherwise):
- *   static inline void umi_sink_line (UmiOutputSink *s, const char *line);
- *   static inline void umi_sink_diag (UmiOutputSink *s, const UmiDiag *d);
- *   static inline void umi_sink_error(UmiOutputSink *s, const char *file,
- *                                     size_t line, size_t col, const char *msg);
- *
- * USAGE:
- *   - A consumer (e.g., Output pane) typically embeds a UmiOutputSink
- *     inside its instance and initializes the function pointers to its
- *     own methods. Producers get a pointer and simply call the helpers.
- *
- *   Example:
- *     static void my_line(void *u, const char *l) { ... }
- *     static void my_diag(void *u, const UmiDiag *d) { ... }
- *     UmiOutputSink sink = { .user=ctx, .on_line=my_line, .on_diag=my_diag };
- *     umi_sink_line(&sink, "hello");
+ * API (typical):
+ *   typedef struct UmiOutputSink UmiOutputSink;
+ *   void umi_output_sink_append_line(UmiOutputSink *s, const char *utf8);
+ *   void umi_output_sink_append_err_line(UmiOutputSink *s, const char *utf8);
+ *   void umi_output_sink_append_diag(UmiOutputSink *s,
+ *                                    UmiDiagSeverity sev,
+ *                                    const char *file, int line, int col,
+ *                                    const char *message);
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-#ifndef UMICOM_USIDE_UMI_OUTPUT_SINK_H
-#define UMICOM_USIDE_UMI_OUTPUT_SINK_H
+#ifndef UMI_OUTPUT_SINK_H
+#define UMI_OUTPUT_SINK_H
 
 #include <glib.h>
-#include "umi_diagnostics.h"  /* <- single source of truth for UmiDiag types */
+#include <stdlib.h>
+#include "umi_diag_types.h" /* UmiDiag, UmiDiagSeverity */
 
-/*----------------------------------------------------------------------------
- * UmiOutputSink:
- *   Tiny vtable for streaming text lines and/or structured diagnostics.
- *   The object itself owns no memory; it just holds function pointers.
- *--------------------------------------------------------------------------*/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef void (*UmiOutputLineFn)(void *user, const char *line, gboolean is_err);
+typedef void (*UmiOutputDiagFn)(void *user,
+                                UmiDiagSeverity sev,
+                                const char *file,
+                                int line,
+                                int column,
+                                const char *message);
+
+/* Concrete sink (not opaque) to match legacy field access in existing .c files */
 typedef struct UmiOutputSink {
-    void (*on_line)(void *user, const char *line);      /* may be NULL */
-    void (*on_diag)(void *user, const UmiDiag *diag);   /* may be NULL */
-    void  *user;                                        /* opaque      */
+    void             *user;
+    UmiOutputLineFn   on_line; /* may be NULL */
+    UmiOutputDiagFn   on_diag; /* may be NULL */
 } UmiOutputSink;
 
-/* Emit a plain text line (safe on NULL sink or NULL callback). */
-static inline void umi_sink_line(UmiOutputSink *s, const char *line)
-{
-    if (!s || !s->on_line) return;
-    s->on_line(s->user, line ? line : "");
+/* Header-only helpers (no .c needed) */
+static inline UmiOutputSink *umi_output_sink_new(UmiOutputLineFn line_fn,
+                                                 UmiOutputDiagFn diag_fn,
+                                                 void *user) {
+    UmiOutputSink *s = (UmiOutputSink*)malloc(sizeof *s);
+    if (!s) return NULL;
+    s->user = user;
+    s->on_line = line_fn;
+    s->on_diag = diag_fn;
+    return s;
 }
 
-/* Emit a structured diagnostic (safe on NULLs). */
-static inline void umi_sink_diag(UmiOutputSink *s, const UmiDiag *d)
-{
-    if (!s || !s->on_diag || !d) return;
-    s->on_diag(s->user, d);
+static inline void umi_output_sink_free(UmiOutputSink *s) {
+    free(s);
 }
 
-/* Convenience: emit an ERROR diagnostic quickly (alloc-free, caller strings). */
-static inline void umi_sink_error(UmiOutputSink *s,
-                                  const char *file, size_t line, size_t col,
-                                  const char *msg)
-{
-    if (!s) return;
-    UmiDiag d;
-    d.file = file;
-    d.line = line;
-    d.column = col;
-    d.severity = UMI_DIAG_ERROR;
-    d.message = msg;
-    umi_sink_diag(s, &d);
+static inline void umi_output_sink_append_line(UmiOutputSink *s, const char *utf8) {
+    if (s && s->on_line) s->on_line(s->user, utf8 ? utf8 : "", FALSE);
 }
 
-#endif /* UMICOM_USIDE_UMI_OUTPUT_SINK_H */
+/* For routing stderr lines explicitly as errors */
+static inline void umi_output_sink_append_err_line(UmiOutputSink *s, const char *utf8) {
+    if (s && s->on_line) s->on_line(s->user, utf8 ? utf8 : "", TRUE);
+}
+
+static inline void umi_output_sink_append_diag(UmiOutputSink *s,
+                                               UmiDiagSeverity sev,
+                                               const char *file,
+                                               int line,
+                                               int column,
+                                               const char *msg) {
+    if (s && s->on_diag) s->on_diag(s->user, sev, file ? file : "", line, column, msg ? msg : "");
+}
+
+/* Compatibility helper used by build_tasks.c: umi_output_sink_emit(s, &diag) */
+static inline void umi_output_sink_emit(UmiOutputSink *s, const UmiDiag *d) {
+    if (!s || !d) return;
+    umi_output_sink_append_diag(s, d->severity,
+                                d->file ? d->file : "",
+                                (int)d->line,
+                                (int)d->column,
+                                d->message ? d->message : "");
+}
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* UMI_OUTPUT_SINK_H */
