@@ -18,7 +18,12 @@ project(umicom_studio_ide LANGUAGES C)
 # Version / policy notes (kept as-is)
 # -----------------------------------------------------------------------------
 # (… your existing comments and notes here remain unchanged …)
-
+set(UMICOM_STUDIO_IDE_VERSION_MAJOR 0)
+set(UMICOM_STUDIO_IDE_VERSION_MINOR 9)
+set(UMICOM_STUDIO_IDE_VERSION_PATCH 0)
+set(UMICOM_STUDIO_IDE_VERSION
+  "${UMICOM_STUDIO_IDE_VERSION_MAJOR}.${UMICOM_STUDIO_IDE_VERSION_MINOR}.${UMICOM_STUDIO_IDE_VERSION_PATCH}"
+)
 
 # =============================================================================
 # OPTIONS (SAFE DEFAULTS)
@@ -59,7 +64,7 @@ pkg_check_modules(CURL       REQUIRED IMPORTED_TARGET libcurl)
 
 # GUI stack
 pkg_check_modules(GTK4       REQUIRED IMPORTED_TARGET gtk4)
-pkg_check_modules(GDK_PIXBUF REQUIRED IMPORTED TARGET gdk-pixbuf-2.0)
+pkg_check_modules(GDK_PIXBUF REQUIRED IMPORTED_TARGET gdk-pixbuf-2.0) # ← fixed underscore
 pkg_check_modules(CAIRO      REQUIRED IMPORTED_TARGET cairo)
 pkg_check_modules(PANGO      REQUIRED IMPORTED_TARGET pango)
 pkg_check_modules(HARFBUZZ   REQUIRED IMPORTED_TARGET harfbuzz)
@@ -189,13 +194,14 @@ endif()
 # Provide compile-time define for entry selection
 target_compile_definitions(umicom-studio-ide PRIVATE USIDE_GUI=$<BOOL:${USIDE_GUI}>)
 
-# GTK4 compatibility shims used by some legacy C files
+# GTK4 compatibility shim used by some legacy code
 # - gtk_widget_destroy() was removed in GTK4; map to g_object_unref()
 # - output_pane_append_line() legacy symbol -> umi_output_sink_append_line()
 # - umi_output_pane_append_line() legacy symbol -> umi_output_sink_append_line()
 # These are compile-time aliases only and keep old code compiling.
 # NOTE [2025-10-14]: We have **removed** the OutputPane→Sink aliases here in favour
 # of tiny in-code adapters (so types remain correct and routers don’t conflict).
+
 target_compile_definitions(umicom-studio-ide PRIVATE
   gtk_widget_destroy=g_object_unref
   # NOTE (2025-10-14): We removed any OutputPane→Sink aliasing here.
@@ -235,7 +241,9 @@ if(TARGET PkgConfig::GRAPHENE)
   target_link_libraries(umicom-studio-ide PRIVATE PkgConfig::GRAPHENE)
 endif()
 
-# Windows subsystem selection
+# =============================================================================
+# WINDOWS SUBSYSTEM / DEFINES
+# =============================================================================
 if(WIN32)
   if(USIDE_GUI)
     set_target_properties(umicom-studio-ide PROPERTIES WIN32_EXECUTABLE TRUE)
