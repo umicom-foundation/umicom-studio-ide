@@ -1,4 +1,5 @@
 /*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: src/build/build_runner.c
  *
@@ -39,34 +40,35 @@
  * Private structure — not exposed in the header (keeps ABI/API clean).
  *---------------------------------------------------------------------------*/
 
-struct UmiBuildRunner {
-    UmiOutputSink *sink; /* not owned */
+struct UmiBuildRunner { /* opaque in header */
+UmiOutputSink *sink; /* not owned; caller manages lifetime */
 };
 
-UmiBuildRunner *umi_build_runner_new(void) {
-    return g_new0(UmiBuildRunner, 1);
+
+UmiBuildRunner *umi_build_runner_new(void) { return g_new0(UmiBuildRunner, 1); }
+void umi_build_runner_free(UmiBuildRunner *br) { g_free(br); }
+void umi_build_runner_set_sink(UmiBuildRunner *br, UmiOutputSink *sink) { if (br) br->sink = sink; }
+
+
+/* Read lines from a stream and forward to sink (stdout vs stderr). */
+static void stream_lines(GInputStream *stream, gboolean is_err, UmiOutputSink *sink)
+{
+if (!stream || !sink) return;
+GDataInputStream *din = g_data_input_stream_new(stream);
+gsize len = 0; GError *err = NULL;
+for (;;) {
+gchar *line = g_data_input_stream_read_line(din, &len, NULL, &err);
+if (err) { g_clear_error(&err); break; }
+if (!line) break;
+if (is_err) umi_output_sink_append_err_line(sink, line);
+else umi_output_sink_append_line(sink, line);
+g_free(line);
+}
+g_object_unref(din);
 }
 
-void umi_build_runner_free(UmiBuildRunner *br) {
-    g_free(br);
-}
 
-static void stream_lines(GInputStream *stream, gboolean is_err, UmiOutputSink *sink) {
-    if (!stream || !sink) return;
-    GDataInputStream *din = g_data_input_stream_new(stream);
-    gsize len = 0;
-    GError *err = NULL;
-    for (;;) {
-        gchar *line = g_data_input_stream_read_line(din, &len, NULL, &err);
-        if (err) { g_clear_error(&err); break; }
-        if (!line) break;
-        umi_output_sink_append_line(sink, line);
-        if (is_err) umi_output_sink_append_err_line(sink, line);
-        g_free(line);
-    }
-    g_object_unref(din);
-}
-
+/* Build argv vector (exe first, then args), NULL-terminated for GLib. */
 typedef struct ThreadCtx {
     GInputStream *stream;
     gboolean      is_err;
@@ -85,61 +87,68 @@ void umi_build_runner_set_sink(UmiBuildRunner *br, UmiOutputSink *sink) {
     if (!br) return;
     br->sink = sink;
 }
-
-static gchar **build_argv_vector(const char *exe, char *const argv[]) {
-    GPtrArray *a = g_ptr_array_new_with_free_func(g_free);
-    g_ptr_array_add(a, g_strdup(exe));
-    if (argv) {
-        for (int i = 0; argv[i]; ++i) {
-            g_ptr_array_add(a, g_strdup(argv[i]));
-        }
-    }
-    g_ptr_array_add(a, NULL);
-    return (gchar**)g_ptr_array_free(a, FALSE);
+static gchar **build_vector_with_exe(const char *exe, char *const argv[])
+{
+GPtrArray *a = g_ptr_array_new_with_free_func(g_free);
+g_ptr_array_add(a, g_strdup(exe));
+if (argv) { for (int i=0; argv[i]; ++i) g_ptr_array_add(a, g_strdup(argv[i])); }
+g_ptr_array_add(a, NULL);
+return (gchar**)g_ptr_array_free(a, FALSE);
 }
 
-static gchar **build_env_vector(char *const envp[]) {
-    if (!envp) return NULL;
-    GPtrArray *a = g_ptr_array_new_with_free_func(g_free);
-    for (int i = 0; envp[i]; ++i)
-        g_ptr_array_add(a, g_strdup(envp[i]));
-    g_ptr_array_add(a, NULL);
-    return (gchar**)g_ptr_array_free(a, FALSE);
-}
 
+/* Spawn a child process and stream its output. */
 gboolean umi_build_runner_run(UmiBuildRunner *br,
-                              const char *cwd,
-                              const char *exe,
-                              char *const argv[],
-                              char *const envp[],
-                              gboolean merge_stderr) {
-    if (!br || !exe) return FALSE;
+const char *cwd,
+const char *exe,
+char *const argv[],
+char *const envp[],
+gboolean merge_stderr)
+{
+if (!br || !exe) return FALSE;
 
-    GSubprocessLauncher *launcher = g_subprocess_launcher_new(
-        G_SUBPROCESS_FLAGS_STDOUT_PIPE |
-        (merge_stderr ? G_SUBPROCESS_FLAGS_STDERR_MERGE : G_SUBPROCESS_FLAGS_STDERR_PIPE));
 
-    if (cwd && *cwd) g_subprocess_launcher_set_cwd(launcher, cwd);
+GSubprocessLauncher *launcher = g_subprocess_launcher_new(
+G_SUBPROCESS_FLAGS_STDOUT_PIPE |
+(merge_stderr ? G_SUBPROCESS_FLAGS_STDERR_MERGE : G_SUBPROCESS_FLAGS_STDERR_PIPE));
 
-    gchar **envv = build_env_vector(envp);
-    if (envv) {
-        for (int i = 0; envv[i]; ++i) {
-            const char *eq = strchr(envv[i], '=');
-            if (!eq) continue;
-            gchar *k = g_strndup(envv[i], eq - envv[i]);
-            g_subprocess_launcher_setenv(launcher, k, eq + 1, TRUE);
-            g_free(k);
-        }
-        g_strfreev(envv);
-    }
 
-    gchar **argvv = build_argv_vector(exe, argv);
-    GError *err = NULL;
-    GSubprocess *proc = g_subprocess_launcher_spawnv(launcher, (const char * const *)argvv, &err);
-    g_object_unref(launcher);
-    g_strfreev(argvv);
+if (cwd && *cwd) g_subprocess_launcher_set_cwd(launcher, cwd);
 
-    if (!proc) {
+
+/* Apply environment key=value pairs if provided. */
+if (envp) {
+for (int i=0; envp[i]; ++i) {
+const char *eq = strchr(envp[i], '='); if (!eq) continue;
+gchar *k = g_strndup(envp[i], eq - envp[i]);
+g_subprocess_launcher_setenv(launcher, k, eq+1, TRUE);
+g_free(k);
+}
+}
+
+
+gchar **argvv = build_vector_with_exe(exe, argv);
+GError *err = NULL;
+GSubprocess *sp = g_subprocess_launcher_spawnv(launcher, (const gchar * const *)argvv, &err);
+g_object_unref(launcher);
+if (!sp) { if (err) g_error_free(err); g_strfreev(argvv); return FALSE; }
+
+
+GInputStream *out = g_subprocess_get_stdout_pipe(sp);
+GInputStream *errp = merge_stderr ? NULL : g_subprocess_get_stderr_pipe(sp);
+
+
+stream_lines(out, FALSE, br->sink);
+if (errp) stream_lines(errp, TRUE, br->sink);
+
+
+gint status = 0; g_subprocess_wait(sp, NULL);
+g_subprocess_get_exit_status(sp, &status);
+
+
+g_object_unref(sp);
+g_strfreev(argvv);
+if (!proc) {
         if (br->sink) {
             umi_output_sink_append_err_line(br->sink, err && err->message ? err->message : "spawn failed");
         }
@@ -176,4 +185,5 @@ gboolean umi_build_runner_run(UmiBuildRunner *br,
 
     g_object_unref(proc);
     return ok;
+ /* success only if exit status is 0 */
 }
