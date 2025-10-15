@@ -1,21 +1,27 @@
 
-// res/umicom.rc
+// win/umicom.rc
 // ----------------------------------------------------------------------------
 // Umicom Studio IDE — Windows resources
 // - Application icon (used by taskbar / Alt-Tab).
 // - Optional: Version info block.
 // CREDIT:
-//#   Created by: Umicom Foundation | Developer: Sammy Hegab
-//#   Maintainers: The Umicom Foundation team and community contributors
-//#   License: MIT
+//   Created by: Umicom Foundation | Developer: Sammy Hegab
+//   Maintainers: The Umicom Foundation team and community contributors
+//   License: MIT
 // ----------------------------------------------------------------------------
 
+// Minimal, safe resource script for icon + splash (+ optional version)
 #include <windows.h>
+#include "resource.h"
 
 #define IDI_APPICON  101
 
-// Embed our multi-size ICO
-IDI_APPICON ICON "res\\umicom.ico"
+// The ICO typically contains multiple sizes; Windows will pick best-fit
+IDI_APPICON       ICON    "umicom.ico"
+IDI_APPICON_SMALL ICON    "umicom.ico"
+
+// Embed the PNG splash as raw data (RCDATA). This avoids BITMAP converter quirks
+IDP_SPLASH        RCDATA  "umicom-logo.png"
 
 // (Optional but recommended) Version info block
 VS_VERSION_INFO VERSIONINFO

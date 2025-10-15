@@ -150,7 +150,7 @@ if(NOT USIDE_SOURCES)
 endif()
 
 
-# ---- 10) Project include paths (so #include \"foo.h\" just works) -----------
+# ---- 10) Project include paths (so #include "foo.h" just works) -----------
 # We *explicitly* add the most common header roots. This is teaching material:
 # reading this list tells you where headers live in the tree.
 # You can later switch to `target_include_directories(... INTERFACE src)` if
@@ -159,9 +159,10 @@ endif()
 
 # Add pure-C resources (icons/splash); *no* XML/gresource required.
 # Keep this list explicit so we don’t compile them twice.
+# (Adjusted to match actual tree: src/ui/icon.c and src/ui/splash.c)
 set(UI_RESOURCE_SOURCES
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/icon.c"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/splash.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/icon.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/splash.c"
 )
 
 # If your legacy pure-C bundle exists, include it (keeps compatibility).
@@ -356,8 +357,17 @@ target_compile_options(${PROJECT_NAME} PRIVATE
   # resource for the executable.
 
 #   win/appicon.rc   with the single line:  1 ICON "res/umicom.ico"
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/win/appicon.rc")
-  target_sources(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/win/appicon.rc")
+#  --- ADDED: use your actual resource file path/name (win/umicom.rc) ---
+if(WIN32)
+  set(USIDE_RC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/win/umicom.rc")
+  if(EXISTS "${USIDE_RC_FILE}")
+    target_sources(${PROJECT_NAME} PRIVATE "${USIDE_RC_FILE}")
+    # Hint the language in case the generator needs it (harmless elsewhere)
+    set_source_files_properties("${USIDE_RC_FILE}" PROPERTIES LANGUAGE RC)
+    message(STATUS "Including Windows resources: ${USIDE_RC_FILE}")
+  else()
+    message(STATUS "Windows .rc not found at ${USIDE_RC_FILE}; continuing without embedded icon.")
+  endif()
 endif()
 
 # --- Install step (optional) --------------------------------------------------
