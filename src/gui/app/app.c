@@ -35,7 +35,7 @@
 
 #include <gtk/gtk.h>                  /* core GTK API we use everywhere      */
 #include <glib.h>                     /* GLib helpers: hash tables, strings  */
-
+#include "splash.h"   
 /* GtkSourceView is optional — it gives nicer code editing features.          */
 /* We include it if present; otherwise we’ll fall back to GtkTextView.        */
 #if defined(__has_include)
@@ -311,7 +311,13 @@ static void build_main_ui(struct UmiApp *ua)
 /* “startup” is emitted once; we just ensure the map exists. */
 static void on_startup(GtkApplication *app, gpointer user_data)
 {
-    (void)app; (void)user_data;
+// Example usage of the splash screen:
+//
+GtkWidget *splash = uside_splash_show(app, 800 /*milliseconds*/);
+//  (build session, load settings, etc.)
+uside_splash_close_later(splash, 200 /*grace*/);
+  
+  (void)app; (void)user_data;
     g_message("[USIDE] app.c: on_startup()");
     if (!g_app_map) {                                     /* lazy create map   */
         g_app_map = g_hash_table_new(g_direct_hash, g_direct_equal);
