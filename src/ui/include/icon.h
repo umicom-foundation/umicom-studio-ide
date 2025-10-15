@@ -2,107 +2,187 @@
  * Umicom Studio IDE
  * File: src/ui/include/icon.h
  *
- * PURPOSE:
- *   Declare tiny, stand-alone helpers for working with a brand/logo image
- *   inside the app. We keep this header *small* and *loosely coupled* so
- *   any GUI module can include it without dragging additional dependencies.
+ * PURPOSE (What is this header for?):
+ *   This is the **public interface** for the tiny “icon” module.  The module
+ *   provides small branding helpers:
+ *     - Access to an embedded PNG logo (always available — no file I/O).
+ *     - A function to decode that PNG into a GTK/GDK texture (GdkTexture).
+ *     - A convenience constructor that returns a ready-to-use GtkPicture.
+ *     - Optional UI helpers (e.g., putting a small logo in a header bar).
  *
- * DESIGN GOALS:
- *   - Pure C API (works with C compilers across platforms).
- *   - No global state: all functions return regular GTK widgets or pixbufs.
- *   - No XML resources: images are embedded as XPM fallback right in C code.
- *   - Totally optional: if you don’t call these helpers, nothing is linked.
+ *   The design is **loosely coupled**:
+ *     - Callers include *only this header* (`#include "icon.h"`).
+ *     - No other module paths appear in source (CMake supplies include dirs).
+ *     - All types used here are from GTK (which the app already depends on).
  *
- * BEGINNER NOTE:
- *   - A “header” (.h) file contains function *declarations* (the what).
- *   - The “source” (.c) file contains function *definitions* (the how).
- *   - Other files include this header to *use* the functions defined in the C
- *     file. Keeping the header tiny reduces compile times and coupling.
+ * WHY KEEP AN EMBEDDED IMAGE?
+ *   - So the app can show something branded even when asset files are missing.
+ *   - Great for first-time contributors who clone and hit “build + run.”
+ *   - You can swap the embedded bytes later without changing callers.
  *
- * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-14 | MIT
+ * HOW TO USE (read this first):
+ *   1) **Include it** in any C file that needs the icon utilities:
+ *        #include "icon.h"             // <<-- NOTE: short include, no paths
+ *
+ *      (CMake sets `target_include_directories()` so `"icon.h"` resolves to
+ *       `src/ui/include/icon.h`.  Never write cross-module paths like
+ *       `ui/include/icon.h` here; that couples code to the directory layout.)
+ *
+ *   2) **Get a widget** that already shows the logo at a given size:
+ *        GtkWidget *img = umi_icon_image_logo(64);     // 64 logical pixels
+ *        gtk_box_append(GTK_BOX(some_container), img); // pack like any widget
+ *
+ *   3) **Get a texture** if you need lower-level control:
+ *        GdkTexture *tex = umi_icon_get_logo_texture();   // strong ref
+ *        GtkWidget  *pic = gtk_picture_new_for_paintable(GDK_PAINTABLE(tex));
+ *        g_object_unref(tex);                             // drop our reference
+ *
+ *   4) **Windows taskbar icon** (GTK4 note):
+ *      GTK4 does not have `gtk_window_set_icon()` anymore.  For a proper
+ *      taskbar/exe icon, embed an `.ico` with a **resource script (.rc)** in
+ *      the executable (see `icon.c` for step-by-step comments).
+ *
+ * API STABILITY:
+ *   - Functions here are small, self-contained, and unlikely to change.
+ *   - If you add new branding helpers, declare them here to keep callers tidy.
+ *
+ * LICENSE:
+ *   MIT (see project root). Keep the head comment intact for attribution.
+ *
+ * CREDIT:
+ *   Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-15
  *---------------------------------------------------------------------------*/
 
-#ifndef UMICOM_UI_ICON_H          /* Include guard: avoid double inclusion.   */
-#define UMICOM_UI_ICON_H
-
-/* Include the GTK forward declarations that callers will use.                */
-#include <gtk/gtk.h>               /* GtkWidget, GtkWindow, etc.               */
-#include <gdk-pixbuf/gdk-pixbuf.h> /* GdkPixbuf for in-memory images.          */
-
-G_BEGIN_DECLS                      /* C++ compatibility (harmless in C).       */
+#ifndef UMICOM_STUDIO_IDE_ICON_H
+#define UMICOM_STUDIO_IDE_ICON_H
 
 /*-----------------------------------------------------------------------------
- * umi_icon_make_logo_image
+ * INCLUDES (public dependencies)
  *
- * PURPOSE:
- *   Create a GTK image widget that shows the Umicom logo (or a fallback
- *   monochrome glyph) at approximately `px` pixels on a side.
+ * WHY: Callers need the GTK types (GtkWidget, GtkWindow, GdkTexture, etc.)
+ *      in the function signatures below.  We include the canonical GTK4
+ *      umbrella header so callers don’t have to include it themselves.
  *
- * PARAMETERS:
- *   px  - desired logical size in pixels (e.g. 16, 24, 32). GTK will scale
- *         as needed, but providing a sensible value improves clarity.
- *
- * RETURNS:
- *   GtkWidget* pointing to a GtkImage (caller packs it into layouts).
- *
- * NOTES:
- *   - Always succeeds: if high-res assets are not available, a tiny built-in
- *     XPM fallback is used so your UI *never* lacks a brand mark.
+ * COUPLING NOTE:
+ *   - This is a *public* header, so we restrict includes to widely-available
+ *     public SDK headers only (GTK).  We do not include any project-private
+ *     headers here to avoid unnecessary coupling between modules.
  *---------------------------------------------------------------------------*/
-GtkWidget* umi_icon_make_logo_image (int px);
+#include <gtk/gtk.h>   /* GTK4 core types and functions used in this API      */
 
 /*-----------------------------------------------------------------------------
- * umi_icon_try_apply_headerbar_logo
+ * ADDITIONAL STANDARD INCLUDE (added to expose size_t for API below)
  *
- * PURPOSE:
- *   Convenience helper that places the brand image into the given window’s
- *   header bar (left side). If the window already has a custom title widget,
- *   we simply add the logo to the *start* area so nothing breaks.
+ * WHY: The prototype for umi_icon_logo_png_data uses size_t. Including
+ *      <stddef.h> ensures size_t is visible to any compilation unit that
+ *      includes this header—without forcing callers to add another include.
+ *---------------------------------------------------------------------------*/
+#include <stddef.h>    /* size_t for umi_icon_logo_png_data() out-parameter   */
+
+/*-----------------------------------------------------------------------------
+ * umi_icon_logo_png_data
+ *
+ * WHAT IT RETURNS:
+ *   A pointer to **embedded PNG bytes** for the Umicom logo (lives in icon.c),
+ *   and (via an out-parameter) the byte length of that array.  The pointer is
+ *   to **read-only static data** baked into the program image; do not free it.
+ *
+ * WHY IT’S USEFUL:
+ *   - Lets advanced callers feed the bytes into other decoders or hashing.
+ *   - Keeps call sites decoupled from file-system paths.
  *
  * PARAMETERS:
- *   win        - the GtkWindow that owns a GtkHeaderBar (typical in GTK4).
- *   desired_px - the approximate pixel size for the logo glyph (e.g. 16, 24).
+ *   out_len : size_t* — [OUT] the number of bytes available at the pointer.
+ *                        Must be non-NULL; we write the length into it.
  *
  * RETURNS:
- *   void (modifies the headerbar in place).
+ *   const unsigned char* — read-only pointer valid for the process lifetime.
  *
  * SAFETY:
- *   - If `win` has no visible header bar, the function quietly does nothing.
+ *   Returns non-NULL and sets *out_len > 0 when compiled with the built-in
+ *   stub image.  If future changes make the embed optional, returning NULL
+ *   would be acceptable; call sites should handle that defensively.
  *---------------------------------------------------------------------------*/
-void        umi_icon_try_apply_headerbar_logo (GtkWindow* win, int desired_px);
+const unsigned char* umi_icon_logo_png_data(size_t *out_len);
 
 /*-----------------------------------------------------------------------------
- * umi_icon_pixbuf_fallback
+ * umi_icon_get_logo_texture
  *
  * PURPOSE:
- *   Expose a tiny in-memory pixbuf for advanced callers who want direct
- *   access to the GdkPixbuf (e.g., to paint onto a surface). This returns
- *   a *new reference* that the caller must unref with g_object_unref().
- *
- * PARAMETERS:
- *   size_px - approximate logical size (we generate/scale to this).
+ *   Decode the embedded PNG bytes into a **GdkTexture** that GTK widgets can
+ *   display (e.g., via GtkPicture).  Textures are reference-counted objects.
  *
  * RETURNS:
- *   GdkPixbuf* (never NULL; uses built-in XPM if nothing better is found).
+ *   GdkTexture* — a **new strong reference**; the caller must `g_object_unref()`.
+ *
+ * ERROR HANDLING:
+ *   - On decode failure (unlikely for the built-in image) returns NULL.
+ *
+ * EXAMPLE:
+ *   GdkTexture *tex = umi_icon_get_logo_texture();
+ *   if (tex) {
+ *     GtkWidget *pic = gtk_picture_new_for_paintable(GDK_PAINTABLE(tex));
+ *     // ... pack `pic` into your layout ...
+ *     g_object_unref(tex);
+ *   }
  *---------------------------------------------------------------------------*/
-GdkPixbuf*  umi_icon_pixbuf_fallback (int size_px);
+GdkTexture* umi_icon_get_logo_texture(void);
 
 /*-----------------------------------------------------------------------------
- * umi_icon_try_apply_taskbar_icon_win32 (no-op on non-Windows)
+ * umi_icon_image_logo
  *
  * PURPOSE:
- *   Placeholder for a future enhancement: set the taskbar icon for the
- *   window at runtime using Win32 messages. GTK4 removed per-window icon
- *   API, so we leave this as a stub to keep the module future-proof.
+ *   Convenience helper that **builds a widget** (GtkPicture) already set up
+ *   to display the logo at a requested logical size (pixels).  The widget
+ *   takes its own internal reference to the underlying paintable, so you
+ *   don’t need to manage the texture lifetime explicitly.
  *
  * PARAMETERS:
- *   win - the window whose native handle we might tweak.
+ *   size_px : int — desired logical size (e.g., 16, 32, 64, 128).
+ *                    Values <= 0 fall back to a sensible default (64).
  *
  * RETURNS:
- *   void (currently does nothing on all platforms).
+ *   GtkWidget* — newly created GtkPicture ready to be added to containers.
+ *
+ * NOTES:
+ *   - GTK will handle HiDPI automatically (no manual scaling math required).
  *---------------------------------------------------------------------------*/
-void        umi_icon_try_apply_taskbar_icon_win32 (GtkWindow* win);
+GtkWidget* umi_icon_image_logo(int size_px);
 
-G_END_DECLS                        /* End extern "C" for C++ consumers.        */
+/*-----------------------------------------------------------------------------
+ * umi_icon_apply_to_window
+ *
+ * PURPOSE (historical / stub in GTK4):
+ *   In GTK3 you could set a per-window icon.  GTK4 removed that API.  We keep
+ *   a **no-op** function for API continuity, and to teach that Windows taskbar
+ *   icons should come from the **EXE resources** (.rc + .ico).
+ *
+ * PARAMETERS:
+ *   win : GtkWindow* — ignored in GTK4 builds (safe to pass NULL).
+ *
+ * RETURNS:
+ *   void — does nothing on GTK4; future platform-specific hooks may be added.
+ *---------------------------------------------------------------------------*/
+void umi_icon_apply_to_window(GtkWindow *win);
 
-#endif /* UMICOM_UI_ICON_H */
+/*-----------------------------------------------------------------------------
+ * OPTIONAL HELPERS (already implemented in icon.c; exposed for convenience)
+ *
+ * WHY EXPOSE THESE:
+ *   Your current `icon.c` already contains helpers such as:
+ *     - `umi_icon_try_apply_headerbar_logo()`: add a small logo to a window’s
+ *       GtkHeaderBar if present (purely cosmetic, safe if headerbar missing).
+ *     - `umi_icon_try_apply_taskbar_icon_win32()`: placeholder for future
+ *       Win32 taskbar customization (currently a no-op to keep things simple).
+ *   Declaring them here avoids ad-hoc externs elsewhere and keeps usage tidy.
+ *---------------------------------------------------------------------------*/
+
+/* Add a small logo at the “start/left” of the window’s header bar if any.     */
+/* `desired_px` is a hint (e.g., 16 or 24).  No-op if the window has no        */
+/* header bar or uses a custom titlebar we can’t augment safely.               */
+void umi_icon_try_apply_headerbar_logo(GtkWindow *win, int desired_px);
+
+/* Future Win32 taskbar icon hook (safe no-op today).                          */
+void umi_icon_try_apply_taskbar_icon_win32(GtkWindow *win);
+
+#endif /* UMICOM_STUDIO_IDE_ICON_H */
