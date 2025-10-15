@@ -13,8 +13,13 @@
  *     absent.
  *   - No removal of comments or header banners; only minimal code added.
  *
+ * NOTE [2025-10-14]:
+ *   Replaced deprecated gtk_css_provider_load_from_data() with
+ *   gtk_css_provider_load_from_string() to silence GTK4 deprecation warnings.
+ *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-14 | MIT
  *---------------------------------------------------------------------------*/
+#include <glib.h>
 #include <gtk/gtk.h>
 #include "theme.h"  /* public declarations */
 
@@ -24,8 +29,10 @@ static void apply_css_to_display(const char *css)
 {
     if (!css) return;
     GtkCssProvider *prov = gtk_css_provider_new();
-    /* Ignore parse errors to keep this robust. */
-    gtk_css_provider_load_from_data(prov, css, -1);
+
+    /* GTK4 modern API (non-deprecated) */
+    gtk_css_provider_load_from_string(prov, css);
+
     GdkDisplay *display = gdk_display_get_default();
     if (display) {
         gtk_style_context_add_provider_for_display(
