@@ -4,46 +4,100 @@
 // Umicom Studio IDE — Windows resources
 // - Application icon (used by taskbar / Alt-Tab).
 // - Optional: Version info block.
+//
+// Notes:
+//   • Keep umicom.rc, umicom.ico and umicom-logo.png together in the same
+//     'win' folder so relative paths resolve cleanly in MSVC & MinGW/Clang.
+//   • If you later add a resource.h, its numeric IDs will override the
+//     fallback #defines below (recommended for consistency with C code).
 // CREDIT:
 //   Created by: Umicom Foundation | Developer: Sammy Hegab
 //   Maintainers: The Umicom Foundation team and community contributors
 //   License: MIT
 // ----------------------------------------------------------------------------
 
-// Minimal, safe resource script for icon + splash (+ optional version)
 #include <windows.h>
-#include "resource.h"
 
-#define IDI_APPICON  101
+// If a resource.h exists, let it define the IDs; otherwise use safe defaults.
+#ifdef __has_include
+#  if __has_include("resource.h")
+#    include "resource.h"
+#  endif
+#endif
 
-// The ICO typically contains multiple sizes; Windows will pick best-fit
-IDI_APPICON       ICON    "umicom.ico"
-IDI_APPICON_SMALL ICON    "umicom.ico"
+#ifndef IDI_APPICON
+#  define IDI_APPICON        101
+#endif
+#ifndef IDI_APPICON_SMALL
+#  define IDI_APPICON_SMALL  102
+#endif
+#ifndef IDP_SPLASH
+#  define IDP_SPLASH         201
+#endif
 
-// Embed the PNG splash as raw data (RCDATA). This avoids BITMAP converter quirks
-IDP_SPLASH        RCDATA  "umicom-logo.png"
+//------------------------------------------------------------------------------
+// Icons
+//------------------------------------------------------------------------------
+// The .ico should contain multiple sizes (16/32/48/64/128/256). Windows will
+// automatically choose the best fit.
+IDI_APPICON        ICON     "umicom.ico"
+IDI_APPICON_SMALL  ICON     "umicom.ico"
 
-// (Optional but recommended) Version info block
+//------------------------------------------------------------------------------
+// Splash / branding image
+//------------------------------------------------------------------------------
+// Embed the PNG as raw data (RCDATA). Load at runtime with FindResource/LockResource.
+IDP_SPLASH         RCDATA   "umicom-logo.png"
+
+//------------------------------------------------------------------------------
+// Optional VERSIONINFO
+//------------------------------------------------------------------------------
+// Enable by defining UMI_FILE_VERSION_MAJOR/MINOR/PATCH via CMake, e.g.:
+// target_compile_definitions(umicom_studio PRIVATE
+//   UMI_FILE_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+//   UMI_FILE_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+//   UMI_FILE_VERSION_PATCH=${PROJECT_VERSION_PATCH})
+//------------------------------------------------------------------------------
+#ifndef UMI_FILE_VERSION_MAJOR
+#  define UMI_FILE_VERSION_MAJOR 0
+#endif
+#ifndef UMI_FILE_VERSION_MINOR
+#  define UMI_FILE_VERSION_MINOR 1
+#endif
+#ifndef UMI_FILE_VERSION_PATCH
+#  define UMI_FILE_VERSION_PATCH 0
+#endif
+
+// Helpers to stringify macro values for the string fields
+#define UMI_STR_IMPL(x) #x
+#define UMI_STR(x)      UMI_STR_IMPL(x)
+
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION     1,0,0,0
- PRODUCTVERSION  1,0,0,0
- FILEFLAGSMASK   0x3fL
- FILEFLAGS       0x0L
- FILEOS          0x40004L
- FILETYPE        0x1L
- FILESUBTYPE     0x0L
+ FILEVERSION    UMI_FILE_VERSION_MAJOR,UMI_FILE_VERSION_MINOR,UMI_FILE_VERSION_PATCH,0
+ PRODUCTVERSION UMI_FILE_VERSION_MAJOR,UMI_FILE_VERSION_MINOR,UMI_FILE_VERSION_PATCH,0
+ FILEFLAGSMASK  0x3fL
+#ifdef _DEBUG
+ FILEFLAGS      0x1L
+#else
+ FILEFLAGS      0x0L
+#endif
+ FILEOS         0x40004L
+ FILETYPE       0x1L
+ FILESUBTYPE    0x0L
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
-    BLOCK "040904B0"  // US English, Unicode
+    // 0409 = en-US, 04B0 = Unicode, common for VS-generated resources
+    BLOCK "040904b0"
     BEGIN
-      VALUE "CompanyName",      "Umicom Foundation\0"
-      VALUE "FileDescription",  "Umicom Studio IDE\0"
-      VALUE "FileVersion",      "1.0.0\0"
-      VALUE "ProductName",      "Umicom Studio IDE\0"
-      VALUE "ProductVersion",   "1.0.0\0"
-      VALUE "OriginalFilename", "umicom-studio-ide.exe\0"
-      VALUE "LegalCopyright",   "© Umicom Foundation\0"
+      VALUE "CompanyName",      "Umicom"
+      VALUE "FileDescription",  "Umicom Studio IDE"
+      VALUE "FileVersion",      UMI_STR(UMI_FILE_VERSION_MAJOR) "." UMI_STR(UMI_FILE_VERSION_MINOR) "." UMI_STR(UMI_FILE_VERSION_PATCH)
+      VALUE "InternalName",     "umicom-studio.exe"
+      VALUE "OriginalFilename", "umicom-studio.exe"
+      VALUE "ProductName",      "Umicom Studio"
+      VALUE "ProductVersion",   UMI_STR(UMI_FILE_VERSION_MAJOR) "." UMI_STR(UMI_FILE_VERSION_MINOR) "." UMI_STR(UMI_FILE_VERSION_PATCH)
+     VALUE "LegalCopyright",   "© Umicom Foundation\0"
     END
   END
   BLOCK "VarFileInfo"
