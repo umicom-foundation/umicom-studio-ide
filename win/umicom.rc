@@ -1,54 +1,40 @@
-
-// win/umicom.rc
-// ----------------------------------------------------------------------------
-// Umicom Studio IDE — Windows resources
-// - Application icon (used by taskbar / Alt-Tab).
-// - Optional: Version info block.
-//
-// Notes:
-//   • Keep umicom.rc, umicom.ico and umicom-logo.png together in the same
-//     'win' folder so relative paths resolve cleanly in MSVC & MinGW/Clang.
-//   • If you later add a resource.h, its numeric IDs will override the
-//     fallback #defines below (recommended for consistency with C code).
-// CREDIT:
-//   Created by: Umicom Foundation | Developer: Sammy Hegab
-//   Maintainers: The Umicom Foundation team and community contributors
-//   License: MIT
-// ----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * File: win/umicom.rc
+ *
+ * PURPOSE:
+ *   Windows resource script for the app icon and embedded splash PNG.
+ *   Minimal and stable for both MSVC and MinGW/Clang (windres).
+ *
+ * NOTES:
+ *   - The ONLY source of resource IDs is: resource.h (provided via include path).
+ *   - Do NOT duplicate resource.h in this folder; keep a single canonical header.
+ *
+ * LICENSE:
+ *   MIT (see project root). Keep this header comment intact for attribution.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-15
+ *---------------------------------------------------------------------------*/
 
 #include <windows.h>
+#include "resource.h"   // resolved by target include dirs (no relative paths)
 
-// If a resource.h exists, let it define the IDs; otherwise use safe defaults.
-#ifdef __has_include
-#  if __has_include("resource.h")
-#    include "resource.h"
-#  endif
-#endif
-
-#ifndef IDI_APPICON
-#  define IDI_APPICON        101
-#endif
-#ifndef IDI_APPICON_SMALL
-#  define IDI_APPICON_SMALL  102
-#endif
-#ifndef IDP_SPLASH
-#  define IDP_SPLASH         201
-#endif
-
+// Application icons (ICO should contain multiple sizes; Windows picks best fit)
 //------------------------------------------------------------------------------
 // Icons
 //------------------------------------------------------------------------------
 // The .ico should contain multiple sizes (16/32/48/64/128/256). Windows will
 // automatically choose the best fit.
-IDI_APPICON        ICON     "umicom.ico"
-IDI_APPICON_SMALL  ICON     "umicom.ico"
+IDI_APPICON       ICON    "umicom.ico"
+IDI_APPICON_SMALL ICON    "umicom.ico"
 
 //------------------------------------------------------------------------------
 // Splash / branding image
 //------------------------------------------------------------------------------
-// Embed the PNG as raw data (RCDATA). Load at runtime with FindResource/LockResource.
-IDP_SPLASH         RCDATA   "umicom-logo.png"
+// Embed PNG splash as raw data (portable and easy to load in code)
+IDP_SPLASH        RCDATA  "umicom-logo.png"
 
+// --- Optional VERSIONINFO block (enable via CMake defs) ---
 //------------------------------------------------------------------------------
 // Optional VERSIONINFO
 //------------------------------------------------------------------------------
@@ -58,46 +44,34 @@ IDP_SPLASH         RCDATA   "umicom-logo.png"
 //   UMI_FILE_VERSION_MINOR=${PROJECT_VERSION_MINOR}
 //   UMI_FILE_VERSION_PATCH=${PROJECT_VERSION_PATCH})
 //------------------------------------------------------------------------------
-#ifndef UMI_FILE_VERSION_MAJOR
-#  define UMI_FILE_VERSION_MAJOR 0
-#endif
-#ifndef UMI_FILE_VERSION_MINOR
-#  define UMI_FILE_VERSION_MINOR 1
-#endif
-#ifndef UMI_FILE_VERSION_PATCH
-#  define UMI_FILE_VERSION_PATCH 0
-#endif
 
-// Helpers to stringify macro values for the string fields
-#define UMI_STR_IMPL(x) #x
-#define UMI_STR(x)      UMI_STR_IMPL(x)
-
+#ifdef UMI_FILE_VERSION_MAJOR
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION    UMI_FILE_VERSION_MAJOR,UMI_FILE_VERSION_MINOR,UMI_FILE_VERSION_PATCH,0
- PRODUCTVERSION UMI_FILE_VERSION_MAJOR,UMI_FILE_VERSION_MINOR,UMI_FILE_VERSION_PATCH,0
- FILEFLAGSMASK  0x3fL
+ FILEVERSION     UMI_FILE_VERSION_MAJOR,UMI_FILE_VERSION_MINOR,UMI_FILE_VERSION_PATCH,0
+ PRODUCTVERSION  UMI_FILE_VERSION_MAJOR,UMI_FILE_VERSION_MINOR,UMI_FILE_VERSION_PATCH,0
+ FILEFLAGSMASK   0x3fL
 #ifdef _DEBUG
- FILEFLAGS      0x1L
+ FILEFLAGS       0x1L
 #else
- FILEFLAGS      0x0L
+ FILEFLAGS       0x0L
 #endif
- FILEOS         0x40004L
- FILETYPE       0x1L
- FILESUBTYPE    0x0L
+ FILEOS          0x40004L
+ FILETYPE        0x1L
+ FILESUBTYPE     0x0L
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
-    // 0409 = en-US, 04B0 = Unicode, common for VS-generated resources
-    BLOCK "040904b0"
+  // 0409 = en-US, 04B0 = Unicode, common for VS-generated resources
+      BLOCK "040904B0"
     BEGIN
-      VALUE "CompanyName",      "Umicom"
-      VALUE "FileDescription",  "Umicom Studio IDE"
-      VALUE "FileVersion",      UMI_STR(UMI_FILE_VERSION_MAJOR) "." UMI_STR(UMI_FILE_VERSION_MINOR) "." UMI_STR(UMI_FILE_VERSION_PATCH)
-      VALUE "InternalName",     "umicom-studio.exe"
-      VALUE "OriginalFilename", "umicom-studio.exe"
-      VALUE "ProductName",      "Umicom Studio"
-      VALUE "ProductVersion",   UMI_STR(UMI_FILE_VERSION_MAJOR) "." UMI_STR(UMI_FILE_VERSION_MINOR) "." UMI_STR(UMI_FILE_VERSION_PATCH)
-     VALUE "LegalCopyright",   "© Umicom Foundation\0"
+      VALUE "CompanyName",      "Umicom Foundation\0"
+      VALUE "FileDescription",  "Umicom Studio IDE\0"
+      VALUE "FileVersion",      "UMI_FILE_VERSION_MAJOR.UMI_FILE_VERSION_MINOR.UMI_FILE_VERSION_PATCH\0"
+      VALUE "InternalName",     "umicom-studio-ide.exe\0"
+      VALUE "OriginalFilename", "umicom-studio-ide.exe\0"
+      VALUE "ProductName",      "Umicom Studio\0"
+      VALUE "ProductVersion",   "UMI_FILE_VERSION_MAJOR.UMI_FILE_VERSION_MINOR.UMI_FILE_VERSION_PATCH\0"
+      VALUE "LegalCopyright",   "© Umicom Foundation\0"
     END
   END
   BLOCK "VarFileInfo"
@@ -105,3 +79,4 @@ BEGIN
     VALUE "Translation", 0x0409, 1200
   END
 END
+#endif // UMI_FILE_VERSION_MAJOR

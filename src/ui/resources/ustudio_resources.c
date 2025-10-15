@@ -26,7 +26,10 @@
  *   - All disk I/O goes through GLib (safe UTF-8 paths, error paths).
  *   - Fallbacks are embedded strings; never trust external data blindly.
  *
- * Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+ * LICENSE:
+ *   MIT (see project root). Keep this header comment intact for attribution.
+ *
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-15
  *---------------------------------------------------------------------------*/
 
 #include <gtk/gtk.h>
@@ -126,10 +129,16 @@ static char *umi_res_build_abspath(const char *relative)
 /*----------------------------- Disk text loading ----------------------------*/
 gchar *umi_res_load_text_file(const char *relative, gsize *len, GError **error)
 {
-    g_autofree char *abspath = umi_res_build_abspath(relative);
-    gchar  *data = NULL;
-    gsize   n = 0;
-    if (!g_file_get_contents(abspath, &data, &n, error)) return NULL;
+    char *abspath = umi_res_build_abspath(relative);
+    gchar *data = NULL;
+    gsize n = 0;
+
+    if (!g_file_get_contents(abspath, &data, &n, error)) {
+        g_free(abspath);
+        return NULL;
+    }
+
+    g_free(abspath);
     if (len) *len = n;
     return data; /* caller g_free()s */
 }
@@ -144,15 +153,18 @@ gboolean umi_res_load_css(GtkCssProvider *provider, GError **error)
 #else
     (void)error; /* we provide a robust fallback instead of bubbling errors */
 
-    /* Try to load a stylesheet from disk; if missing, just succeed silently. */
-    g_autoptr(GError) local_err = NULL;
-    g_autofree gchar *css_text = umi_res_load_text_file("styles/app.css", NULL, &local_err);
+    gsize css_len = 0;
+    GError *local_err = NULL;
+    gchar *css_text = umi_res_load_text_file("styles/app.css", &css_len, &local_err);
 
-    if (css_text && *css_text) {
+    if (css_text && css_len > 0) {
         gtk_css_provider_load_from_string(provider, css_text);
+        g_free(css_text);
         return TRUE;
     }
 
+    if (css_text) g_free(css_text);
+    if (local_err) g_error_free(local_err);
     /* No fallback stylesheet in CSS-enabled mode: native theme is fine. */
     return TRUE;
 #endif
@@ -173,9 +185,12 @@ gboolean umi_res_builder_add(GtkBuilder *builder, const char *rel_or_res_path, G
 {
     const char *relative = map_resource_like_to_relative(rel_or_res_path);
 
-    g_autoptr(GError) local_err = NULL;
-    g_autofree char *abspath = umi_res_build_abspath(relative);
-    if (gtk_builder_add_from_file(builder, abspath, &local_err)) return TRUE;
+    GError *local_err = NULL;
+    char *abspath = umi_res_build_abspath(relative);
+    gboolean ok = gtk_builder_add_from_file(builder, abspath, &local_err);
+    g_free(abspath);
+
+    if (ok) return TRUE;
 
     /* Fallbacks keep the app running if files are missing. */
     const char *fallback_xml = NULL;
@@ -185,17 +200,28 @@ gboolean umi_res_builder_add(GtkBuilder *builder, const char *rel_or_res_path, G
     else if (g_str_has_suffix(relative, "chat_pane_snippet.xml"))  fallback_xml = g_fallback_chat_snippet_xml;
     else if (g_str_has_suffix(relative, "log_pane_snippet.xml"))   fallback_xml = g_fallback_log_snippet_xml;
 
-    if (fallback_xml && gtk_builder_add_from_string(builder, fallback_xml, -1, error))
-        return TRUE;
+    if (fallback_xml) {
+        if (gtk_builder_add_from_string(builder, fallback_xml, -1, error)) {
+            if (local_err) g_error_free(local_err);
+            return TRUE;
+        }
+    }
 
-    if (error && !*error) *error = local_err ? g_steal_pointer(&local_err) : NULL;
+    if (error && *error == NULL && local_err) {
+        *error = local_err; /* hand off ownership */
+    } else if (local_err) {
+        g_error_free(local_err);
+    }
     return FALSE;
 }
 
 GtkBuilder *umi_builder_new_from_res_or_file(const char *rel_or_res_path, GError **error)
 {
     GtkBuilder *b = gtk_builder_new();
-    if (!umi_res_builder_add(b, rel_or_res_path, error)) { g_object_unref(b); return NULL; }
+    if (!umi_res_builder_add(b, rel_or_res_path, error)) {
+        g_object_unref(b);
+        return NULL;
+    }
     return b;
 }
 
@@ -204,4 +230,4 @@ const char *umi_res_fallback_json_theme_presets(void)
 {
     return g_fallback_theme_json;
 }
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/ 

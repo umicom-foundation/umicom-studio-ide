@@ -20,7 +20,8 @@
  *   - Internally we manage our own GTK widgets; callers don’t need to know.
  *
  * HOW TO USE (copy-paste friendly, step-by-step):
- *   1) Include this header from your app code (e.g. in src/gui/app/app.c):
+ *   1) Create the splash *before* you do heavy work: 
+ *
  *
  *        #include "ui/include/splash.h"
  *
@@ -32,17 +33,17 @@
  *            0                                  // auto-close ms (0 = no auto-close)
  *        );
  *
- *   3) Show it (optionally with a parent GtkWindow*; NULL is fine too):
+ *   2) Show it (optionally with a parent GtkWindow*; NULL is fine too):
  *
  *        umi_splash_show(s, /'* parent = *'/ NULL);
  *
- *   4) Update progress during initialization (fraction: 0.0..1.0):
+ *   3) Update progress during initialization (fraction: 0.0..1.0):
  *
  *        umi_splash_set_progress(s, 0.25, "Initializing subsystems…");
  *        umi_splash_set_progress(s, 0.50, "Loading plugins…");
  *        umi_splash_set_progress(s, 0.75, "Preparing UI…");
  *
- *   5) When your main window is ready, close & free the splash:
+ *   4) When your main window is ready, close & free the splash:
  *
  *        umi_splash_close(s);   // hides the window (no-op if already hidden)
  *        umi_splash_free(s);    // releases resources (safe to call once)
@@ -96,11 +97,11 @@ typedef struct UmiSplash UmiSplash;
  *     - A progress bar and a spinner (spinner shows activity even at 0%)
  *
  * PARAMETERS:
- *   title       : const char*  — Main heading on the splash (UTF-8 expected).
- *   subtitle    : const char*  — Smaller line beneath the title (UTF-8).
+ *   title        : const char*  — Main heading on the splash (UTF-8 expected).
+ *   subtitle     : const char*  — Smaller line beneath the title (UTF-8).
  *   auto_close_ms: unsigned int — If > 0, the splash will auto-close after the
- *                                 given number of milliseconds. Pass 0 to keep
- *                                 it open until you call umi_splash_close().
+ *                                  given number of milliseconds. Pass 0 to keep
+ *                                  it open until you call umi_splash_close().
  *
  * RETURNS:
  *   UmiSplash*  — A heap-allocated controller. Use umi_splash_free() when done.
@@ -124,7 +125,7 @@ UmiSplash* umi_splash_new(const char *title,
  *   splash : UmiSplash*   — The controller returned by umi_splash_new().
  *   parent : GtkWindow*   — (Optional) parent window for transient behavior.
  *                           Pass NULL if you don’t have a main window yet.
- *
+*
  * RETURNS:
  *   void — no return value.
  *
@@ -165,7 +166,7 @@ void umi_splash_set_progress(UmiSplash *splash,
  *   Hide the splash window if it is currently shown. This is safe to call
  *   multiple times; extra calls are simply ignored. The object remains valid
  *   after closing and can be freed by umi_splash_free().
- *
+*
  * RETURNS:
  *   void — no return value.
  *
@@ -183,7 +184,7 @@ void umi_splash_close(UmiSplash *splash);
  *
  * RULE:
  *   Call this exactly once per object returned by umi_splash_new().
- *
+*
  * RETURNS:
  *   void — no return value.
  *---------------------------------------------------------------------------*/
@@ -197,12 +198,32 @@ void umi_splash_free(UmiSplash *splash);
  *   this, but it can be handy for tests or advanced theming tweaks.
  *
  * RETURNS:
- *   GtkWindow* — owned by the splash; do not unref/destroy it yourself.
- *
- * NOTE:
- *   If you need to attach data to the splash window, prefer g_object_set_data()
- *   so we keep loose coupling between modules.
+ *   GtkWindow* — the toplevel splash window (owned by the controller).
  *---------------------------------------------------------------------------*/
-GtkWindow* umi_splash_window(UmiSplash *splash);
+GtkWindow *umi_splash_window(UmiSplash *splash);
+
+/*-----------------------------------------------------------------------------
+ * OPTIONAL: convenience inline to get GtkWidget* (sometimes handy for APIs).
+ *---------------------------------------------------------------------------*/
+static inline GtkWidget *umi_splash_widget(UmiSplash *s)
+{
+    return GTK_WIDGET(umi_splash_window(s));
+}
+
+/*=============================================================================
+ * LEGACY COMPATIBILITY SHIM
+ *-----------------------------------------------------------------------------
+ * Some existing modules (e.g., src/gui/app/app.c) still call the older helper
+ * names `uside_splash_show()` and `uside_splash_close_later()`. To keep this
+ * build green *without touching those modules right now*, we declare
+ * back-compat signatures here. They are implemented in splash.c in terms of
+ * the modern UmiSplash controller. New code should prefer the umi_* API.
+ *===========================================================================*/
+
+/* Show a non-modal splash window; returns the GtkWindow so callers can close. */
+GtkWidget *uside_splash_show(GtkApplication *app, guint display_ms);
+
+/* Close the splash window after `grace_ms` (0 = immediate). Safe on NULL.   */
+void uside_splash_close_later(GtkWidget *splash_win, guint grace_ms);
 
 #endif /* UMICOM_STUDIO_IDE_SPLASH_H */
