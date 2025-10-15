@@ -29,7 +29,8 @@
 
 #include <gtk/gtk.h>                     /* core GTK4 widgets and helpers      */
 #include "window_chat_integration.h"     /* mounts app.toggle-chat action      */
-#include "icons.h"                       /* small helper to show logo in UI    */
+/* Use the short, public header name per project rules (no cross-module paths). */
+#include "icon.h"                        /* small helper to show logo in UI    */
 
 /* Forward declaration of a tiny helper that builds the right side (editor +
  * output tabs) and hands us the "chat box" widget so we can toggle it later.  */

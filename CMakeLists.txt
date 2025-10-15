@@ -130,11 +130,19 @@ file(GLOB_RECURSE USIDE_SOURCES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"            # single entry point
 )
 
+# !!! IMPORTANT: this next line caused your parser error earlier.
+# It tried to call target_include_directories() *before* the target existed,
+# and was missing its closing ')', which produced:
+#   "Parse error. Function missing ending ')'. End of file reached."
+# We comment it out with a clear "PLEASE REMOVE" note so you can see it.
+# PLEASE REMOVE: stray, invalid and unused line left from an earlier edit.
+# target_include_directories(${PROJECT_NAME} PRIVATE
+
 # Friendly failure if for some reason nothing matched (mis-path, repo incomplete).
 # Include directories tell the compiler where to find headers when a source
 # does `#include "something.h"`. We add both module "include" folders and
 # the pkg-config include paths (GTK/GLib headers).
-target_include_directories(${PROJECT_NAME} PRIVATE
+#target_include_directories(${PROJECT_NAME} PRIVATE
 # ---- 9) Friendly failure if nothing matched (helps new contributors) --------
 
 if(NOT USIDE_SOURCES)
@@ -148,12 +156,20 @@ endif()
 # You can later switch to `target_include_directories(... INTERFACE src)` if
 # you prefer a single umbrella include path (less typing, but less explicit).
 # We also add the pkg-config include directories discovered above.
+
 # Add pure-C resources (icons/splash); *no* XML/gresource required.
 # Keep this list explicit so we don’t compile them twice.
 set(UI_RESOURCE_SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/icon.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/splash.c"
 )
+
+# If your legacy pure-C bundle exists, include it (keeps compatibility).
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/ustudio_resources.c")
+  list(APPEND UI_RESOURCE_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/ustudio_resources.c")
+  message(STATUS "Including legacy ustudio_resources.c (pure C resource bundle).")
+endif()
 
 # If you later decide to use GTK’s gresource XML, you can gate that behind
 # an option and generate a C source from the XML. We keep it OFF by default
@@ -175,8 +191,8 @@ add_executable(${PROJECT_NAME}
 )
 
 # --- Include directories (where headers are found) ----------------------------
-# We list the public include roots for each module so `#include "..."` works.
-# We also add the pkg-config include directories discovered above.
+# We list the public include roots for each module so `#include "icon.h"` works
+# without cross-module paths in your C files (you asked for short includes).
 target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}                        # allow #include "src/.."
   ${CMAKE_CURRENT_SOURCE_DIR}/src                    # umbrella include
