@@ -73,7 +73,7 @@ GtkWidget *window_new(GtkApplication *app)
         /* Ask our icons helper to create a small GtkImage (16–24 px) that
          * shows the Umicom logo. If your PNG/SVG is present on disk it will
          * load that; otherwise a tiny built-in XPM fallback is used.          */
-        GtkWidget *logo = uside_create_logo_image(20 /*px*/);
+        GtkWidget *logo = umi_icon_image_logo(20 /*px*/);
         if (logo) {
             /* Add a tooltip so new users understand the branding.            */
             gtk_widget_set_tooltip_text(logo, "Umicom Studio IDE");

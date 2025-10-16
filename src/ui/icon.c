@@ -24,7 +24,7 @@
  *
  * HOW TO SWAP IN YOUR REAL LOGO (two options):
  *   1) **Keep in-code bytes (simple)**
- *      - Replace the `kLogoPng` array below with bytes of your PNG (e.g. 64×64).
+ *      - Replace the `g_umicom_logo_png` array below with bytes of your PNG (e.g. 64×64).
  *      - Update the comment to note the size/source.
  *
  *   2) **Ship real assets + .rc (production)**
@@ -55,8 +55,8 @@
 
 #include <gtk/gtk.h>      /* GTK4: GdkTexture, GtkPicture, helpers            */
 #include <string.h>       /* C standard header: for size_t if needed          */
-#include "icon.h"  /* Our public header for this module           */
-#include <stdint.h>        /* fixed-size integer types used by many coders    */
+#include "icon.h"         /* Our public header for this module           */
+#include <stdint.h>       /* fixed-size integer types used by many coders    */
 
 /*-----------------------------------------------------------------------------
  * EMBEDDED PNG BYTES (1×1 transparent pixel)
@@ -68,7 +68,7 @@
  *
  * HOW TO REPLACE:
  *   - Generate bytes from your real PNG (e.g., with a small tool/script).
- *   - Replace the array below and update `kLogoPngSize`. That’s it.
+ *   - Replace the array below and update the size. That's it.
  *---------------------------------------------------------------------------*/
 
 /* NOTE: This is a stub (tiny) PNG; replace with your real image when ready.  */
@@ -126,31 +126,26 @@ const unsigned char* umi_icon_logo_png_data(size_t *out_len)
  * umi_icon_get_logo_texture
  *
  * PURPOSE:
- *   Decode the embedded PNG into a GdkTexture (GTK4’s paintable image type).
+ *   Decode the embedded PNG into a GdkTexture (GTK4's paintable image type).
  *   This texture can be displayed by widgets like GtkPicture.
  *---------------------------------------------------------------------------*/
 GdkTexture* umi_icon_get_logo_texture(void)
 {
-    GBytes *bytes = g_bytes_new_static(kLogoPng, kLogoPngSize); /* wrap bytes */
-
-    GError *err = NULL;                                           /* for errors */
-    GdkTexture *tex = gdk_texture_new_from_bytes(bytes, &err);    /* decode    */
-
-    g_bytes_unref(bytes);                           /* texture holds its ref   */
+    size_t len = 0;
+    const unsigned char *png = umi_icon_logo_png_data(&len);
+    
+    GBytes *bytes = g_bytes_new_static(png, len);  /* wrap bytes */
+    GError *err = NULL;
+    GdkTexture *tex = gdk_texture_new_from_bytes(bytes, &err);
+    g_bytes_unref(bytes);
 
     if (err) {                                      /* if decode failed        */
         g_warning("umi_icon_get_logo_texture: failed to decode PNG: %s",
-                  err->message);                    /* log for devs            */
-        g_error_free(err);                          /* clean error object      */
-        return NULL;                                /* signal failure          */
+                  err->message);
+        g_error_free(err);
+        return NULL;
     }
 
-    /* GdkTexture loader in GTK4 can decode from a GBytes or GInputStream.     */
-    GBytes *bytes = g_bytes_new_static(png, len);      /* static; no copy      */
-    GdkTexture *tex = gdk_texture_new_from_bytes(bytes, NULL); /* NULL=error   */
-    g_bytes_unref(bytes);                               /* drop our reference  */
-
-    /* If decode fails (corrupt bytes), return NULL to caller.                  */
     return tex;
 }
 
@@ -169,7 +164,7 @@ GtkWidget* umi_icon_image_logo(int size_px)
     GdkTexture *tex = umi_icon_get_logo_texture();  /* try to decode texture   */
     if (!tex) {                                     /* fallback if decode fails */
         GtkWidget *fallback = gtk_picture_new();    /* empty picture widget    */
-        gtk_widget_set_size_request(fallback, size_px, size_px); /* reserve sz */
+        gtk_widget_set_size_request(fallback, px, px); /* reserve sz */
         gtk_picture_set_can_shrink(GTK_PICTURE(fallback), TRUE); /* responsive */
         gtk_picture_set_content_fit(GTK_PICTURE(fallback),
                                     GTK_CONTENT_FIT_CONTAIN);     /* keep AR   */
@@ -182,22 +177,19 @@ GtkWidget* umi_icon_image_logo(int size_px)
     /* Tidy: drop our extra strong ref; the picture holds what it needs.       */
     g_object_unref(tex);
 
-    gtk_widget_set_size_request(pic, size_px, size_px);            /* size hint */
-    gtk_picture_set_can_shrink(GTK_PICTURE(pic), TRUE);            /* flex      */
-    gtk_picture_set_content_fit(GTK_PICTURE(pic), GTK_CONTENT_FIT_CONTAIN); /* AR */
+    gtk_widget_set_size_request(pic, px, px);                  /* size hint */
+    gtk_picture_set_can_shrink(GTK_PICTURE(pic), TRUE);        /* flex      */
+    gtk_picture_set_content_fit(GTK_PICTURE(pic), GTK_CONTENT_FIT_CONTAIN);
 
     return pic;                                      /* ready-to-pack widget    */
 }
 
 /*-----------------------------------------------------------------------------
- * (GTK4) Per-window icons are not supported like GTK3’s gtk_window_set_icon().
- * We keep a no-op for API continuity; future platform hooks can live here.
+ * umi_icon_apply_to_window
  *
- * umi_icon_apply_to_window  (GTK4: intentionally a no-op)
- *
- * PURPOSE:
+ * PURPOSE (GTK4: intentionally a no-op)
  *   In GTK3 you could set a per-window icon via gtk_window_set_icon(). GTK4
- *   removed that API; app/taskbar icons on Windows come from the executable’s
+ *   removed that API; app/taskbar icons on Windows come from the executable's
  *   embedded resources (.rc + .ico). We keep a stub here for API stability,
  *   teaching users the correct production path.
  *
@@ -218,23 +210,17 @@ GtkWidget* umi_icon_image_logo(int size_px)
  *
  *   - Rebuild. Now the EXE shows your branded icon in Explorer/taskbar.
  *---------------------------------------------------------------------------*/
- *   - Wire it in CMake (Windows only), example:
+void umi_icon_apply_to_window(GtkWindow *win)
+{
+    (void)win; /* placeholder; intentionally does nothing on GTK4 */
+}
+
+/*-----------------------------------------------------------------------------
+ * umi_icon_try_apply_headerbar_logo
  *
- *       if (WIN32)
- *         target_sources(umicom-studio-ide PRIVATE ${CMAKE_SOURCE_DIR}/src/ui/resources/app.rc)
- *         set_source_files_properties(${CMAKE_SOURCE_DIR}/src/ui/resources/app.rc
- *                                    PROPERTIES LANGUAGE RC)
- *       endif()
- *
- * This function was **declared** in icon.h and is now **implemented** here,
- * keeping your original API intact.  It is version-aware:
- *   - On GTK4: we safely augment the existing title widget by prepending a
- *              small logo inside a composite GtkBox.
- *   - On GTK3: we use gtk_header_bar_pack_start() when available.
- *
- * NOTE:
- *   - We only touch a *custom* titlebar (set via gtk_window_set_titlebar()).
- *     If GTK uses its internal default headerbar, we do nothing (robustness).
+ * PURPOSE:
+ *   Augment a window's header bar by prepending a small logo image.
+ *   Safe no-op if the window has no custom header bar.
  *---------------------------------------------------------------------------*/
 void umi_icon_try_apply_headerbar_logo(GtkWindow *win, int desired_px)
 {
@@ -253,11 +239,9 @@ void umi_icon_try_apply_headerbar_logo(GtkWindow *win, int desired_px)
     GtkWidget *pic = umi_icon_image_logo(px);
     if (!pic) return;
 
-    /* Version-specific behavior.                                              */
-#if defined(GTK_MAJOR_VERSION) && (GTK_MAJOR_VERSION >= 4)
     /* GTK4 path:
-     * There are no pack_start/pack_end helpers anymore.  The supported idiom
-     * is to own the *title widget*.  We preserve any existing title widget by
+     * There are no pack_start/pack_end helpers anymore. The supported idiom
+     * is to own the *title widget*. We preserve any existing title widget by
      * wrapping it, then set that composite back onto the header bar.          */
     GtkHeaderBar *hb = GTK_HEADER_BAR(titlebar);
 
@@ -285,26 +269,24 @@ void umi_icon_try_apply_headerbar_logo(GtkWindow *win, int desired_px)
 
     /* Install the composed row as the new title widget.                       */
     gtk_header_bar_set_title_widget(hb, row);
-
-#else
-    /* GTK3 path (kept for completeness if you ever build with GTK3).          */
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(titlebar), pic);
-#endif
 }
 
 /*-----------------------------------------------------------------------------
- * Future Win32 taskbar icon hook (safe no-op today).
- * Keep this symbol so callers can link even on non-Windows builds.  A real
- * implementation would use Win32 APIs (or the .rc resource approach).
+ * umi_icon_try_apply_taskbar_icon_win32
+ *
+ * PURPOSE:
+ *   Future Win32 taskbar icon hook (safe no-op today).
+ *   Keep this symbol so callers can link even on non-Windows builds.  A real
+ *   implementation would use Win32 APIs (or the .rc resource approach).
  *---------------------------------------------------------------------------*/
 void umi_icon_try_apply_taskbar_icon_win32(GtkWindow *win)
 {
-    (void)win; /* placeholder; intentionally does nothing today                */
+    (void)win; /* placeholder; intentionally does nothing today */
 }
 
-/*-----------------------------------------------------------------------------
- * END OF FILE (icon.c)
- /*-----------------------------------------------------------------------------
+/*---------------------------------------------------------------------------*/
+/*  END OF FILE *//* END OF FILE (icon.c)                                    */
+ /*---------------------------------------------------------------------------
  * APPENDIX: Notes for new contributors (kept as comments for teaching)
  *
  * Q: Why not GResource / .gresource.xml here?

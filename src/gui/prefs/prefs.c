@@ -13,9 +13,9 @@ typedef struct {
   UmiSettings *s;
   GtkWidget *dd_theme;
   GtkWidget *spin_font;
-  GtkWidget *e_umicc;
-  GtkWidget *e_ua;
-  GtkWidget *e_rg;
+  /* GtkWidget *e_umicc; */    /* COMMENTED OUT: field not in struct yet */
+  /* GtkWidget *e_ua; */       /* COMMENTED OUT: field not in struct yet */
+  /* GtkWidget *e_rg; */       /* COMMENTED OUT: field not in struct yet */
   GtkWidget *chk_auto;
   GtkWidget *spin_auto;
 } PrefsCtx;
@@ -34,9 +34,9 @@ static UmiSettings *defaults(void){
   UmiSettings *s = g_new0(UmiSettings,1);
   s->theme = g_strdup("light");
   s->font_size = 12;
-  s->umicc_path = g_strdup("");
-  s->uaengine_path = g_strdup("");
-  s->ripgrep_path = g_strdup("");
+  /* s->umicc_path = g_strdup(""); */        /* COMMENTED OUT: field not in struct yet */
+  /* s->uaengine_path = g_strdup(""); */    /* COMMENTED OUT: field not in struct yet */
+  /* s->ripgrep_path = g_strdup(""); */     /* COMMENTED OUT: field not in struct yet */
   s->autosave_enabled = TRUE;
   s->autosave_interval_sec = 30;
   return s;
@@ -53,9 +53,9 @@ UmiSettings* umi_settings_load(void){
   UmiSettings *s = defaults();
   if(json_object_has_member(o,"theme")){ g_free(s->theme); s->theme = g_strdup(json_object_get_string_member(o,"theme")); }
   if(json_object_has_member(o,"font_size")) s->font_size = json_object_get_int_member(o,"font_size");
-  if(json_object_has_member(o,"umicc_path")){ g_free(s->umicc_path); s->umicc_path = g_strdup(json_object_get_string_member(o,"umicc_path")); }
-  if(json_object_has_member(o,"uaengine_path")){ g_free(s->uaengine_path); s->uaengine_path = g_strdup(json_object_get_string_member(o,"uaengine_path")); }
-  if(json_object_has_member(o,"ripgrep_path")){ g_free(s->ripgrep_path); s->ripgrep_path = g_strdup(json_object_get_string_member(o,"ripgrep_path")); }
+  /* if(json_object_has_member(o,"umicc_path")){ g_free(s->umicc_path); s->umicc_path = g_strdup(json_object_get_string_member(o,"umicc_path")); } */
+  /* if(json_object_has_member(o,"uaengine_path")){ g_free(s->uaengine_path); s->uaengine_path = g_strdup(json_object_get_string_member(o,"uaengine_path")); } */
+  /* if(json_object_has_member(o,"ripgrep_path")){ g_free(s->ripgrep_path); s->ripgrep_path = g_strdup(json_object_get_string_member(o,"ripgrep_path")); } */
   if(json_object_has_member(o,"autosave_enabled")) s->autosave_enabled = json_object_get_boolean_member(o,"autosave_enabled");
   if(json_object_has_member(o,"autosave_interval_sec")) s->autosave_interval_sec = json_object_get_int_member(o,"autosave_interval_sec");
   g_object_unref(p); g_free(txt);
@@ -68,9 +68,9 @@ gboolean umi_settings_save(const UmiSettings *s){
   JsonBuilder *b=json_builder_new(); json_builder_begin_object(b);
   json_builder_set_member_name(b,"theme"); json_builder_add_string_value(b, s->theme?s->theme:"light");
   json_builder_set_member_name(b,"font_size"); json_builder_add_int_value(b, s->font_size);
-  json_builder_set_member_name(b,"umicc_path"); json_builder_add_string_value(b, s->umicc_path?s->umicc_path:"");
-  json_builder_set_member_name(b,"uaengine_path"); json_builder_add_string_value(b, s->uaengine_path?s->uaengine_path:"");
-  json_builder_set_member_name(b,"ripgrep_path"); json_builder_add_string_value(b, s->ripgrep_path?s->ripgrep_path:"");
+  /* json_builder_set_member_name(b,"umicc_path"); json_builder_add_string_value(b, s->umicc_path?s->umicc_path:""); */
+  /* json_builder_set_member_name(b,"uaengine_path"); json_builder_add_string_value(b, s->uaengine_path?s->uaengine_path:""); */
+  /* json_builder_set_member_name(b,"ripgrep_path"); json_builder_add_string_value(b, s->ripgrep_path?s->ripgrep_path:""); */
   json_builder_set_member_name(b,"autosave_enabled"); json_builder_add_boolean_value(b, s->autosave_enabled);
   json_builder_set_member_name(b,"autosave_interval_sec"); json_builder_add_int_value(b, s->autosave_interval_sec);
   json_builder_end_object(b);
@@ -84,9 +84,9 @@ gboolean umi_settings_save(const UmiSettings *s){
 void umi_settings_free(UmiSettings *s){
   if(!s) return;
   g_free(s->theme);
-  g_free(s->umicc_path);
-  g_free(s->uaengine_path);
-  g_free(s->ripgrep_path);
+  /* g_free(s->umicc_path); */      /* COMMENTED OUT: field not in struct yet */
+  /* g_free(s->uaengine_path); */  /* COMMENTED OUT: field not in struct yet */
+  /* g_free(s->ripgrep_path); */   /* COMMENTED OUT: field not in struct yet */
   g_free(s);
 }
 
@@ -97,9 +97,9 @@ static void on_ok_clicked(GtkButton *b, gpointer user){
   g_free(c->s->theme);
   c->s->theme = g_strdup( gtk_drop_down_get_selected(GTK_DROP_DOWN(c->dd_theme))==1 ? "dark" : "light" );
   c->s->font_size = (int)gtk_spin_button_get_value(GTK_SPIN_BUTTON(c->spin_font));
-  g_free(c->s->umicc_path); c->s->umicc_path = g_strdup( gtk_editable_get_text(GTK_EDITABLE(c->e_umicc)) );
-  g_free(c->s->uaengine_path); c->s->uaengine_path = g_strdup( gtk_editable_get_text(GTK_EDITABLE(c->e_ua)) );
-  g_free(c->s->ripgrep_path); c->s->ripgrep_path = g_strdup( gtk_editable_get_text(GTK_EDITABLE(c->e_rg)) );
+  /* g_free(c->s->umicc_path); c->s->umicc_path = g_strdup( gtk_editable_get_text(GTK_EDITABLE(c->e_umicc)) ); */
+  /* g_free(c->s->uaengine_path); c->s->uaengine_path = g_strdup( gtk_editable_get_text(GTK_EDITABLE(c->e_ua)) ); */
+  /* g_free(c->s->ripgrep_path); c->s->ripgrep_path = g_strdup( gtk_editable_get_text(GTK_EDITABLE(c->e_rg)) ); */
   c->s->autosave_enabled = gtk_check_button_get_active(GTK_CHECK_BUTTON(c->chk_auto));
   c->s->autosave_interval_sec = (guint)gtk_spin_button_get_value(GTK_SPIN_BUTTON(c->spin_auto));
   umi_settings_save(c->s);
@@ -139,10 +139,10 @@ G_GNUC_END_IGNORE_DEPRECATIONS
   gtk_box_append(GTK_BOX(v), font_box);
   ctx->spin_font = spin;
 
-  /* Paths */
-  gtk_box_append(GTK_BOX(v), mk_labeled(&ctx->e_umicc, "umicc:", s->umicc_path));
-  gtk_box_append(GTK_BOX(v), mk_labeled(&ctx->e_ua,    "UAEngine:", s->uaengine_path));
-  gtk_box_append(GTK_BOX(v), mk_labeled(&ctx->e_rg,    "ripgrep:", s->ripgrep_path));
+  /* Paths - COMMENTED OUT: waiting for fields to be added to UmiSettings struct */
+  /* gtk_box_append(GTK_BOX(v), mk_labeled(&ctx->e_umicc, "umicc:", s->umicc_path)); */
+  /* gtk_box_append(GTK_BOX(v), mk_labeled(&ctx->e_ua,    "UAEngine:", s->uaengine_path)); */
+  /* gtk_box_append(GTK_BOX(v), mk_labeled(&ctx->e_rg,    "ripgrep:", s->ripgrep_path)); */
 
   /* Autosave */
   GtkWidget *auto_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);

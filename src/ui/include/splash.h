@@ -90,7 +90,7 @@ G_BEGIN_DECLS
  *---------------------------------------------------------------------------*/
 const unsigned char *umi_splash_png(size_t *out_size);
 
-*-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Backwards-Compatible API (for existing callers)
  * These wrap the internal UmiSplash implementation for easy migration.
  *---------------------------------------------------------------------------*/
