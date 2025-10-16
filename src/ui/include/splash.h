@@ -11,17 +11,16 @@
  * WHY A SPLASH SCREEN?
  *   - Gives immediate visual feedback that the app launched successfully.
  *   - Lets you show your brand (logo/name) and short status messages.
- *   - Makes long initializations feel faster because users can "see progress".
+ *   - Makes long initializations feel faster because users can “see progress”.
  *
  * LOOSE COUPLING (very important to our architecture):
  *   - This module does NOT include or depend on any Umicom IDE internals.
  *   - It exposes a small C API around forward-declared GTK types.
  *   - Callers only pass primitive C strings or a parent GtkWindow pointer.
- *   - Internally we manage our own GTK widgets; callers don't need to know.
+ *   - Internally we manage our own GTK widgets; callers don’t need to know.
  *
  * HOW TO USE (copy-paste friendly, step-by-step):
- *   1) Create the splash *before* you do heavy work: 
- *
+ *   1) Include this header from your app code (e.g. in src/gui/app/app.c):
  *
  *        #include "splash.h"
  *
@@ -33,17 +32,17 @@
  *            0                                  // auto-close ms (0 = no auto-close)
  *        );
  *
- *   2) Show it (optionally with a parent GtkWindow*; NULL is fine too):
+ *   3) Show it (optionally with a parent GtkWindow*; NULL is fine too):
  *
- *        umi_splash_show(s, /. parent = ./ NULL);
+ *        umi_splash_show(s, / parent = / NULL);
  *
- *   3) Update progress during initialization (fraction: 0.0..1.0):
+ *   4) Update progress during initialization (fraction: 0.0..1.0):
  *
  *        umi_splash_set_progress(s, 0.25, "Initializing subsystems…");
  *        umi_splash_set_progress(s, 0.50, "Loading plugins…");
  *        umi_splash_set_progress(s, 0.75, "Preparing UI…");
  *
- *   4) When your main window is ready, close & free the splash:
+ *   5) When your main window is ready, close & free the splash:
  *
  *        umi_splash_close(s);   // hides the window (no-op if already hidden)
  *        umi_splash_free(s);    // releases resources (safe to call once)
@@ -51,7 +50,7 @@
  * BRANDING HOOKS:
  *   - The implementation (splash.c) draws a simple branded header and supports
  *     showing a small in-memory logo icon if available (via icon.c). If you
- *     don't ship icon assets yet, the splash still works: it just shows text.
+ *     don’t ship icon assets yet, the splash still works: it just shows text.
  *
  * ACCESSIBILITY:
  *   - We set titles and labels as normal GTK widgets so screen readers can
@@ -76,17 +75,25 @@
  *   the rest of the code base. If GTK headers move in the future, only this
  *   include line needs adjusting.
  *---------------------------------------------------------------------------*/
-#include <gtk/gtk.h>   /* GTK types (GtkWindow, GtkWidget) and functions */
-#include <glib.h>
+#include <gtk/gtk.h>   /* GTK types (GtkWindow, GtkWidget, GtkApplication) */
+#include <glib.h>      /* G_BEGIN_DECLS / G_END_DECLS, guint, etc. */
 #include <stddef.h>    /* size_t for umi_splash_png */
 
+/* Ensure C symbols have C linkage when included from C++ translation units. */
 G_BEGIN_DECLS
 
 /*-----------------------------------------------------------------------------
  * PNG Resource Access
- * Returns pointer to embedded splash PNG bytes and size.
- * On Windows: reads from RCDATA resource IDP_SPLASH
- * On other platforms: returns compiled resource or NULL
+ *
+ * PURPOSE:
+ *   Provide a unified way to fetch the splash PNG bytes and its length across
+ *   platforms. On Windows, the implementation reads from an RCDATA resource
+ *   (IDP_SPLASH) embedded by umicom.rc. On other platforms, the implementation
+ *   can return compiled-in bytes (see ustudio_resources.c) or NULL.
+ *
+ * RETURNS:
+ *   Pointer to read-only PNG bytes, and writes the byte length to *out_size.
+ *   If unavailable, returns NULL and sets *out_size to 0 when non-NULL.
  *---------------------------------------------------------------------------*/
 const unsigned char *umi_splash_png(size_t *out_size);
 
@@ -114,14 +121,14 @@ typedef struct UmiSplash UmiSplash;
  *     - A progress bar and a spinner (spinner shows activity even at 0%)
  *
  * PARAMETERS:
- *   title        : const char*  – Main heading on the splash (UTF-8 expected).
- *   subtitle     : const char*  – Smaller line beneath the title (UTF-8).
- *   auto_close_ms: unsigned int – If > 0, the splash will auto-close after the
- *                                  given number of milliseconds. Pass 0 to keep
- *                                  it open until you call umi_splash_close().
+ *   title         : const char*  – Main heading on the splash (UTF-8 expected).
+ *   subtitle      : const char*  – Smaller line beneath the title (UTF-8).
+ *   auto_close_ms : unsigned int – If > 0, the splash will auto-close after
+ *                                   the given number of milliseconds. Pass 0
+ *                                   to keep it open until umi_splash_close().
  *
  * RETURNS:
- *   UmiSplash*  – A heap-allocated controller. Use umi_splash_free() when done.
+ *   UmiSplash* – A heap-allocated controller. Free with umi_splash_free().
  *
  * NOTES:
  *   - This does *not* present the window yet. Call umi_splash_show() next.
@@ -139,12 +146,12 @@ UmiSplash* umi_splash_new(const char *title,
  *   the splash will be set transient for it (keeps z-order above parent).
  *
  * PARAMETERS:
- *   splash : UmiSplash*   – The controller returned by umi_splash_new().
- *   parent : GtkWindow*   – (Optional) parent window for transient behavior.
- *                           Pass NULL if you don't have a main window yet.
-*
+ *   splash : UmiSplash* – The controller returned by umi_splash_new().
+ *   parent : GtkWindow* – (Optional) parent window for transient behavior.
+ *                         Pass NULL if you don't have a main window yet.
+ *
  * RETURNS:
- *   void – no return value.
+ *   void
  *
  * USAGE:
  *   UmiSplash *s = umi_splash_new("App", "Starting…", 0);
@@ -167,7 +174,7 @@ void umi_splash_show(UmiSplash *splash, GtkWindow *parent);
  *                             the previous message unchanged.
  *
  * RETURNS:
- *   void – no return value.
+ *   void
  *
  * TIP:
  *   Keep messages brief and task-based, e.g. "Indexing files…", "Loading UI…".
@@ -183,9 +190,9 @@ void umi_splash_set_progress(UmiSplash *splash,
  *   Hide the splash window if it is currently shown. This is safe to call
  *   multiple times; extra calls are simply ignored. The object remains valid
  *   after closing and can be freed by umi_splash_free().
-*
+ *
  * RETURNS:
- *   void – no return value.
+ *   void
  *
  * WHEN TO CALL:
  *   When your main window is presented (e.g., after gtk_window_present()).
@@ -201,9 +208,9 @@ void umi_splash_close(UmiSplash *splash);
  *
  * RULE:
  *   Call this exactly once per object returned by umi_splash_new().
-*
+ *
  * RETURNS:
- *   void – no return value.
+ *   void
  *---------------------------------------------------------------------------*/
 void umi_splash_free(UmiSplash *splash);
 
@@ -261,15 +268,5 @@ GtkWidget *uside_splash_show(GtkApplication *app, guint auto_close_ms);
 void uside_splash_close_later(GtkWidget *splash, guint grace_ms);
 
 G_END_DECLS
-/*=============================================================================
- * LEGACY COMPATIBILITY SHIM
- *-----------------------------------------------------------------------------
- * Some existing modules (e.g., src/gui/app/app.c) still call the older helper
- * names `uside_splash_show()` and `uside_splash_close_later()`. To keep this
- * build green *without touching those modules right now*, we declare
- * back-compat signatures here. They are implemented in splash.c in terms of
- * the modern UmiSplash controller. New code should prefer the umi_* API.
- *===========================================================================*/
-
 
 #endif /* UMICOM_STUDIO_IDE_SPLASH_H */

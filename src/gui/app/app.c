@@ -18,7 +18,7 @@
  *   - We avoid changing public headers. Extra pointers (notebook, labels…)
  *     are attached to the window object with g_object_set_data() so we do
  *     not need to grow `struct UmiApp` in app.h.
- *   - We guard GtkSourceView usage; if the dev machine doesn’t have it we
+ *   - We guard GtkSourceView usage; if the dev machine doesn't have it we
  *     fall back to a plain GtkTextView, so the IDE always runs.
  *   - We fix a previous bug where `on_activate()` built **two** UIs: the
  *     richer one from build_main_ui() was immediately replaced by a simple
@@ -27,17 +27,18 @@
  * QUICK TOUR (how GTK flows here):
  *   main()          -> umi_app_new() returns GtkApplication (NON_UNIQUE in dev)
  *   g_application_run()
- *     ├─ “startup”  -> on_startup()  (lightweight init, hash-map etc.)
- *     └─ “activate” -> on_activate() (create window + build_main_ui())
+ *     ├─ "startup"  -> on_startup()  (lightweight init, hash-map etc.)
+ *     └─ "activate" -> on_activate() (create window + build_main_ui())
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
 
 #include <gtk/gtk.h>                  /* core GTK API we use everywhere      */
 #include <glib.h>                     /* GLib helpers: hash tables, strings  */
-#include "splash.h"   
-/* GtkSourceView is optional — it gives nicer code editing features.          */
-/* We include it if present; otherwise we’ll fall back to GtkTextView.        */
+#include "splash.h"                   /* splash screen API                   */
+
+/* GtkSourceView is optional – it gives nicer code editing features.          */
+/* We include it if present; otherwise we'll fall back to GtkTextView.        */
 #if defined(__has_include)
 #  if __has_include(<gtksourceview/gtksource.h>)
 #    include <gtksourceview/gtksource.h>
@@ -92,7 +93,7 @@ gboolean (*umi_editor_save)(UmiEditor*,GError**) = NULL;
 #endif
 
 /*------------------------------------------------------------------------------
- * One UmiApp per GtkApplication — stored in a tiny map. We use direct keys
+ * One UmiApp per GtkApplication – stored in a tiny map. We use direct keys
  * and values since both are stable pointers managed elsewhere.
  *----------------------------------------------------------------------------*/
 static GHashTable *g_app_map = NULL;
@@ -116,7 +117,7 @@ static GtkWidget *create_editor_scroller(void)
     gtk_text_view_set_monospace(GTK_TEXT_VIEW(text), TRUE);   /* code fonts   */
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text), GTK_WRAP_NONE); /* no wrap */
 
-    /* Wrap it in a scroller so long files don’t inflate the layout.          */
+    /* Wrap it in a scroller so long files don't inflate the layout.          */
     GtkWidget *scr = gtk_scrolled_window_new();         /* scroller container  */
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scr), text); /* pack     */
     return scr;                                         /* return the scroller */
@@ -170,7 +171,7 @@ static void append_output_line(GtkWidget *output_scroller, const char *text)
  *----------------------------------------------------------------------------*/
 static void on_run_clicked(gpointer user)
 {
-    (void)user;                                         /* we don’t use it     */
+    (void)user;                                         /* we don't use it     */
     if (umi_run_pipeline_start) {                       /* present? call it    */
         /* You can wire real output/problem sinks here (we pass NULLs now).   */
         (void)umi_run_pipeline_start(NULL, NULL, NULL);
@@ -188,7 +189,7 @@ static void on_save_clicked(gpointer user)
     /* If an editor backend provides umi_editor_save(), call it.               */
     struct UmiApp *ua = (struct UmiApp*)user;
     if (umi_editor_save && ua) {
-        /* We don’t track a strong editor object here; that’s fine — many      */
+        /* We don't track a strong editor object here; that's fine – many      */
         /* backends simply save the active tab/buffer internally.              */
         GError *err = NULL;
         if (!umi_editor_save(NULL, &err) && err) {      /* best-effort call    */
@@ -218,7 +219,7 @@ static GtkWidget *make_toolbar(struct UmiApp *ua)
     g_signal_connect_swapped(stop, "clicked", G_CALLBACK(on_stop_clicked), ua);
     g_signal_connect_swapped(save, "clicked", G_CALLBACK(on_save_clicked), ua);
 
-    /* Add tiny margins so the bar doesn’t hug the window edges too tightly.  */
+    /* Add tiny margins so the bar doesn't hug the window edges too tightly.  */
     gtk_widget_set_margin_start (box, 6);
     gtk_widget_set_margin_end   (box, 6);
     gtk_widget_set_margin_top   (box, 6);
@@ -228,7 +229,7 @@ static GtkWidget *make_toolbar(struct UmiApp *ua)
 }
 
 /*------------------------------------------------------------------------------
- * Build the **entire** main window content. This is the “Code editor” layout.
+ * Build the **entire** main window content. This is the "Code editor" layout.
  * IMPORTANT: This function is now the single place that builds the UI; we no
  * longer build a second placeholder layout in on_activate().
  *----------------------------------------------------------------------------*/
@@ -294,7 +295,7 @@ static void build_main_ui(struct UmiApp *ua)
     gtk_box_append(GTK_BOX(root), status);
     g_object_set_data(G_OBJECT(ua->win), KEY_STATUS_LABEL, status);
 
-    /* Finally, make this whole hierarchy the window’s child and show it.      */
+    /* Finally, make this whole hierarchy the window's child and show it.      */
     gtk_window_set_child(ua->win, root);
 
     /* Quality-of-life: open one blank editor tab so it feels alive on start.  */
@@ -308,49 +309,79 @@ static void build_main_ui(struct UmiApp *ua)
  * Application lifecycle
  *============================================================================*/
 
-/* “startup” is emitted once; we just ensure the map exists. */
+/* "startup" is emitted once; we just ensure the map exists.
+ * IMPORTANT: Do NOT create GTK widgets here! GTK isn't fully initialized yet.
+ * Widgets must be created in on_activate() or later.
+ */
 static void on_startup(GtkApplication *app, gpointer user_data)
 {
-// Example usage of the splash screen:
-//
-GtkWidget *splash = uside_splash_show(app, 800 /*milliseconds*/);
-//  (build session, load settings, etc.)
-uside_splash_close_later(splash, 200 /*grace*/);
-  
-  (void)app; (void)user_data;
+    (void)app; (void)user_data;
     g_message("[USIDE] app.c: on_startup()");
-    if (!g_app_map) {                                     /* lazy create map   */
+    
+    /* Initialize our app-to-handle mapping table. */
+    if (!g_app_map) {
         g_app_map = g_hash_table_new(g_direct_hash, g_direct_equal);
     }
+    
+    /* NOTE: We do NOT create the splash here anymore. Creating GTK widgets
+     * during on_startup() can cause crashes or undefined behavior because
+     * GTK's initialization isn't complete yet. The splash will be created
+     * in on_activate() instead, which is the proper place for UI creation.
+     */
 }
 
-/* “activate” is emitted when the app should present its primary window. */
+/* "activate" is emitted when the app should present its primary window.
+ * This is the correct place to create all GTK widgets, including the splash.
+ */
 static void on_activate(GtkApplication *app, gpointer user_data)
 {
     (void)user_data;
     g_message("[USIDE] app.c: on_activate()");
 
-    /* Retrieve (or create) our lightweight handle for this GtkApplication.    */
+    /* STEP 1: Show splash FIRST (before heavy window building).
+     * We create the splash as the very first thing so users see immediate
+     * feedback that the application is loading.
+     */
+    UmiSplash *splash = umi_splash_new(
+        "Umicom Studio IDE",
+        "Starting up…",
+        0  /* no auto-close; we'll close it manually after main window shows */
+    );
+    umi_splash_show(splash, NULL);  /* NULL = no parent window yet */
+    
+    /* Store splash handle on the app so we can close it later. The
+     * GDestroyNotify will automatically free the splash when the app exits.
+     */
+    g_object_set_data_full(G_OBJECT(app), "umicom-splash", splash,
+                          (GDestroyNotify)umi_splash_free);
+
+    /* STEP 2: Retrieve (or create) our lightweight handle for this GtkApplication. */
     struct UmiApp *ua = g_app_map ? g_hash_table_lookup(g_app_map, app) : NULL;
     if (!ua) {
-        ua      = g_new0(struct UmiApp, 1);              /* zero-init handle  */
-        ua->app = app;                                   /* remember app ptr  */
+        ua = g_new0(struct UmiApp, 1);
+        ua->app = app;
         if (!g_app_map) g_app_map = g_hash_table_new(g_direct_hash, g_direct_equal);
-        g_hash_table_insert(g_app_map, app, ua);         /* map → handle      */
+        g_hash_table_insert(g_app_map, app, ua);
     }
 
-    /* Create the main toplevel and set a sensible default size/title.         */
+    /* STEP 3: Create the main toplevel and set a sensible default size/title. */
     ua->win = GTK_WINDOW(gtk_application_window_new(app));
     gtk_window_set_title(ua->win, "Umicom Studio IDE");
     gtk_window_set_default_size(ua->win, 1280, 800);
 
-    /* Build the COMPLETE UI exactly once.                                     */
+    /* STEP 4: Build the COMPLETE UI exactly once. */
     build_main_ui(ua);
 
-    /* Present the window on screen.                                           */
+    /* STEP 5: Present the window on screen. */
     g_message("[USIDE] app.c: presenting main window…");
     gtk_window_present(ua->win);
     g_message("[USIDE] app.c: …presented");
+    
+    /* STEP 6: Close splash after a brief grace period (300ms).
+     * This gives the main window time to fully render before the splash
+     * disappears, creating a smooth transition for users.
+     */
+    g_timeout_add(300, (GSourceFunc)umi_splash_close, splash);
 }
 
 /*==============================================================================
@@ -358,7 +389,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
  *============================================================================*/
 
 /* Create a GtkApplication instance and wire our signals.                      
- * We use NON_UNIQUE during development to avoid the “silent forward & exit”
+ * We use NON_UNIQUE during development to avoid the "silent forward & exit"
  * behaviour when another instance is already running. It guarantees you see
  * a window while iterating. You can switch to UNIQUE later if desired.
  */

@@ -6,96 +6,94 @@
  *   This source file implements a tiny, brandable splash window for the
  *   Umicom Studio IDE. The splash window is a *separate, minimal* UI shown
  *   while the main application (your IDE window) initializes. It displays:
- *     - A big title (e.g., "Umicom Studio IDE")
- *     - A small subtitle (e.g., "Loading workspace…")
- *     - A progress bar (0..100%)
- *     - An activity spinner (so users see activity even when progress stalls)
+ *     - A big title (e.g., "Umicom Studio IDE")                                  // explain the headline role
+ *     - A small subtitle (e.g., "Loading workspace…")                            // explain the status line
+ *     - A progress bar (0..100%)                                                 // explain progress affordance
+ *     - An activity spinner (so users see activity even when progress stalls)    // UX rationale
  *
  * DESIGN GOALS (Why is it written this way?):
- *   - **Loose coupling**: this module depends only on GTK (gtk/gtk.h).
- *     It does not include any Umicom-specific headers, config structures or
- *     global state. The splash is a tiny, standalone utility you can reuse.
- *   - **Pure C**: we do not use XML resource files; the layout is built
- *     directly in C so new contributors can learn GTK by reading this code.
- *   - **Beginner-friendly**: almost every line is explained. You can treat
- *     this file as a small tutorial in GTK4 layout and widget usage.
+ *   - **Loose coupling**: this module depends only on GTK (gtk/gtk.h).          // keep dependencies minimal
+ *     It does not include any Umicom-specific headers, config structures or      // no global/project-state reach-in
+ *     global state. The splash is a tiny, standalone utility you can reuse.      // reusability advantage
+ *   - **Pure C**: we do not use XML resource files; the layout is built          // matches project preference
+ *     directly in C so new contributors can learn GTK by reading this code.      // educational intent
+ *   - **Beginner-friendly**: almost every line is explained. You can treat       // commentary density promise
+ *     this file as a small tutorial in GTK4 layout and widget usage.             // learning aid
  *
  * HOW TO READ THIS FILE (Map from API to implementation):
- *   - See splash.h for the public API we expose:
- *       UmiSplash* umi_splash_new(const char*, const char*, unsigned int);
- *       void       umi_splash_show(UmiSplash*, GtkWindow*);
- *       void       umi_splash_set_progress(UmiSplash*, double, const char*);
- *       void       umi_splash_close(UmiSplash*);
- *       void       umi_splash_free(UmiSplash*);
- *       GtkWindow* umi_splash_window(UmiSplash*);
+ *   - See splash.h for the public API we expose:                                 // pointer to header
+ *       UmiSplash* umi_splash_new(const char*, const char*, unsigned int);       // constructor
+ *       void       umi_splash_show(UmiSplash*, GtkWindow*);                      // present window
+ *       void       umi_splash_set_progress(UmiSplash*, double, const char*);     // set fraction + text
+ *       void       umi_splash_close(UmiSplash*);                                  // close (non-owning)
+ *       void       umi_splash_free(UmiSplash*);                                   // destroy + free
+ *       GtkWindow* umi_splash_window(UmiSplash*);                                 // access GtkWindow*
  *
- *   - Below, we define a private struct `UmiSplash` that stores GTK widgets
- *     and small bits of state (like an auto-close timer id).
+ *   - Below, we define a private struct `UmiSplash` that stores GTK widgets      // private state description
+ *     and small bits of state (like an auto-close timer id).                     // extra internal state
  *
  * GTK VERSION NOTE (GTK4 vs GTK3):
- *   - We use **GTK4** APIs (e.g., GtkBox layouts, GtkLabel, GtkSpinner,
- *     GtkProgressBar). In GTK4, `gtk_widget_show()` is deprecated; to present
- *     top-level windows use `gtk_window_present()` or set visible with
- *     `gtk_widget_set_visible()`. We use `gtk_window_present()` here because
- *     the splash is a top-level window.
+ *   - We use **GTK4** APIs (e.g., GtkBox layouts, GtkLabel, GtkSpinner,          // API generation note
+ *     GtkProgressBar). In GTK4, `gtk_widget_show()` is deprecated; to present    // deprecation guidance
+ *     top-level windows use `gtk_window_present()` or set visible with           // alternative methods
+ *     `gtk_widget_set_visible()`. We use `gtk_window_present()` here because     // chosen approach
+ *     the splash is a top-level window.                                          // reason for choice
  *
  * LIFETIME / OWNERSHIP QUICK GUIDE:
- *   - umi_splash_new() : allocates the controller via g_new0() -> you own it.
- *   - umi_splash_show(): presents the window and optionally starts auto-close.
- *   - umi_splash_close(): hides/closes the window (safe to call multiple times).
- *   - umi_splash_free() : destroys widgets (via g_object_unref) and frees the
- *                         controller struct. Call exactly once when finished.
+ *   - umi_splash_new() : allocates the controller via g_new0() -> you own it.    // caller ownership
+ *   - umi_splash_show(): presents the window and optionally starts auto-close.    // when to show
+ *   - umi_splash_close(): hides/closes the window (safe to call multiple times). // idempotence
+ *   - umi_splash_free() : destroys widgets (via g_object_unref) and frees the    // destruction path
+ *                         controller struct. Call exactly once when finished.    // exactly-once requirement
  *
  * THREADING:
- *   - All GTK code should run on the GTK main thread. If a background worker
- *     computes progress, post updates to main via g_idle_add() or similar.
+ *   - All GTK code should run on the GTK main thread. If a background worker     // thread safety rule
+ *     computes progress, post updates to main via g_idle_add() or similar.       // safe cross-thread update
  *
  * LICENSE:
- *   MIT (see project root). Keep the head comment intact for attribution.
+ *   MIT (see project root). Keep the head comment intact for attribution.        // licensing reminder
  *
- * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-15
+ * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-15     // authorship + date
  *---------------------------------------------------------------------------*/
 
-#include <gtk/gtk.h>        /* Include GTK4 headers for all widget symbols    */
-#include <string.h>         /* For strlen (only used in a defensive clamp)    */
+#include <gtk/gtk.h>        /* GTK4 public API                                  */  // core UI toolkit include
+#include <string.h>         /* Defensive helpers (rarely used)                  */  // standard C helpers for completeness
 
 /*-----------------------------------------------------------------------------
  * FORWARD-DECLARED OPAQUE TYPE (matches splash.h)
  * - We repeat this to keep the source self-contained if someone opens it
  *   directly. In normal compilation, splash.h provides the typedef.
- *---------------------------------------------------------------------------*/
+ *---------------------------------------------------------------------------*/  // rationale for duplication for readability
 
-#include "splash.h"              /* public tiny API (umi_splash_png + typedef) */
-#include "icon.h"                /* umi_apply_app_icon (no-op on non-Windows)  */
+#include "splash.h"         /* Public tiny API (umi_splash_png + typedefs)      */  // module’s own public interface
+#include "icon.h"           /* umi_icon_apply_to_window (best-effort Windows)   */  // icon helper used under _WIN32
 
-/* If you have resource IDs available on Windows, include them. Safe on others. */
 #ifdef _WIN32
-  #include <windows.h>
-  #include "resource.h"          /* IDI_APPICON, IDP_SPLASH (RCDATA)           */
+  #include <windows.h>      /* Win32 handles for resource loading               */  // needed for FindResource/LoadResource
+  #include "resource.h"     /* IDI_APPICON, IDP_SPLASH (RCDATA)                 */  // centralised resource IDs
 #endif
 
 /*-----------------------------------------------------------------------------
- * PRIVATE STRUCT (Internal data of the splash controller)
+ * PRIVATE STRUCT
  * - This struct is *not* exposed to callers. We keep only what we need:
  *   - window        : top-level GtkWindow* of the splash
- *   - title_label   : big heading label widget
- *   - subtitle_label: smaller descriptive label (status line)
- *   - progress_bar  : GtkProgressBar to indicate fractional progress
- *   - spinner       : GtkSpinner to show activity even with stalled progress
+ *   - box           : vertical box container
+ *   - title         : big heading label widget
+ *   - subtitle      : smaller descriptive label (status line)
+ *   - image         : optional image (logo loaded from PNG)
+ *   - bar           : progress bar
  *   - auto_close_ms : if > 0, auto-close after this many milliseconds
  *   - auto_close_id : GLib source id for the one-shot timeout (0 = none)
- *---------------------------------------------------------------------------*/
-/* Internal data model for the splash window                                  */
-
+ *---------------------------------------------------------------------------*/  // high-level field overview
 struct UmiSplash {
-    GtkWidget *window;       /* GtkWindow* acting as the splash                */
-    GtkWidget *box;          /* VBox content                                   */
-    GtkWidget *title;        /* large title label                              */
-    GtkWidget *subtitle;     /* small subtitle / status label                  */
-    GtkWidget *image;        /* optional image (logo loaded from PNG)          */
-    GtkWidget *bar;          /* progress bar                                   */
-    guint      auto_close_ms;/* optional auto-close after show                 */
-    guint      auto_close_id;/* g_timeout source id                            */
+    GtkWidget *window;       /* Top-level splash window                          */  // owns all children
+    GtkWidget *box;          /* VBox content container                           */  // layout root
+    GtkWidget *title;        /* Large title label                                */  // headline widget
+    GtkWidget *subtitle;     /* Small status line                                */  // subtext/status
+    GtkWidget *image;        /* Optional logo image                              */  // branding picture
+    GtkWidget *bar;          /* Progress bar                                     */  // progress indicator
+    guint      auto_close_ms;/* Auto-close delay; 0 means disabled               */  // config value
+    guint      auto_close_id;/* GLib timeout id; 0 means none                    */  // active timer token
 };
 
 /*-----------------------------------------------------------------------------
@@ -114,10 +112,6 @@ struct UmiSplash {
  *---------------------------------------------------------------------------*/
 
 /* Small helpers to keep code tidy. */
-static void         umi_splash_fill(UmiSplash *s, const char *title, const char *subtitle);
-static void         umi_splash_try_load_png_logo(UmiSplash *s);
-static gboolean     umi_splash_do_autoclose(gpointer data);
-
 /*-----------------------------------------------------------------------------
  * HELPER: on_timeout_auto_close
  *
@@ -133,11 +127,25 @@ static gboolean     umi_splash_do_autoclose(gpointer data);
  *
  * SIDE EFFECTS:
  *   Calls umi_splash_close() to hide the splash. Also clears auto_close_id.
- *---------------------------------------------------------------------------*/
-
+ 
+ * FORWARD DECLARATIONS (helpers)
+ *---------------------------------------------------------------------------*/  // keep prototypes near top for readability
+static void     umi_splash_fill(UmiSplash *s, const char *title, const char *subtitle);  // set labels + initial state
+static void     umi_splash_try_load_png_logo(UmiSplash *s);                               // attempt brand PNG load
+static gboolean umi_splash_do_autoclose(gpointer data);                                   // timeout → close handler
+/* NOTE on “close later” crash fix:
+ *   We schedule the delayed close using g_timeout_add_full() and pass a
+ *   *ref* to the GtkWidget as user data with g_object_unref as destroy
+ *   notify. That guarantees the widget pointer is valid when the callback
+ *   runs, avoiding use-after-free (UAF) that can segfault inside GObject.
+ */
+static gboolean splash_close_timeout_cb(gpointer data);                                   // back-compat close adapter
 
 /*-----------------------------------------------------------------------------
- * HELPER: build_ui
+ * PNG loader: implementation for umi_splash_png declared in splash.h
+ * On Windows, we read the PNG from RCDATA(IDP_SPLASH). Else, fall back to
+ * a compiled array if you ship one (see ustudio_resources.c).
+* HELPER: build_ui
  *
  * PURPOSE:
  *   Create and compose all GTK widgets for the splash. We build a simple,
@@ -159,316 +167,316 @@ static gboolean     umi_splash_do_autoclose(gpointer data);
  * NOTE:
  *   All widgets are referenced by the toplevel window; later we unref them
  *   by unref-ing the window in umi_splash_free().
- *---------------------------------------------------------------------------*/
 
- /*---------------------------------------------------------------------------*/
-/* PNG loader: implementation for umi_splash_png declared in splash.h        */
-/* On Windows, we read the PNG from RCDATA(IDP_SPLASH). Else, fall back to   */
-/* a compiled array if you ship one (see ustudio_resources.c).               */
-
-const unsigned char *umi_splash_png(size_t *out_size)
+ *---------------------------------------------------------------------------*/  // cross-platform resource strategy
+const unsigned char *umi_splash_png(size_t *out_size)                                     // expose PNG bytes provider
 {
 #ifdef _WIN32
-    HINSTANCE hInst = GetModuleHandleW(NULL);
-    HRSRC hRes = FindResourceW(hInst, MAKEINTRESOURCEW(IDP_SPLASH), L"RCDATA");
-    if (!hRes) { if (out_size) *out_size = 0; return NULL; }
-    HGLOBAL hData = LoadResource(hInst, hRes);
-    if (!hData) { if (out_size) *out_size = 0; return NULL; }
-    DWORD sz = SizeofResource(hInst, hRes);
-    void *ptr = LockResource(hData);
-    if (out_size) *out_size = (size_t)sz;
-    return (const unsigned char*)ptr;
+    /* Windows path: read PNG bytes from the RCDATA(IDP_SPLASH) resource.       */  // Win32 resource-based load
+    HINSTANCE hInst = GetModuleHandleW(NULL);                                       // module handle for resources
+    HRSRC     hRes  = FindResourceW(hInst, MAKEINTRESOURCEW(IDP_SPLASH), L"RCDATA");// locate RCDATA chunk
+    if (!hRes) { if (out_size) *out_size = 0; return NULL; }                        // bail if not found
+    HGLOBAL   hData = LoadResource(hInst, hRes);                                     // load the resource into memory
+    if (!hData) { if (out_size) *out_size = 0; return NULL; }                        // bail if load failed
+    DWORD     sz    = SizeofResource(hInst, hRes);                                   // byte length of data
+    void     *ptr   = LockResource(hData);                                           // stable pointer to bytes
+    if (out_size) *out_size = (size_t)sz;                                            // report size to caller
+    return (const unsigned char*)ptr;                                                // return raw PNG bytes
 #else
-    /* Optional cross-platform fallback that you can provide in
-       src/ui/resources/ustudio_resources.c. If you don't ship it,
-       this will just return NULL and the splash works without an image. */
-    extern const unsigned char g_ustudio_splash_png[];
-    extern const unsigned int  g_ustudio_splash_png_len;
-    if (&g_ustudio_splash_png && g_ustudio_splash_png_len > 0) {
-        if (out_size) *out_size = (size_t)g_ustudio_splash_png_len;
-        return g_ustudio_splash_png;
+    /* Cross-platform fallback:
+     * If you ship compiled-in PNG bytes (see src/ui/resources/ustudio_resources.c),
+     * expose them as g_ustudio_splash_png / len. Otherwise, returning NULL is fine;
+     * the splash will just hide the image and show text only.
+     */                                                                              // explain fallback plan
+    extern const unsigned char g_ustudio_splash_png[];                                // compiled-in PNG array
+    extern const unsigned int  g_ustudio_splash_png_len;                              // length of array
+    if (&g_ustudio_splash_png && g_ustudio_splash_png_len > 0) {                      // validate presence
+        if (out_size) *out_size = (size_t)g_ustudio_splash_png_len;                   // set size outparam
+        return g_ustudio_splash_png;                                                  // return data pointer
     }
-    if (out_size) *out_size = 0;
-    return NULL;
+    if (out_size) *out_size = 0;                                                      // signal absence
+    return NULL;                                                                       // no image available
 #endif
 }
 
 /*-----------------------------------------------------------------------------
- * umi_splash_new
+ * umi_splash_new — build the splash widgets (not shown yet)
  *
  * PURPOSE:
  *   Allocate and create a new splash controller and build its UI. The window
  *   is created but not yet shown; call umi_splash_show() to present it.
- *---------------------------------------------------------------------------*/
+ *---------------------------------------------------------------------------*/  // constructor docs
 UmiSplash *umi_splash_new(const char *title,
                           const char *subtitle,
                           guint       auto_close_ms)
 {
-    UmiSplash *s = g_new0(UmiSplash, 1);
-    s->auto_close_ms = auto_close_ms;
+    UmiSplash *s = g_new0(UmiSplash, 1);                                             // allocate zeroed controller
+    s->auto_close_ms = auto_close_ms;                                                // remember auto-close config
 
-    /* Window: undecorated, always-on-top, transient utility. */
-    s->window = gtk_window_new();
-    gtk_window_set_decorated(GTK_WINDOW(s->window), FALSE);
-    gtk_window_set_resizable(GTK_WINDOW(s->window), FALSE);
-    gtk_window_set_modal(GTK_WINDOW(s->window), FALSE);
-    gtk_window_set_default_size(GTK_WINDOW(s->window), 420, 220);
-    gtk_window_set_title(GTK_WINDOW(s->window), "Umicom Studio");
+    /* Window: undecorated utility top-level */                                      // top-level window setup
+    s->window = gtk_window_new();                                                    // create GTK4 window
+    gtk_window_set_decorated(GTK_WINDOW(s->window), FALSE);                          // hide system decorations
+    gtk_window_set_resizable(GTK_WINDOW(s->window), FALSE);                          // fixed splash size
+    gtk_window_set_modal(GTK_WINDOW(s->window), FALSE);                              // not modal by default
+    gtk_window_set_default_size(GTK_WINDOW(s->window), 420, 220);                    // sensible default size
+    gtk_window_set_title(GTK_WINDOW(s->window), "Umicom Studio");                    // window title text
 
-    /* Let Windows pick up a proper taskbar icon (and small/top icons). */
 #ifdef _WIN32
-    /* Apply app icon to the splash HWND (no-op on non-Windows). */
-    GdkSurface *surface = gtk_native_get_surface(GTK_NATIVE(s->window));
-    if (surface) {
-        /* Note: umi_apply_app_icon is declared in icon.h but may be a no-op */
-        /* umi_apply_app_icon((HWND)surface); */
-    }
+    /* Optional: apply taskbar and titlebar icon on Windows (best-effort).
+     * We now call the *declared* helper from icon.h so the symbol exists.
+     * If the helper is a no-op, this is still harmless and future-proof.
+     */                                                                              // fix: use correct helper
+    umi_icon_apply_to_window(GTK_WINDOW(s->window));                                  // best-effort branding hook
 #endif
 
-    s->box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8 /*spacing*/);
-    gtk_widget_set_margin_top   (s->box, 20);
-    gtk_widget_set_margin_bottom(s->box, 16);
-    gtk_widget_set_margin_start (s->box, 20);
-    gtk_widget_set_margin_end   (s->box, 20);
-    gtk_window_set_child(GTK_WINDOW(s->window), s->box);
+    /* Layout: vertical box with margins */                                          // build main container
+    s->box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);                               // vbox with spacing
+    gtk_widget_set_margin_top   (s->box, 20);                                        // top margin for breathing room
+    gtk_widget_set_margin_bottom(s->box, 16);                                        // bottom margin
+    gtk_widget_set_margin_start (s->box, 20);                                        // left margin
+    gtk_widget_set_margin_end   (s->box, 20);                                        // right margin
+    gtk_window_set_child(GTK_WINDOW(s->window), s->box);                              // attach to window
 
-    /* Image (optional), Title, Subtitle, Progress Bar */
-    s->image    = gtk_image_new();     /* filled later if PNG exists */
-    s->title    = gtk_label_new(NULL);
-    s->subtitle = gtk_label_new(NULL);
-    s->bar      = gtk_progress_bar_new();
+    /* Child widgets */                                                              // create contents
+    s->image    = gtk_image_new();                                                   // image placeholder
+    s->title    = gtk_label_new(NULL);                                               // title label (markup later)
+    s->subtitle = gtk_label_new(NULL);                                               // subtitle label
+    s->bar      = gtk_progress_bar_new();                                            // progress indicator
 
-    /* Style labels a bit (no css file required). */
-    gtk_label_set_wrap(GTK_LABEL(s->title), FALSE);
-    gtk_label_set_xalign(GTK_LABEL(s->title), 0.0f);
-    gtk_label_set_use_markup(GTK_LABEL(s->title), TRUE); /* allow <b> */
+    /* Label styling (minimal, self-contained) */                                    // basic label setup
+    gtk_label_set_wrap(GTK_LABEL(s->title), FALSE);                                  // no wrap for title
+    gtk_label_set_xalign(GTK_LABEL(s->title), 0.0f);                                 // left align title
+    gtk_label_set_use_markup(GTK_LABEL(s->title), TRUE);                             // enable Pango markup
 
-    gtk_label_set_wrap(GTK_LABEL(s->subtitle), TRUE);
-    gtk_label_set_xalign(GTK_LABEL(s->subtitle), 0.0f);
+    gtk_label_set_wrap(GTK_LABEL(s->subtitle), TRUE);                                // allow subtitle wrap
+    gtk_label_set_xalign(GTK_LABEL(s->subtitle), 0.0f);                              // left align subtitle
 
-    /* Pack them in order. */
-    gtk_box_append(GTK_BOX(s->box), s->image);
-    gtk_box_append(GTK_BOX(s->box), s->title);
-    gtk_box_append(GTK_BOX(s->box), s->subtitle);
-    gtk_box_append(GTK_BOX(s->box), s->bar);
+    /* Pack: image → title → subtitle → progress bar */                              // packing order
+    gtk_box_append(GTK_BOX(s->box), s->image);                                       // add image to vbox
+    gtk_box_append(GTK_BOX(s->box), s->title);                                       // add title to vbox
+    gtk_box_append(GTK_BOX(s->box), s->subtitle);                                    // add subtitle to vbox
+    gtk_box_append(GTK_BOX(s->box), s->bar);                                         // add progress to vbox
 
-    /* Fill content and try to load the PNG boxed in resources. */
-    umi_splash_fill(s, title ? title : "Umicom Studio IDE",
-                       subtitle ? subtitle : "Initializing…");
-    umi_splash_try_load_png_logo(s);
+    /* Fill text and try to show a logo if we have PNG bytes */                      // initial content fill
+    umi_splash_fill(s, title ? title : "Umicom Studio IDE",                           // set title with default
+                       subtitle ? subtitle : "Initializing…");                        // set subtitle with default
+    umi_splash_try_load_png_logo(s);                                                  // attempt logo load
 
-    /* Setup auto-close if requested. */
-    if (s->auto_close_ms > 0) {
-        s->auto_close_id = g_timeout_add_full(G_PRIORITY_DEFAULT,
-                                              s->auto_close_ms,
-                                              umi_splash_do_autoclose,
-                                              s, NULL);
+    /* Optional auto-close timer (safe lifetime; cleared in free) */                 // schedule auto-close if requested
+    if (s->auto_close_ms > 0) {                                                       // only if enabled
+        s->auto_close_id = g_timeout_add_full(G_PRIORITY_DEFAULT,                     // default priority
+                                              s->auto_close_ms,                       // delay in ms
+                                              umi_splash_do_autoclose,                // callback (below)
+                                              s,                                      // user data (controller)
+                                              NULL);                                  // no destroy notify (controller outlives)
     }
-    return s;
+    return s;                                                                         // hand ownership to caller
 }
 
 /*-----------------------------------------------------------------------------
- * umi_splash_show
+ * umi_splash_show — present splash; keep above parent if provided
  *
  * PURPOSE:
  *   Present the splash window. Optionally make it transient for a given
  *   parent window (keeps the splash above the parent on some platforms).
- *---------------------------------------------------------------------------*/
+ *---------------------------------------------------------------------------*/  // presentation docs
 void umi_splash_show(UmiSplash *splash, GtkWindow *parent)
 {
-    /* Defensive: ignore NULL pointer; this keeps the call site simpler.     */
-    if (!splash || !splash->window) return;
+    if (!splash || !splash->window) return;                                          // defensive null checks
 
-    /* If a parent is provided, set splash to be transient for that parent.  */
-    if (parent) {
-        gtk_window_set_transient_for(GTK_WINDOW(splash->window), parent);
-        /* Mark as modal so clicks go to splash while it is up (optional).   */
-        gtk_window_set_modal(GTK_WINDOW(splash->window), TRUE);
+    if (parent) {                                                                     // parent provided?
+        gtk_window_set_transient_for(GTK_WINDOW(splash->window), parent);             // keep-on-top of parent
+        gtk_window_set_modal(GTK_WINDOW(splash->window), TRUE);                       // trap clicks to splash
     }
 
-    /* Present the window to the user (GTK4 best-practice for toplevel).     */
-    gtk_window_present(GTK_WINDOW(splash->window));
+    gtk_window_present(GTK_WINDOW(splash->window));                                   // show top-level window
 }
 
 /*-----------------------------------------------------------------------------
- * umi_splash_set_progress
+ * umi_splash_set_progress — update bar and status text
  *
  * PURPOSE:
  *   Update progress bar and status message.
- *---------------------------------------------------------------------------*/
+ *---------------------------------------------------------------------------*/  // updater docs
 void umi_splash_set_progress(UmiSplash *s, double fraction, const char *msg)
 {
-    if (!s || !GTK_IS_WIDGET(s->bar)) return;
-    if (fraction < 0.0) fraction = 0.0;
-    if (fraction > 1.0) fraction = 1.0;
-    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(s->bar), fraction);
-    if (msg && *msg) {
-        gtk_label_set_text(GTK_LABEL(s->subtitle), msg);
-    }
+    if (!s || !GTK_IS_WIDGET(s->bar)) return;                                        // validate pointers
+    if (fraction < 0.0) fraction = 0.0;                                              // clamp low
+    if (fraction > 1.0) fraction = 1.0;                                              // clamp high
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(s->bar), fraction);               // set normalized progress
+    if (msg && *msg) gtk_label_set_text(GTK_LABEL(s->subtitle), msg);                // update status text if provided
 }
 
 /*-----------------------------------------------------------------------------
- * umi_splash_close
+ * umi_splash_close — hide/close splash window
  *
  * PURPOSE:
  *   Hide/close the splash window.
- *---------------------------------------------------------------------------*/
+ *---------------------------------------------------------------------------*/  // closing docs
 void umi_splash_close(UmiSplash *s)
 {
-    if (!s) return;
-    if (GTK_IS_WINDOW(s->window)) gtk_window_close(GTK_WINDOW(s->window));
+    if (!s) return;                                                                   // guard null
+    if (GTK_IS_WINDOW(s->window)) {                                                   // ensure valid window
+        gtk_window_close(GTK_WINDOW(s->window));                                      // request close (GTK4-safe)
+    }
 }
 
 /*-----------------------------------------------------------------------------
- * umi_splash_free
+ * umi_splash_free — cancel timer, destroy window, free controller
  *
  * PURPOSE:
  *   Destroy the splash and free all resources.
- *---------------------------------------------------------------------------*/
+ *---------------------------------------------------------------------------*/  // destructor docs
 void umi_splash_free(UmiSplash *s)
 {
-    if (!s) return;
-    if (s->auto_close_id) {
-        g_source_remove(s->auto_close_id);
-        s->auto_close_id = 0;
+    if (!s) return;                                                                   // guard null
+
+    if (s->auto_close_id) {                                                           // if a timer is active
+        g_source_remove(s->auto_close_id);                                            // cancel it
+        s->auto_close_id = 0;                                                         // clear token
     }
-    if (GTK_IS_WIDGET(s->window)) {
-        gtk_window_destroy(GTK_WINDOW(s->window));
+
+    if (GTK_IS_WIDGET(s->window)) {                                                   // if window still alive
+        gtk_window_close(GTK_WINDOW(s->window));                                      // request close
+        g_object_unref(s->window);                                                    // drop our ref to free it
     }
-    s->box = s->title = s->subtitle = s->image = s->bar = NULL;
-    g_free(s);
+
+    s->window = s->box = s->title = s->subtitle = s->image = s->bar = NULL;           // null out pointers
+    g_free(s);                                                                        // free controller memory
 }
 
 /*-----------------------------------------------------------------------------
- * umi_splash_window
- *
- * PURPOSE:
- *   Return the underlying GtkWindow for advanced usage.
- *---------------------------------------------------------------------------*/
+ * umi_splash_window — expose GtkWindow* if a caller needs it
+ *---------------------------------------------------------------------------*/  // accessor docs
 GtkWindow *umi_splash_window(UmiSplash *splash)
 {
-    return splash ? GTK_WINDOW(splash->window) : NULL;
+    return splash ? GTK_WINDOW(splash->window) : NULL;                                // return inner window or NULL
 }
 
-/*---------------------------------------------------------------------------*/
-/* Backwards-compat shim required by existing app code                        */
-/* Your build error shows calls to:                                           */
-/*   - uside_splash_show(GtkApplication *app, guint auto_close_ms)           */
-/*   - uside_splash_close_later(GtkWidget *splash, guint grace_ms)           */
-/* We provide those thin wrappers here so you don't have to touch app.c.     */
-
+/*-----------------------------------------------------------------------------
+ * Back-compat shims (match existing app.c expectations):
+ *   - GtkWidget *uside_splash_show(GtkApplication*, guint auto_close_ms)
+ *   - void        uside_splash_close_later(GtkWidget*, guint grace_ms)
+ *
+ * These keep old call sites working without touching app.c.
+ *---------------------------------------------------------------------------*/  // binary-compatibility helpers
 GtkWidget *uside_splash_show(GtkApplication *app, guint auto_close_ms)
 {
-    /* Create the helper and present. We store the handle on the GtkWindow so
-       you can still reach the struct later if you want (for progress updates). */
-    GtkWindow *parent = NULL;
-    /* If your app already created a main window, attach; otherwise NULL is fine. */
-    (void)app;
+    (void)app;                                                                        // not used here (kept for ABI)
 
-    UmiSplash *s = umi_splash_new("Umicom Studio IDE",
-                                  "Starting up…",
-                                  auto_close_ms);
-    umi_splash_show(s, parent);
+    UmiSplash *s = umi_splash_new("Umicom Studio IDE",                                 // default title
+                                  "Starting up…",                                      // default subtitle
+                                  auto_close_ms);                                      // pass-through timeout
+    umi_splash_show(s, /*parent*/ NULL);                                               // present now
 
-    /* Attach the handle for optional later access. */
-    g_object_set_data_full(G_OBJECT(s->window), "umicom-splash-handle", s,
-                           (GDestroyNotify)umi_splash_free);
-    return s->window;
+    /* Attach `s` to the window so cleanup happens automatically when            */   // avoid leaks in shim usage
+    /* the window is finally destroyed (prevents leaks when using the shim).     */
+    g_object_set_data_full(G_OBJECT(s->window), "umicom-splash-handle", s,            // attach controller to GObject
+                           (GDestroyNotify)umi_splash_free);                          // auto-free when widget dies
+    return s->window;                                                                 // return GtkWidget* (for old call sites)
+}
+
+/* NOTE: this is the callback used by uside_splash_close_later(). It’s now
+ * safe against use-after-free because we retain a ref to the GtkWidget
+ * for the duration of the timeout.
+ */                                                                                   // UAF-prevention note
+static gboolean splash_close_timeout_cb(gpointer data)
+{
+    GtkWidget *splash_widget = GTK_WIDGET(data);                                      // cast user data to widget
+    if (!G_IS_OBJECT(splash_widget)) return G_SOURCE_REMOVE;                          // validate object
+
+    /* Retrieve the controller and close via the supported API.                */     // fetch controller handle
+    UmiSplash *s = g_object_get_data(G_OBJECT(splash_widget), "umicom-splash-handle");// recover UmiSplash*
+    if (s) umi_splash_close(s);                                                       // close via official API
+
+    return G_SOURCE_REMOVE;                                                           // one-shot timer: remove source
 }
 
 void uside_splash_close_later(GtkWidget *splash, guint grace_ms)
 {
-    if (!GTK_IS_WIDGET(splash)) return;
+    if (!GTK_IS_WIDGET(splash)) return;                                               // guard invalid pointer
 
-    /* Close immediately if no grace requested. */
-    if (grace_ms == 0) {
-        UmiSplash *s = g_object_get_data(G_OBJECT(splash), "umicom-splash-handle");
-        if (s) umi_splash_close(s);
-        return;
+    if (grace_ms == 0) {                                                              // immediate close requested?
+        UmiSplash *s = g_object_get_data(G_OBJECT(splash), "umicom-splash-handle");   // get controller
+        if (s) umi_splash_close(s);                                                   // close now
+        return;                                                                       // done
     }
 
-    /* Schedule a single-shot close. We keep the closure tiny. */
-    GtkWidget *weak = splash; /* keep local */
-    g_timeout_add_once(grace_ms, (GSourceOnceFunc)+[](gpointer data){
-        GtkWidget *w = GTK_WIDGET(data);
-        if (!GTK_IS_WIDGET(w)) return;
-        UmiSplash *s = g_object_get_data(G_OBJECT(w), "umicom-splash-handle");
-        if (s) umi_splash_close(s);
-    }, weak);
+    /* CRASH FIX:
+     * Use g_timeout_add_full() and pass a strong ref to the widget as data,
+     * with g_object_unref as destroy notify. This guarantees the pointer
+     * remains valid until the callback fires, preventing UAF crashes.
+     */                                                                              // explain safety pattern
+    g_timeout_add_full(G_PRIORITY_DEFAULT,                                            // priority for timer
+                       grace_ms,                                                      // delay in ms
+                       splash_close_timeout_cb,                                       // callback above
+                       g_object_ref(splash),                                          // retain widget until fired
+                       (GDestroyNotify)g_object_unref);                               // release after callback
 }
 
-/*---------------------------------------------------------------------------*/
-/* Implementation details                                                     */
+/*-----------------------------------------------------------------------------
+ * INTERNAL HELPERS
+ *---------------------------------------------------------------------------*/  // private utilities
 
 static void umi_splash_fill(UmiSplash *s, const char *title, const char *subtitle)
 {
-    /* Title is bold & slightly larger using simple Pango markup. */
-    if (title && *title) {
-        gchar *markup = g_markup_printf_escaped("<span size='12000' weight='bold'>%s</span>", title);
-        gtk_label_set_markup(GTK_LABEL(s->title), markup);
-        g_free(markup);
-    } else {
-        gtk_label_set_text(GTK_LABEL(s->title), "Umicom Studio IDE");
+    /* Title is bold/bigger using Pango markup (local, no CSS file required). */      // styling approach
+    if (title && *title) {                                                            // title provided?
+        gchar *markup = g_markup_printf_escaped("<span size='12000' weight='bold'>%s</span>", title); // build markup safely
+        gtk_label_set_markup(GTK_LABEL(s->title), markup);                            // apply markup to title
+        g_free(markup);                                                               // free temporary string
+    } else {                                                                          // otherwise use default
+        gtk_label_set_text(GTK_LABEL(s->title), "Umicom Studio IDE");                 // fallback text
     }
 
-    gtk_label_set_text(GTK_LABEL(s->subtitle), (subtitle && *subtitle) ? subtitle : "");
-    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(s->bar), 0.1);
+    gtk_label_set_text(GTK_LABEL(s->subtitle), (subtitle && *subtitle) ? subtitle : ""); // set or clear subtitle
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(s->bar), 0.1);                     // small initial progress
 }
 
 static void umi_splash_try_load_png_logo(UmiSplash *s)
 {
-    size_t png_sz = 0;
-    const unsigned char *png = umi_splash_png(&png_sz);
-    if (!png || png_sz == 0) {
-        gtk_widget_set_visible(s->image, FALSE);
-        return;
+    /* GTK4-safe image loading from raw PNG bytes.
+     * We prefer GdkTexture-from-bytes instead of legacy GdkPixbuf paths,
+     * which avoids API confusion and works cleanly on GTK4.
+     */                                                                              // API choice explanation
+    size_t               png_sz = 0;                                                 // will hold byte length
+    const unsigned char *png    = umi_splash_png(&png_sz);                           // get bytes from provider
+    if (!png || png_sz == 0) {                                                       // no image available?
+        gtk_widget_set_visible(s->image, FALSE);                                     // hide image widget
+        return;                                                                      // nothing else to do
     }
 
-    /* Load PNG bytes using a GdkPixbufLoader. */
-    GdkPixbufLoader *ldr = gdk_pixbuf_loader_new();
-    GError *err = NULL;
+    GError *err = NULL;                                                              // error accumulator
+    GBytes *bytes = g_bytes_new_static(png, (gsize)png_sz);                          // wrap raw bytes in GBytes
 
-    if (!gdk_pixbuf_loader_write(ldr, png, (gsize)png_sz, &err)) {
-        if (err) { g_error_free(err); err = NULL; }
-        gdk_pixbuf_loader_close(ldr, NULL);
-        g_object_unref(ldr);
-        gtk_widget_set_visible(s->image, FALSE);
-        return;
+    /* Create a texture directly from the PNG bytes. */                              // decode PNG → texture
+    GdkTexture *tx = gdk_texture_new_from_bytes(bytes, &err);                        // attempt decode
+
+    if (!tx) {                                                                       // decoding failed?
+        if (err) { g_error_free(err); }                                              // drop error details (optional log)
+        g_bytes_unref(bytes);                                                        // release byte wrapper
+        gtk_widget_set_visible(s->image, FALSE);                                     // hide image and continue
+        return;                                                                      // done
     }
 
-    gdk_pixbuf_loader_close(ldr, NULL);
-    GdkPixbuf *pb = gdk_pixbuf_loader_get_pixbuf(ldr);
+    /* Optionally: scale within a reasonable bound by wrapping in GtkPicture
+     * or just let GTK size it naturally. Keeping it simple: set the texture.
+     */                                                                              // sizing policy
+    gtk_image_set_from_paintable(GTK_IMAGE(s->image), GDK_PAINTABLE(tx));            // set decoded texture
+    gtk_widget_set_visible(s->image, TRUE);                                          // ensure image is visible
 
-    if (pb) {
-        /* Scale down reasonably for the splash (keeps aspect). */
-        int w = gdk_pixbuf_get_width(pb);
-        int h = gdk_pixbuf_get_height(pb);
-        const int maxW = 256, maxH = 128;
-        double scale = 1.0;
-        if (w > maxW) scale = (double)maxW / (double)w;
-        if ((int)(h * scale) > maxH) scale = (double)maxH / (double)h;
-
-        GdkPixbuf *scaled = (scale < 1.0)
-          ? gdk_pixbuf_scale_simple(pb, (int)(w * scale), (int)(h * scale), GDK_INTERP_BILINEAR)
-          : g_object_ref(pb);
-
-        gtk_image_set_from_pixbuf(GTK_IMAGE(s->image), scaled);
-        g_object_unref(scaled);
-        gtk_widget_set_visible(s->image, TRUE);
-    } else {
-        gtk_widget_set_visible(s->image, FALSE);
-    }
-
-    g_object_unref(ldr);
+    g_object_unref(tx);                                                              // unref temporary texture
+    g_bytes_unref(bytes);                                                            // unref byte container
 }
 
 static gboolean umi_splash_do_autoclose(gpointer data)
 {
-    UmiSplash *s = (UmiSplash*)data;
-    s->auto_close_id = 0;
-    umi_splash_close(s);
-    return G_SOURCE_REMOVE;
+    UmiSplash *s = (UmiSplash*)data;                                                 // recover controller
+    s->auto_close_id = 0;                                                            // clear active timer token
+    umi_splash_close(s);                                                             // close the window
+    return G_SOURCE_REMOVE;                                                          // one-shot: remove source
 }
 
 /*---------------------------------------------------------------------------*/
-/*  END OF FILE */
+/*  END OF FILE                                                               */
+/*---------------------------------------------------------------------------*/
