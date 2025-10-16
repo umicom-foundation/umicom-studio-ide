@@ -20,6 +20,8 @@
 /* Apply a named theme to the given window. */
 void umi_theme_apply(GtkWindow *win, const char *theme_name);
 
+void umi_theme_apply_brand_css(GtkWidget *root_window);
+
 /* Apply the default theme to the given window. */
 void umi_theme_apply_default(GtkWindow *win);
 

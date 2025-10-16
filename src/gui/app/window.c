@@ -31,7 +31,7 @@
 #include "window_chat_integration.h"     /* mounts app.toggle-chat action      */
 /* Use the short, public header name per project rules (no cross-module paths). */
 #include "icon.h"                        /* small helper to show logo in UI    */
-
+#include "theme.h"  // header lives at src/core/include/theme.h
 /* Forward declaration of a tiny helper that builds the right side (editor +
  * output tabs) and hands us the "chat box" widget so we can toggle it later.  */
 static GtkWidget *build_workspace_column(GtkWidget **out_chat_box);

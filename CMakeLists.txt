@@ -12,8 +12,8 @@
 #     (see src/ui/resources/icon.c and src/ui/resources/splash.c).
 #
 # READER NOTE (for beginners):
-#   - CMake is a *declarative* build language: we "declare" what to build and
-#     with what settings; CMake then generates Ninja/Make/MSBuild files that
+#   - CMake is a *declarative* build language.
+#   - Lines starting with `#` are comments (like this one).#     with what settings; CMake then generates Ninja/Make/MSBuild files that
 #     actually compile the code.
 #   - Most commands look like: `command(NAME ARGS...)`.
 #   - Lines starting with `#` are comments (like this one); they do not affect
@@ -45,7 +45,7 @@ cmake_minimum_required(VERSION 3.24)
 project(umicom-studio-ide LANGUAGES C)
 
 # Human-readable version (optionally printed in About dialog).
-# We also inject it as compile definitions so code can use it.
+# We also inject it as compile definitions so code can use it.set(UMICOM_STUDIO_IDE_VERSION_MAJOR 0)
 set(UMICOM_STUDIO_IDE_VERSION_MAJOR 0)
 set(UMICOM_STUDIO_IDE_VERSION_MINOR 9)
 set(UMICOM_STUDIO_IDE_VERSION_PATCH 0)
@@ -75,10 +75,55 @@ set(CMAKE_C_EXTENSIONS ON) # allow GNU extensions (useful on MinGW)
 # If the user didn't pass one, default to RelWithDebInfo (optimized with
 # symbols, useful for profiling and crash reports).
 
+
+
+# ------- ImageMagick-based asset generation (optional but nice) ---------------
+find_program(MAGICK_EXE NAMES magick)
+
+if (MAGICK_EXE)
+  set(UMI_SVG_ICON ${CMAKE_SOURCE_DIR}/assets/umicom-icon.svg)
+  set(UMI_SVG_LOGO ${CMAKE_SOURCE_DIR}/assets/umicom-logo.svg)
+  set(UMI_WIN_DIR  ${CMAKE_SOURCE_DIR}/win)
+  set(UMI_ICO_OUT  ${UMI_WIN_DIR}/umicom.ico)
+  set(UMI_PNG_OUT  ${UMI_WIN_DIR}/umicom-logo.png)
+
+  add_custom_command(
+    OUTPUT ${UMI_ICO_OUT}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${UMI_WIN_DIR}
+    # --- FIX: proactively remove any stale/locked target before writing ---
+    COMMAND ${CMAKE_COMMAND} -E rm -f ${UMI_ICO_OUT}
+    COMMAND ${MAGICK_EXE} -background none -density 1024
+            ${UMI_SVG_ICON}
+            -define icon:auto-resize=256,128,96,64,48,32,24,20,16
+            ${UMI_ICO_OUT}
+    DEPENDS ${UMI_SVG_ICON}
+    COMMENT "Generating umicom.ico from assets/umicom-icon.svg"
+    VERBATIM
+  )
+
+  add_custom_command(
+    OUTPUT ${UMI_PNG_OUT}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${UMI_WIN_DIR}
+    # keep the pattern consistent (helps with R/O attribute issues)
+    COMMAND ${CMAKE_COMMAND} -E rm -f ${UMI_PNG_OUT}
+    COMMAND ${MAGICK_EXE} -background none -density 512
+            ${UMI_SVG_LOGO}
+            -resize 800
+            ${UMI_PNG_OUT}
+    DEPENDS ${UMI_SVG_LOGO}
+    COMMENT "Generating umicom-logo.png from assets/umicom-logo.svg"
+    VERBATIM
+  )
+
+  add_custom_target(umicom_assets ALL DEPENDS ${UMI_ICO_OUT} ${UMI_PNG_OUT})
+endif()
+
+# Default build type if user didn’t pass -DCMAKE_BUILD_TYPE=...
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
 endif()
 
+# ------- Dependencies (via pkg-config) ---------------------------------------
 # We use pkg-config to locate GTK4/GLib and related libraries on all platforms.
 # This provides the `pkg_check_modules()` function we call below.
 find_package(PkgConfig REQUIRED) # REQUIRED => fail early with a clear message.
@@ -87,22 +132,22 @@ find_package(PkgConfig REQUIRED) # REQUIRED => fail early with a clear message.
 # The _INCLUDE_DIRS / _LIBRARIES / _CFLAGS_OTHER variables are populated.
 # Helper macro to check a package and expose INCLUDE/LIB/CFLAGS variables.
 # We keep each dependency as its own `pkg_check_modules()` call so the output
-# is readable to new contributors.
-
-pkg_check_modules(GLIB        REQUIRED glib-2.0)        # GLib core utilities
-pkg_check_modules(GOBJECT     REQUIRED gobject-2.0)     # GObject type system
-pkg_check_modules(GIO         REQUIRED gio-2.0)         # App/IO framework
-pkg_check_modules(JSON_GLIB   REQUIRED json-glib-1.0)   # JSON parsing
-pkg_check_modules(SOUP3       REQUIRED libsoup-3.0)     # HTTP stack
-pkg_check_modules(CURL        REQUIRED libcurl)         # Optional net usage
-pkg_check_modules(GTK4        REQUIRED gtk4)            # GUI toolkit
-pkg_check_modules(PIXBUF      REQUIRED gdk-pixbuf-2.0)  # image loaders
-pkg_check_modules(CAIRO       REQUIRED cairo)           # 2D graphics
-pkg_check_modules(PANGO       REQUIRED pango)           # text layout
-pkg_check_modules(HARFBUZZ    REQUIRED harfbuzz)        # text shaping
-pkg_check_modules(GRAPHENE    REQUIRED graphene-1.0)    # math for GTK
+# is readable to new contributors.pkg_check_modules(GLIB        REQUIRED glib-2.0)
+pkg_check_modules(GOBJECT     REQUIRED gobject-2.0)
+pkg_check_modules(GIO         REQUIRED gio-2.0)
+pkg_check_modules(JSON_GLIB   REQUIRED json-glib-1.0)
+pkg_check_modules(SOUP3       REQUIRED libsoup-3.0)
+pkg_check_modules(CURL        REQUIRED libcurl)
+pkg_check_modules(GTK4        REQUIRED gtk4)
+pkg_check_modules(PIXBUF      REQUIRED gdk-pixbuf-2.0)
+pkg_check_modules(CAIRO       REQUIRED cairo)
+pkg_check_modules(PANGO       REQUIRED pango)
+pkg_check_modules(HARFBUZZ    REQUIRED harfbuzz)
+pkg_check_modules(GRAPHENE    REQUIRED graphene-1.0)
 # GtkSourceView 5 is optional (code editor widget with syntax highlighting).
-pkg_check_modules(SOURCEVIEW5 QUIET gtksourceview-5)
+# We use it if available, but can build without it (plain text editor).
+# If you want to make it required, change to REQUIRED here.
+pkg_check_modules(SOURCEVIEW5 REQUIRED gtksourceview-5 QUIET)
 
 # --- Collect source files -----------------------------------------------------
 # We use GLOB_RECURSE to make the file list newbie-friendly (it auto-picks
@@ -117,87 +162,42 @@ pkg_check_modules(SOURCEVIEW5 QUIET gtksourceview-5)
 # when new files are added (not perfect, but beginner-friendly).
 # NOTE: If you prefer explicit file lists, replace this block with a manual
 # list — it’s more robust on large teams.
-
 file(GLOB_RECURSE USIDE_SOURCES CONFIGURE_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.c"          # core app logic
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/build/*.c"         # build system
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/editor/*.c"        # editor glue
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/**/*.c"        # GUI modules (app, panes)
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/panes/**/*.c"      # output/problems/chat
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/search/*.c"        # ripgrep integration
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/llm/**/*.c"        # LLM lab
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/util/**/*.c"       # utilities (fs, sys, log)
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"            # single entry point
+  "${CMAKE_SOURCE_DIR}/src/*.c"
 )
 
-# !!! IMPORTANT: this next line caused your parser error earlier.
-# It tried to call target_include_directories() *before* the target existed,
-# and was missing its closing ')', which produced:
-#   "Parse error. Function missing ending ')'. End of file reached."
-# We comment it out with a clear "PLEASE REMOVE" note so you can see it.
-# PLEASE REMOVE: stray, invalid and unused line left from an earlier edit.
-# target_include_directories(${PROJECT_NAME} PRIVATE
+# Optional: legacy pure-C resource bundle (as in your logs).
+message(STATUS "Including legacy ustudio_resources.c (pure C resource bundle).")
 
-# Friendly failure if for some reason nothing matched (mis-path, repo incomplete).
-# Include directories tell the compiler where to find headers when a source
-# does `#include "something.h"`. We add both module "include" folders and
-# the pkg-config include paths (GTK/GLib headers).
-#target_include_directories(${PROJECT_NAME} PRIVATE
-# ---- 9) Friendly failure if nothing matched (helps new contributors) --------
-
-if(NOT USIDE_SOURCES)
-  message(FATAL_ERROR "No sources found under ${CMAKE_CURRENT_SOURCE_DIR}/src")
+# Windows icon resource
+set(UMI_WIN_RC "${CMAKE_SOURCE_DIR}/win/umicom.rc")
+if (EXISTS "${UMI_WIN_RC}")
+  message(STATUS "Including Windows icon resource: ${UMI_WIN_RC}")
+  list(APPEND USIDE_SOURCES "${UMI_WIN_RC}")
 endif()
 
-
-# ---- 10) Project include paths (so #include "foo.h" just works) -----------
-# We *explicitly* add the most common header roots. This is teaching material:
-# reading this list tells you where headers live in the tree.
-# You can later switch to `target_include_directories(... INTERFACE src)` if
-# you prefer a single umbrella include path (less typing, but less explicit).
-# We also add the pkg-config include directories discovered above.
-
-# Add pure-C resources (icons/splash); *no* XML/gresource required.
-# Keep this list explicit so we don’t compile them twice.
-# (Adjusted to match actual tree: src/ui/icon.c and src/ui/splash.c)
-set(UI_RESOURCE_SOURCES
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/icon.c"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/splash.c"
-)
-
-# If your legacy pure-C bundle exists, include it (keeps compatibility).
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/ustudio_resources.c")
-  list(APPEND UI_RESOURCE_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/ustudio_resources.c")
-  message(STATUS "Including legacy ustudio_resources.c (pure C resource bundle).")
-endif()
-
-# If you later decide to use GTK’s gresource XML, you can gate that behind
-# an option and generate a C source from the XML. We keep it OFF by default
-# to honor the “pure C” approach.
-option(USIDE_USE_GRESOURCE "Enable GTK gresource XML pipeline" OFF)
-if(USIDE_USE_GRESOURCE)
-  # Example only (disabled by default):
-  # add_custom_command(...) to compile resources.xml -> resources.c
-  # target_sources(...) to add resources.c
-  message(STATUS "USIDE_USE_GRESOURCE=ON (XML resource pipeline is enabled)")
-endif()
-
+# ------- Target ---------------------------------------------------------------
 # Create the executable target that contains *all* project code.
 # NOTE: We append UI_RESOURCE_SOURCES explicitly to avoid duplicates
 # with the glob above.
+
 add_executable(${PROJECT_NAME}
   ${USIDE_SOURCES}
-  ${UI_RESOURCE_SOURCES}
 )
 
+# Ensure assets exist before compile/link (if ImageMagick was found).
+if (TARGET umicom_assets)
+  add_dependencies(${PROJECT_NAME} umicom_assets)
+endif()
 # --- Include directories (where headers are found) ----------------------------
 # We list the public include roots for each module so `#include "icon.h"` works
 # without cross-module paths in your C files (you asked for short includes).
+
+# ------- Include paths --------------------------------------------------------
 target_include_directories(${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}                        # allow #include "src/.."
-  ${CMAKE_CURRENT_SOURCE_DIR}/src                    # umbrella include
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/include            # top-level headers
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/include
 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/core/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/build/include
@@ -215,7 +215,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/panes/problems/include
 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/search/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/include         # UI public headers
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/include
 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/fs/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/log/include
@@ -224,7 +224,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/git/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/watchers/include
 
-  # pkg-config discovered include directories (GTK/GLib & friends):
+# pkg-config discovered include directories (GTK/GLib & friends):
+
   ${GLIB_INCLUDE_DIRS}
   ${GOBJECT_INCLUDE_DIRS}
   ${GIO_INCLUDE_DIRS}
@@ -237,7 +238,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   ${PANGO_INCLUDE_DIRS}
   ${HARFBUZZ_INCLUDE_DIRS}
   ${GRAPHENE_INCLUDE_DIRS}
-  ${SOURCEVIEW5_INCLUDE_DIRS}   # optional; may be empty
+  ${SOURCEVIEW5_INCLUDE_DIRS} # optional; may be empty
 )
 
 # --- Compiler flags & definitions --------------------------------------------
@@ -254,26 +255,16 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # -DUMICOM_VERSION_PATCH  : so code can use version info
 # We use generator expressions to apply some flags only on certain compilers.
 
-target_compile_options(${PROJECT_NAME} PRIVATE
-  $<$<C_COMPILER_ID:GNU,Clang>:
-    -Wall -Wextra -Wpedantic       # be strict with warnings
-    -Wno-unused-parameter          # many GTK callbacks have unused params
-    -mfpmath=sse -msse -msse2      # baseline SSE on MinGW; harmless elsewhere
-  >
-)
-
-# Compile definitions visible to the code (via #ifdef or const char * usage).
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-  NOMINMAX                         # avoid Windows min/max macro collisions
-  _CRT_SECURE_NO_WARNINGS          # hush MSVC CRT deprecation warnings
-  gtk_widget_destroy=g_object_unref# prefer unref over destroy on GTK4
-  $<$<BOOL:${SOURCEVIEW5_FOUND}>:HAVE_GTKSOURCEVIEW5>
-  $<$<BOOL:${USIDE_GUI}>:USIDE_GUI=1>
+  NOMINMAX
+  _CRT_SECURE_NO_WARNINGS
+  USIDE_GUI=$<IF:$<BOOL:${USIDE_GUI}>,1,0>
   UMICOM_VERSION_MAJOR=${UMICOM_STUDIO_IDE_VERSION_MAJOR}
   UMICOM_VERSION_MINOR=${UMICOM_STUDIO_IDE_VERSION_MINOR}
   UMICOM_VERSION_PATCH=${UMICOM_STUDIO_IDE_VERSION_PATCH}
+  # Prefer unref in GTK4
+  gtk_widget_destroy=g_object_unref
 )
-
 # --- Windows subsystem selection (GUI vs console) ----------------------------
 # MinGW/GCC honors -mwindows/--subsystem flags. On other platforms this is
 # ignored safely. Keep it generator-expression guarded for clarity.
@@ -283,55 +274,30 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 # - When building the console variant (dev tools) we link with "console".
 # On non-Windows platforms, these flags are ignored safely.
 
-if(MSVC)
-  # With MSVC you would use /SUBSYSTEM:WINDOWS or CONSOLE differently.
-  # We keep default behavior and recommend MinGW on Windows for GTK.
+if (MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 else()
-  target_link_options(${PROJECT_NAME} PRIVATE
-    $<$<AND:$<BOOL:${USIDE_GUI}>,$<STREQUAL:$<C_COMPILER_ID>,GNU>>:
-      -mwindows -Wl,--subsystem,windows>
-    $<$<AND:$<NOT:$<BOOL:${USIDE_GUI}>>,$<STREQUAL:$<C_COMPILER_ID>,GNU>>:
-      -Wl,--subsystem,console>
-  )
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Wno-unused-parameter -mfpmath=sse -msse -msse2)
 endif()
 
-# --- Link libraries discovered by pkg-config ---------------------------------
-# We keep them PRIVATE: nothing links *against* our exe, so no need to
-# propagate usage requirements further.
+# ------- Link libraries -------------------------------------------------------
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  ${GLIB_LIBRARIES}
-  ${GOBJECT_LIBRARIES}
-  ${GIO_LIBRARIES}
-  ${JSON_GLIB_LIBRARIES}
-  ${SOUP3_LIBRARIES}
-  ${CURL_LIBRARIES}
-  ${GTK4_LIBRARIES}
-  ${PIXBUF_LIBRARIES}
-  ${CAIRO_LIBRARIES}
-  ${PANGO_LIBRARIES}
-  ${HARFBUZZ_LIBRARIES}
-  ${GRAPHENE_LIBRARIES}
-  ${SOURCEVIEW5_LIBRARIES}   # empty if not found — totally OK
+  PkgConfig::GLIB
+  PkgConfig::GOBJECT
+  PkgConfig::GIO
+  PkgConfig::JSON_GLIB
+  PkgConfig::SOUP3
+  PkgConfig::CURL
+  PkgConfig::GTK4
+  PkgConfig::PIXBUF
+  PkgConfig::CAIRO
+  PkgConfig::PANGO
+  PkgConfig::HARFBUZZ
+  PkgConfig::GRAPHENE
+  ${SOURCEVIEW5_LIBRARIES}
 )
 
-# Some pkg-config packages emit extra compile flags (e.g. -pthread).
-# We add them so users don’t have to think about platform quirks.
-target_compile_options(${PROJECT_NAME} PRIVATE
-  ${GLIB_CFLAGS_OTHER}
-  ${GOBJECT_CFLAGS_OTHER}
-  ${GIO_CFLAGS_OTHER}
-  ${JSON_GLIB_CFLAGS_OTHER}
-  ${SOUP3_CFLAGS_OTHER}
-  ${CURL_CFLAGS_OTHER}
-  ${GTK4_CFLAGS_OTHER}
-  ${PIXBUF_CFLAGS_OTHER}
-  ${CAIRO_CFLAGS_OTHER}
-  ${PANGO_CFLAGS_OTHER}
-  ${HARFBUZZ_CFLAGS_OTHER}
-  ${GRAPHENE_CFLAGS_OTHER}
-  ${SOURCEVIEW5_CFLAGS_OTHER}
-)
-
+# Windows: build as GUI subsystem when requested
 # --- Optional native Windows icon at build time (not XML) --------------------
 # If you create a Windows .ico and a tiny .rc file, we can embed the taskbar
 # icon directly. This is *build-time* only and keeps runtime pure-C.
@@ -358,18 +324,13 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 
 #   win/appicon.rc   with the single line:  1 ICON "res/umicom.ico"
 #  --- ADDED: use your actual resource file path/name (win/umicom.rc) ---
-if(WIN32)
-  set(USIDE_RC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/win/umicom.rc")
-  if(EXISTS "${USIDE_RC_FILE}")
-    target_sources(${PROJECT_NAME} PRIVATE "${USIDE_RC_FILE}")
-    # Hint the language in case the generator needs it (harmless elsewhere)
-    set_source_files_properties("${USIDE_RC_FILE}" PROPERTIES LANGUAGE RC)
-    message(STATUS "Including Windows resources: ${USIDE_RC_FILE}")
-  else()
-    message(STATUS "Windows .rc not found at ${USIDE_RC_FILE}; continuing without embedded icon.")
-  endif()
+
+if (WIN32 AND USIDE_GUI)
+  set_property(TARGET ${PROJECT_NAME} PROPERTY WIN32_EXECUTABLE TRUE)
+  message(STATUS "USIDE_GUI: ON (ON=GUI subsystem, OFF=console)")
 endif()
 
+# Version note
 # --- Install step (optional) --------------------------------------------------
 # This enables: `cmake --install <build-dir>` to copy the exe into bin/.
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
@@ -377,6 +338,8 @@ install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 # --- Friendly summary messages -----------------------------------------------
 message(STATUS "USIDE_GUI: ${USIDE_GUI} (ON=GUI subsystem, OFF=console)")
 message(STATUS "GtkSourceView 5 found: ${SOURCEVIEW5_FOUND}")
+message(STATUS "Version: ${UMICOM_STUDIO_IDE_VERSION}")
+
 message(STATUS "Version: ${UMICOM_STUDIO_IDE_VERSION}")
 
 # --- Teaching notes (kept as comment appendix) --------------------------------

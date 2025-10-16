@@ -72,7 +72,7 @@
   #include <windows.h>      /* Win32 handles for resource loading               */  // needed for FindResource/LoadResource
   #include "resource.h"     /* IDI_APPICON, IDP_SPLASH (RCDATA)                 */  // centralised resource IDs
 #endif
-
+#include "theme.h"  // header lives at src/core/include/theme.h
 /*-----------------------------------------------------------------------------
  * PRIVATE STRUCT
  * - This struct is *not* exposed to callers. We keep only what we need:
