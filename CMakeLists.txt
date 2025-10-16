@@ -94,7 +94,7 @@ if (MAGICK_EXE)
     COMMAND ${CMAKE_COMMAND} -E rm -f ${UMI_ICO_OUT}
     COMMAND ${MAGICK_EXE} -background none -density 1024
             ${UMI_SVG_ICON}
-            -define icon:auto-resize=256,128,96,64,48,32,24,20,16
+             -define "icon:auto-resize=256,128,96,64,48,32,24,20,16"
             ${UMI_ICO_OUT}
     DEPENDS ${UMI_SVG_ICON}
     COMMENT "Generating umicom.ico from assets/umicom-icon.svg"
@@ -133,21 +133,23 @@ find_package(PkgConfig REQUIRED) # REQUIRED => fail early with a clear message.
 # Helper macro to check a package and expose INCLUDE/LIB/CFLAGS variables.
 # We keep each dependency as its own `pkg_check_modules()` call so the output
 # is readable to new contributors.pkg_check_modules(GLIB        REQUIRED glib-2.0)
-pkg_check_modules(GOBJECT     REQUIRED gobject-2.0)
-pkg_check_modules(GIO         REQUIRED gio-2.0)
-pkg_check_modules(JSON_GLIB   REQUIRED json-glib-1.0)
-pkg_check_modules(SOUP3       REQUIRED libsoup-3.0)
-pkg_check_modules(CURL        REQUIRED libcurl)
-pkg_check_modules(GTK4        REQUIRED gtk4)
-pkg_check_modules(PIXBUF      REQUIRED gdk-pixbuf-2.0)
-pkg_check_modules(CAIRO       REQUIRED cairo)
-pkg_check_modules(PANGO       REQUIRED pango)
-pkg_check_modules(HARFBUZZ    REQUIRED harfbuzz)
-pkg_check_modules(GRAPHENE    REQUIRED graphene-1.0)
+pkg_check_modules(GLIB        REQUIRED IMPORTED_TARGET glib-2.0)
+pkg_check_modules(GOBJECT     REQUIRED IMPORTED_TARGET gobject-2.0)
+pkg_check_modules(GIO         REQUIRED IMPORTED_TARGET gio-2.0)
+pkg_check_modules(JSON_GLIB   REQUIRED IMPORTED_TARGET json-glib-1.0)
+pkg_check_modules(SOUP3       REQUIRED IMPORTED_TARGET libsoup-3.0)
+pkg_check_modules(CURL        REQUIRED IMPORTED_TARGET libcurl)
+pkg_check_modules(GTK4        REQUIRED IMPORTED_TARGET gtk4)
+pkg_check_modules(PIXBUF      REQUIRED IMPORTED_TARGET gdk-pixbuf-2.0)
+pkg_check_modules(CAIRO       REQUIRED IMPORTED_TARGET cairo)
+pkg_check_modules(PANGO       REQUIRED IMPORTED_TARGET pango)
+pkg_check_modules(HARFBUZZ    REQUIRED IMPORTED_TARGET harfbuzz)
+pkg_check_modules(GRAPHENE    REQUIRED IMPORTED_TARGET graphene-1.0)
+pkg_check_modules(SOURCEVIEW5 REQUIRED IMPORTED_TARGET gtksourceview-5 QUIET)
 # GtkSourceView 5 is optional (code editor widget with syntax highlighting).
 # We use it if available, but can build without it (plain text editor).
 # If you want to make it required, change to REQUIRED here.
-pkg_check_modules(SOURCEVIEW5 REQUIRED gtksourceview-5 QUIET)
+
 
 # --- Collect source files -----------------------------------------------------
 # We use GLOB_RECURSE to make the file list newbie-friendly (it auto-picks
@@ -198,7 +200,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/src
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include
-
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/llm
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/llm/providers
+${CMAKE_CURRENT_SOURCE_DIR}/src/llm/includes
   ${CMAKE_CURRENT_SOURCE_DIR}/src/core/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/build/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/editor/include
@@ -209,21 +213,51 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/llm_lab/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/menu/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/prefs/include
-
+${CMAKE_CURRENT_SOURCE_DIR}/src/gui/theme/
   ${CMAKE_CURRENT_SOURCE_DIR}/src/panes/chat/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/panes/output/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/panes/problems/include
 
   ${CMAKE_CURRENT_SOURCE_DIR}/src/search/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources
 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/transpile
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/transpile/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/format
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/format/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/lint
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/lint/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/debug
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/debug/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/commands
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/commands/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/tasks
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/tasks/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/devices
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/devices/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/projects
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/projects/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/systems
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/umicom/systems/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/fs/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/log/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/sys/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/platform/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/git/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/util/watchers/include
-
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/util/threads/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/util/encoding/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/util/json/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/util/regex/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/util/collections/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/util/misc/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/search
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/search/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/llm
 # pkg-config discovered include directories (GTK/GLib & friends):
 
   ${GLIB_INCLUDE_DIRS}
@@ -339,8 +373,57 @@ install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 message(STATUS "USIDE_GUI: ${USIDE_GUI} (ON=GUI subsystem, OFF=console)")
 message(STATUS "GtkSourceView 5 found: ${SOURCEVIEW5_FOUND}")
 message(STATUS "Version: ${UMICOM_STUDIO_IDE_VERSION}")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "C compiler: ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
+message(STATUS "C flags: ${CMAKE_C_FLAGS}")
+message(STATUS "C flags (for ${CMAKE_C_COMPILER_ID}): ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}")
+message(STATUS "Executable: $<TARGET_FILE:${PROJECT_NAME}>")
+message(STATUS "To build: cmake --build <build-dir> --config ${CMAKE_BUILD_TYPE}")
+message(STATUS "To install: cmake --install <build-dir> --config ${CMAKE_BUILD_TYPE}")
+message(STATUS "To clean: cmake --build <build-dir> --target clean")
+message(STATUS "To reconfigure: cmake <source-dir> -B <build-dir> -D<options...>")
+message(STATUS "To add C files: just add them to src/ (they are auto-picked)")
+message(STATUS "To add headers: just add them to src/include/ or module include/")
+message(STATUS "To enable console logs: pass -DUSIDE_GUI=OFF to cmake")
+message(STATUS "To see compiler warnings: pass -DCMAKE_C_FLAGS='-Wall -
+-Wextra -Wpedantic' to cmake")
+message(STATUS "To enable optimizations: pass -DCMAKE_BUILD_TYPE=Release or RelWithDebInfo to cmake")
+message(STATUS "To enable debug symbols: pass -DCMAKE_BUILD_TYPE=Debug or RelWithDebInfo to cmake")
+message(STATUS "To regenerate on new files: just re-run cmake or ninja (CONFIG_DEPENDS)")
+message(STATUS "To see all CMake variables: run 'cmake -LAH <build-dir>'")
+message(STATUS "To see all CMake options: run 'cmake -LH <build-dir>'")
+message(STATUS "To see all pkg-config variables: run 'pkg-config --list-all'")
+message(STATUS "To see all pkg-config details: run 'pkg-config --cflags --libs <package>'")
+message(STATUS "To see all pkg-config variables in CMake: run 'cmake -
+LAH <build-dir>'")
+message(STATUS "To add a new dependency: use 'pkg_check_modules(<NAME> REQUIRED
+<package>)' and link with PkgConfig::<NAME>") 
+message(STATUS "To add a new module: create src/<module>/ and src/<module>/include/")
+message(STATUS "To add a new module: add src/<module> to target_include_directories()")
+message(STATUS "To add a new module: add src/<module> to file(GLOB_RECURSE USIDE_SOURCES ...)")
+message(STATUS "To add a new module: add src/<module> to target_link_libraries() if needed")
+message(STATUS "To add a new module: add src/<module> to target_compile_definitions() if needed")
+message(STATUS "To add a new module: add src/<module> to target_compile_options() if needed")
+message(STATUS "To add a new module: add src/<module> to install() if needed")
+message(STATUS "To add a new module: add src/<module> to add_executable
+(${PROJECT_NAME} ...)")
+message(STATUS "To add a new module: add src/<module> to add_dependencies
+(${PROJECT_NAME} ...)")   
+message(STATUS "To add a new module: add src/<module> to add_custom_command
+(${PROJECT_NAME} ...)") 
+message(STATUS "To add a new module: add src/<module> to add_custom_target
+(${PROJECT_NAME} ...)") 
+message(STATUS "To add a new module: add src/<module> to find_package
+(${PROJECT_NAME} ...)")
+message(STATUS "To add a new module: add src/<module> to find_program
+(${PROJECT_NAME} ...)") 
+message(STATUS "To add a new module: add src/<module> to find_library
+(${PROJECT_NAME} ...)") 
+message(STATUS "To add a new module: add src/<module> to find_path
+(${PROJECT_NAME} ...)") 
+message(STATUS "To add a new module: add src/<module> to find_file
+(${PROJECT_NAME} ...)") 
 
-message(STATUS "Version: ${UMICOM_STUDIO_IDE_VERSION}")
 
 # --- Teaching notes (kept as comment appendix) --------------------------------
 #[[
