@@ -17,6 +17,14 @@
  *---------------------------------------------------------------------------*/
 // ----------------------------------------------------------------------------
 
+/* [ADDED] Ensure UTF-8 is honored by rc.exe/windres so the © line below renders correctly. */
+#pragma code_page(65001)
+
+/* [ADDED] MSVC convenience header when compiling with rc.exe; harmless on MinGW if missing. */
+#ifdef _MSC_VER
+  #include <winres.h>   // preferred with MSVC's resource compiler
+#endif
+
 #include <windows.h>
 #include "resource.h"   // use central IDs (IDI_APPICON, IDP_SPLASH, etc.)
 
@@ -67,7 +75,7 @@ BEGIN
       VALUE "OriginalFilename", "umicom-studio.exe"
       VALUE "ProductName", "Umicom Studio"
       VALUE "ProductVersion", "1.0.0.0"
-      VALUE "LegalCopyright",   "© Umicom Foundation\0"   
+      VALUE "LegalCopyright",   "© Umicom Foundation\0"
        END
   END
   BLOCK "VarFileInfo"
