@@ -12,11 +12,11 @@
  *
  * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-13 | MIT
  *---------------------------------------------------------------------------*/
-#ifndef UMI_THEME_H
-#define UMI_THEME_H
+#ifndef UMICOM_THEME_H
+#define UMICOM_THEME_H
 
 #include <gtk/gtk.h>
-
+G_BEGIN_DECLS
 /* Apply a named theme to the given window. */
 void umi_theme_apply(GtkWindow *win, const char *theme_name);
 
@@ -24,6 +24,6 @@ void umi_theme_apply_brand_css(GtkWidget *root_window);
 
 /* Apply the default theme to the given window. */
 void umi_theme_apply_default(GtkWindow *win);
-
+G_END_DECLS
 #endif /* UMI_THEME_H */
 /*  END OF FILE */
