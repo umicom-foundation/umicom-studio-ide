@@ -1,12 +1,34 @@
 {
-  "clangd.path": "C:\\msys64\\mingw64\\bin\\clangd.exe",
-  "clangd.arguments": [
-    "--compile-commands-dir=${workspaceFolder}",
-    "--query-driver=C:\\msys64\\mingw64\\bin\\gcc.exe;C:\\msys64\\mingw64\\bin\\g++.exe;C:\\msys64\\mingw64\\bin\\clang.exe;C:\\msys64\\mingw64\\bin\\clang++.exe"
+  "cmake.useCMakePresets": "always",
+  "cmake.configureOnOpen": false,
+
+  "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/clang.exe",
+
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build/windows-ucrt64-debug/compile_commands.json",
+
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/framework/include",
+    "${workspaceFolder}/applications/studio/include",
+    "${workspaceFolder}/applications/studio/src/legacy",
+    "${workspaceFolder}/applications/studio/src/legacy/**",
+    "C:/msys64/ucrt64/include",
+    "C:/msys64/ucrt64/include/**"
   ],
-  "editor.fontSize": 24,
-  "terminal.integrated.fontSize": 24,
-  "debug.console.fontSize": 24,
-  "scm.inputFontSize": 24,
-  "chat.editor.fontSize": 24
+
+  "C_Cpp.default.browse.path": [
+    "${workspaceFolder}/framework/include",
+    "${workspaceFolder}/applications/studio/include",
+    "${workspaceFolder}/applications/studio/src/legacy",
+    "C:/msys64/ucrt64/include"
+  ],
+
+  "terminal.integrated.env.windows": {
+    "PATH": "C:\\msys64\\ucrt64\\bin;${env:PATH}"
+  },
+
+  "files.exclude": {
+    "**/build-baseline": true,
+    "**/build-ninja": true,
+    "**/build": true
+  }
 }

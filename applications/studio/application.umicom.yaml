@@ -1,0 +1,41 @@
+schema: umicom.application.v1
+
+application:
+  id: org.umicom.studio
+  name: Umicom Studio IDE
+  short_name: Studio
+  version: 0.10.0
+  executable: umicom-studio-ide
+  aliases: [usi, ustudio]
+
+framework:
+  minimum_version: 0.4.1
+  compatible_major: 0
+
+frontends:
+  - console
+  - gtk
+
+capabilities:
+  - diagnostics
+  - configuration
+  - messaging
+  - workspace
+  - documents
+  - build
+  - search
+  - output
+  - problems
+  - plugins
+  - ai
+
+migration:
+  stage: framework-bootstrap
+  legacy_source_root: src/legacy
+  temporary_root_resources:
+    - assets
+    - config
+    - win
+    - scripts
+    - tests
+  next_vertical_slice: diagnostics-and-logging

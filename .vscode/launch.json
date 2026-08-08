@@ -2,16 +2,23 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run ustudio",
+      "name": "Debug Umicom Studio IDE",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/ustudio",
-      "args": [],
+      "program": "${workspaceFolder}/build/windows-ucrt64-debug/bin/umicom-studio-ide.exe",
+      "args": ["--console"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "C:/msys64/ucrt64/bin;${env:PATH}"
+        }
+      ],
       "externalConsole": false,
-      "MIMode": "gdb"
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe",
+      "preLaunchTask": "Umicom: Build Windows GTK"
     }
   ]
 }

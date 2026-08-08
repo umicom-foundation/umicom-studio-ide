@@ -1,85 +1,96 @@
-# =========================================================================================
-# Umicom Common CI Template: C/C++ (CMake)
-# Author: Sammy Hegab (Umicom Foundation)
-# Purpose: Standard CI for C/C++ repos using CMake on Ubuntu.
-# Policy: main-only workflow. Keep code heavily commented.
-# Usage: copy this file into: .github/workflows/ci.yml
-# =========================================================================================
-name: ci-c-cpp
+# =============================================================================
+# Umicom Studio IDE
+# Framework-based headless continuous integration
+#
+# This workflow validates the reusable Umicom Framework and the new Studio
+# composition root without requiring GTK4.
+#
+# The preserved GTK4 application is tested separately on the Windows developer
+# workstation until a dedicated Windows MSYS2 runner workflow is introduced.
+#
+# Author: Sammy Hegab
+# Organisation: Umicom Foundation
+# Licence: MIT
+# =============================================================================
+
+name: Umicom Studio CI
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  headless:
+    name: Framework and Studio headless
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Check out Studio and all submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
-      - name: Install build deps
+      - name: Install C23 build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build clang-format
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libsqlite3-dev
 
-      - name: Configure (CMake)
+      - name: Display tool versions
         run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          clang --version
+          cmake --version
+          ninja --version
+          git --version
 
-      - name: Build
-        run: cmake --build build --config Release --parallel
-
-      - name: Run unit tests (ctest, if present)
+      - name: Verify submodules
         run: |
-          if [ -f build/CTestTestfile.cmake ]; then ctest --test-dir build --output-on-failure; else echo "No tests."; fi
+          git submodule status --recursive
+          test -f framework/CMakeLists.txt
 
-      - name: clang-format (dry-run)
+      - name: Configure Framework and Studio headless build
         run: |
-          # Check formatting without changing files; fail if diffs are found
-          if git ls-files '*.c' '*.h' '*.cpp' '*.hpp' | xargs -r clang-format -n --Werror; then
-            echo "Formatting OK"
-          else
-            echo "Formatting violations found"; exit 1
-          fi
-        # To auto-fix formatting, replace the above with:
-        # run: git ls-files '*.c' '*.h' '*.cpp' '*.hpp' | xargs -r clang-format -i && git diff  || echo "No formatting changes"
-        # Note: The above auto-fix step will modify files but not commit them. Consider adding a commit step if desired.
-        # This CI is intended to enforce formatting on PRs; auto-fixing is optional and should be used with caution.
-        # Uncomment the following line to fail the job if formatting issues are found:
-        # continue-on-error: false
-        continue-on-error: true
-        # The job will not fail on formatting issues, but the message will indicate violations.
-        # To enforce formatting strictly, set continue-on-error to false.
-        # This allows developers to see formatting issues without blocking the CI.
-        # Adjust according to your team's workflow preferences.
-        # End of clang-format step
-        # =========================================================================================
-        # End of job steps
-        # =========================================================================================
-# End of workflow file
-# =========================================================================================
-# Note: This template is designed for simplicity and clarity.
-# Adjust as needed for your specific project requirements.
-# =========================================================================================
-# =========================================================================================
-# End of file
-# =========================================================================================
-# =========================================================================================
-# Umicom Foundation
-# =========================================================================================
-# https://umicom.foundation
-# ========================================================================================= 
-# License: MIT
-# =========================================================================================
-# (c) 2024 Sammy Hegab
-# =========================================================================================
-# All rights reserved.
-# =========================================================================================
-# This code is provided "as is" without warranty of any kind.
-# =========================================================================================
-# Use at your own risk.
-# =========================================================================================
+          cmake \
+            -S . \
+            -B build/ci \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DBUILD_TESTING=ON \
+            -DUMICOM_STUDIO_BUILD_LEGACY_GTK=OFF \
+            -DUMICOM_ENABLE_STRICT_WARNINGS=ON
+
+      - name: Compile Framework and Studio
+        run: |
+          cmake --build build/ci --parallel 2
+
+      - name: Run automated tests
+        run: |
+          ctest \
+            --test-dir build/ci \
+            --output-on-failure
+
+      - name: Run Framework demonstration
+        run: |
+          ./build/ci/bin/umicom-framework-demo
+
+      - name: Run Studio console smoke test
+        run: |
+          ./build/ci/bin/umicom-studio-console
