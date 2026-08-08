@@ -2,3 +2,7 @@
 	path = third_party/umicom/uengine
 	url = https://github.com/umicom-foundation/umicom-authorengine-ai.git
 	branch = main
+[submodule "framework"]
+	path = framework
+	url = https://github.com/umicom-foundation/umicom-framework.git
+	branch = main
