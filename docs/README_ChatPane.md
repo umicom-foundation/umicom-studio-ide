@@ -62,13 +62,12 @@ GtkWidget *chat = chat_pane_new();
 gtk_box_append(GTK_BOX(your_right_box), chat);
 ```
 
-## 6) Build & run
+## 6) Build and run
 ```powershell
-# (re)configure + build
-meson setup build
-meson compile -C build
-# run
-./build/ustudio.exe
+cmake --preset windows-ucrt64-debug
+cmake --build --preset windows-ucrt64-debug
+ctest --preset windows-ucrt64-debug
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-ide.exe" --console
 ```
 
 ## 7) Sidecar (Phase‑1)

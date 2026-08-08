@@ -3,13 +3,15 @@
 # File: CMakeLists.txt
 #
 # PURPOSE:
-#   Build Umicom Framework first, then build Umicom Studio as a Framework
-#   application.  This replaces the old single-target recursive source glob.
+#   Build Umicom Framework first, then build Umicom Studio IDE as an independent
+#   Framework application.  The Studio product source is organised below
+#   applications/studio and is exposed through explicit CMake targets.
 #
-# MIGRATION STAGE:
-#   The existing GTK4 source remains under applications/studio/src/legacy.
-#   The new Studio bootstrap starts the Framework Master Controller around the
-#   preserved GUI.  Later commits replace one legacy service at a time.
+# ARCHITECTURE:
+#   - Umicom::Framework owns reusable runtime and platform capabilities.
+#   - Umicom::StudioCore owns the Studio composition root.
+#   - Umicom::StudioProduct owns the current Studio product implementation.
+#   - umicom-studio-console and umicom-studio-ide are independent frontends.
 #
 # AUTHOR AND ORGANISATION:
 #   Sammy Hegab
@@ -22,7 +24,7 @@ cmake_minimum_required(VERSION 3.24)
 
 project(
     UmicomStudioIDE
-    VERSION 0.10.0
+    VERSION 0.11.0
     LANGUAGES C
 )
 
@@ -35,13 +37,13 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 option(UMICOM_ENABLE_STRICT_WARNINGS
-       "Enable strict compiler warnings for new Framework-based code"
+       "Enable strict compiler warnings for Framework-based code"
        ON)
 option(UMICOM_ENABLE_SANITIZERS
        "Enable ASan and UBSan where supported"
        OFF)
-option(UMICOM_STUDIO_BUILD_LEGACY_GTK
-       "Build the preserved GTK4 Studio implementation"
+option(UMICOM_STUDIO_BUILD_GTK
+       "Build the GTK4 Umicom Studio IDE application"
        ON)
 option(UMICOM_STUDIO_GUI
        "Build the Windows GUI-subsystem Studio executable"
@@ -80,18 +82,12 @@ function(umicom_apply_sanitizers target)
 endfunction()
 
 # Framework resolution order:
-#   1. A suite build has already created Umicom::Framework.
+#   1. A suite or superbuild has already created Umicom::Framework.
 #   2. This standalone Studio checkout contains framework/CMakeLists.txt.
 #   3. An installed Framework SDK is available through find_package().
 if(NOT TARGET Umicom::Framework)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt")
         add_subdirectory(framework)
-    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/framework/README.md")
-        message(FATAL_ERROR
-            "The framework submodule exists but still contains only the initial skeleton. "
-            "Complete Umicom Framework Foundation 0.4.1 first, update the submodule, "
-            "and then configure Studio again."
-        )
     else()
         find_package(UmicomFramework CONFIG REQUIRED)
     endif()
@@ -100,5 +96,5 @@ endif()
 add_subdirectory(applications/studio)
 
 message(STATUS "Umicom Studio IDE version: ${PROJECT_VERSION}")
-message(STATUS "Framework target available: $<TARGET_EXISTS:Umicom::Framework>")
-message(STATUS "Legacy GTK build: ${UMICOM_STUDIO_BUILD_LEGACY_GTK}")
+message(STATUS "GTK application build: ${UMICOM_STUDIO_BUILD_GTK}")
+message(STATUS "C standard: C${CMAKE_C_STANDARD}")

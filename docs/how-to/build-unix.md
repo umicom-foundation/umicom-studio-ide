@@ -1,24 +1,16 @@
-# Build on Linux/macOS
+# Build on Linux or macOS
 
-Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
-
-Install dependencies using your package manager:
-
-```bash
-# Debian/Ubuntu
-sudo apt update && sudo apt install -y libgtk-4-dev libjson-glib-dev libglib2.0-dev ripgrep meson ninja-build
-
-# Fedora
-sudo dnf install -y gtk4-devel json-glib-devel glib2-devel ripgrep meson ninja-build
-
-# macOS (Homebrew)
-brew install gtk4 json-glib glib ripgrep meson ninja
-```
-
-Then build:
+Install Clang, CMake, Ninja, pkg-config, GTK4, GtkSourceView 5, JSON-GLib,
+libsoup 3, libcurl and SQLite development packages.
 
 ```bash
-meson setup build -Dbuildtype=debug || meson setup build --reconfigure
-meson compile -C build
-./build/umicom-studio
+git submodule update --init --recursive
+cmake -S . -B build/linux-gtk -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_C_COMPILER=clang \
+  -DBUILD_TESTING=ON \
+  -DUMICOM_STUDIO_BUILD_GTK=ON
+cmake --build build/linux-gtk
+ctest --test-dir build/linux-gtk --output-on-failure
+./build/linux-gtk/bin/umicom-studio-ide --console
 ```

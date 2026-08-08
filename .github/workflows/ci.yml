@@ -2,28 +2,17 @@
 # Umicom Studio IDE
 # Framework-based headless continuous integration
 #
-# This workflow validates the reusable Umicom Framework and the new Studio
-# composition root without requiring GTK4.
-#
-# The preserved GTK4 application is tested separately on the Windows developer
-# workstation until a dedicated Windows MSYS2 runner workflow is introduced.
-#
 # Author: Sammy Hegab
 # Organisation: Umicom Foundation
 # Licence: MIT
 # =============================================================================
-
 name: Umicom Studio CI
 
 on:
   pull_request:
-    branches:
-      - main
-
+    branches: [main]
   push:
-    branches:
-      - main
-
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -59,10 +48,12 @@ jobs:
           ninja --version
           git --version
 
-      - name: Verify submodules
+      - name: Verify required source checkouts
         run: |
           git submodule status --recursive
           test -f framework/CMakeLists.txt
+          test -f applications/studio/CMakeLists.txt
+          test -f applications/studio/cmake/StudioSources.cmake
 
       - name: Configure Framework and Studio headless build
         run: |
@@ -74,23 +65,17 @@ jobs:
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DBUILD_TESTING=ON \
-            -DUMICOM_STUDIO_BUILD_LEGACY_GTK=OFF \
+            -DUMICOM_STUDIO_BUILD_GTK=OFF \
             -DUMICOM_ENABLE_STRICT_WARNINGS=ON
 
       - name: Compile Framework and Studio
-        run: |
-          cmake --build build/ci --parallel 2
+        run: cmake --build build/ci --parallel 2
 
       - name: Run automated tests
-        run: |
-          ctest \
-            --test-dir build/ci \
-            --output-on-failure
+        run: ctest --test-dir build/ci --output-on-failure
 
       - name: Run Framework demonstration
-        run: |
-          ./build/ci/bin/umicom-framework-demo
+        run: ./build/ci/bin/umicom-framework-demo
 
       - name: Run Studio console smoke test
-        run: |
-          ./build/ci/bin/umicom-studio-console
+        run: ./build/ci/bin/umicom-studio-console

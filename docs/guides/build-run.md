@@ -1,23 +1,20 @@
-<!-- Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT -->
+# Build and run
 
-# Build & Run
-
-## CMake (default)
+## Headless Framework validation
 
 ```bash
-cmake -S . -B build -G Ninja
-cmake --build build -j
-./build/umicom_ide   # if your target is named this way
+cmake --preset headless-debug
+cmake --build --preset headless-debug
+ctest --preset headless-debug
 ```
 
-## Meson (optional)
+## Windows GTK4 development
 
-```bash
-meson setup build
-meson compile -C build
+```powershell
+cmake --preset windows-ucrt64-debug
+cmake --build --preset windows-ucrt64-debug
+ctest --preset windows-ucrt64-debug
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-ide.exe" --console
 ```
 
-## Code Style
-
-- `clang-format` is enforced; see **Reference → Style Guide**.
-- `.editorconfig` is present for cross-editor consistency.
+CMake and Ninja are the only active build route for this repository.

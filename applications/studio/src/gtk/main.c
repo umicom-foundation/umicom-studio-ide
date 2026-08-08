@@ -3,11 +3,9 @@
  * File: applications/studio/src/gtk/main.c
  *
  * PURPOSE:
- *   Preserve the existing GTK4 application entry paths while starting and
- *   stopping the Umicom Framework Master Controller around the GUI lifecycle.
- *
- * This file is the first migration bridge.  The existing GTK shell remains
- * usable; later changes replace internal services one vertical slice at a time.
+ *   Start the GTK4 Umicom Studio IDE frontend inside the Umicom Framework
+ *   lifecycle.  Product services remain under applications/studio/src while
+ *   reusable capabilities move into Framework through tested vertical slices.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -113,7 +111,7 @@ static int filter_dev_flags(int argc, char **argv, char ***out_argv)
     return count;
 }
 
-static int run_existing_studio(int argc, char **argv)
+static int run_studio(int argc, char **argv)
 {
     char **filtered_argv = NULL;
     int filtered_argc;
@@ -173,7 +171,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    result = run_existing_studio(argc, argv);
+    result = run_studio(argc, argv);
     umi_studio_bootstrap_destroy(bootstrap);
     return result;
 }

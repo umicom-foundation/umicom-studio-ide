@@ -16,7 +16,7 @@ UmiOptions *umi_options_parse(int *argc, char ***argv, GError **err){
     { "log",      'l', 0, G_OPTION_ARG_INT,    &o->log_level,"Log level (0=DEBUG..3=ERROR)", "N" },
     { "workspace",'w', 0, G_OPTION_ARG_STRING, &o->workspace,"Workspace root", "DIR" },
     { "headless", 0,   0, G_OPTION_ARG_NONE,   &o->headless, "Run without UI", NULL },
-    { NULL }
+    { NULL, 0, 0, G_OPTION_ARG_NONE, NULL, NULL, NULL }
   };
   GOptionContext *ctx = g_option_context_new("- Umicom Studio IDE options");
   g_option_context_add_main_entries(ctx, entries, NULL);

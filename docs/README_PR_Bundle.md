@@ -73,11 +73,12 @@ ustudio_chat_mount_and_actions(app, GTK_WINDOW(window), right_box);
 Add a toggle menu item under **View** (action: `app.toggle-chat`) and an accelerator like `<Ctrl><Shift>C`.
 If your UI uses a menu model, insert an item pointing to `"app.toggle-chat"`.
 
-## 7) Build & run
-```bash
-meson setup build
-meson compile -C build
-./build/ustudio
+## 7) Build and run
+```powershell
+cmake --preset windows-ucrt64-debug
+cmake --build --preset windows-ucrt64-debug
+ctest --preset windows-ucrt64-debug
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-ide.exe" --console
 ```
 
 ## Notes

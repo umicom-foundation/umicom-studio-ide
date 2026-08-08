@@ -1,33 +1,49 @@
-name: docs
+# =============================================================================
+# Umicom Studio IDE documentation validation
+#
+# Builds native C API documentation with Doxygen. The workflow deliberately
+# avoids an unfinished MkDocs/Python deployment path.
+#
+# Author: Sammy Hegab
+# Organisation: Umicom Foundation
+# Licence: MIT
+# =============================================================================
+name: Umicom Studio Docs
+
 on:
+  pull_request:
+    branches: [main]
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-and-deploy:
+  doxygen:
+    name: Build Doxygen reference
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Install system deps
+      - name: Check out Studio and Framework
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install Doxygen
         run: |
           sudo apt-get update
-          sudo apt-get install -y doxygen
-      - name: Build API (Doxygen)
-        run: doxygen Doxyfile
-      - name: Setup Python
-        uses: actions/setup-python@v5
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Build API documentation
+        run: doxygen docs/Doxyfile
+
+      - name: Upload generated HTML
+        uses: actions/upload-artifact@v4
         with:
-          python-version: '3.x'
-      - name: Install MkDocs Material
-        run: pip install mkdocs mkdocs-material
-      - name: Build site
-        run: mkdocs build --site-dir site
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
+          name: umicom-studio-api-docs
+          path: build/doxygen/html
+          if-no-files-found: error

@@ -1,13 +1,18 @@
 # Umicom Studio IDE application
 
-This directory contains the Framework-based Umicom Studio composition root.
+Umicom Studio IDE is an independent application built on Umicom Framework.
 
-## Current migration stage
+## Source layout
 
-- `src/core` contains new product-neutral Studio bootstrap code.
-- `src/console` provides a headless lifecycle check.
-- `src/gtk` starts the existing GTK application through Umicom Framework.
-- `src/legacy` contains the preserved pre-Framework Studio implementation.
-- root-level `assets`, `config`, `win`, `scripts` and legacy `tests` are kept in place temporarily to preserve behaviour.
+- `src/app` contains the Framework composition root.
+- `src/console` contains the console frontend.
+- `src/gtk` contains the GTK4 executable entry point.
+- `src/build`, `src/core`, `src/editor`, `src/gui`, `src/llm`, `src/panes`,
+  `src/plugins`, `src/search`, `src/ui` and `src/util` contain the active Studio
+  product implementation.
+- `include/umicom/studio` contains public Studio contracts.
+- `tests` contains Framework integration tests.
 
-The next vertical slice migrates diagnostics and logging from the compatibility source into Umicom Framework.
+The product source is no longer compiled through a compatibility or legacy
+library.  It is compiled as `Umicom::StudioProduct`.  Reusable capabilities
+will continue to move into Umicom Framework one tested subsystem at a time.

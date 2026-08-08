@@ -4,7 +4,7 @@ application:
   id: org.umicom.studio
   name: Umicom Studio IDE
   short_name: Studio
-  version: 0.10.0
+  version: 0.11.0
   executable: umicom-studio-ide
   aliases: [usi, ustudio]
 
@@ -29,13 +29,13 @@ capabilities:
   - plugins
   - ai
 
+source_layout:
+  product_root: src
+  composition_root: src/app
+  console_frontend: src/console
+  gtk_frontend: src/gtk
+
 migration:
-  stage: framework-bootstrap
-  legacy_source_root: src/legacy
-  temporary_root_resources:
-    - assets
-    - config
-    - win
-    - scripts
-    - tests
+  stage: product-source-promoted
+  framework_extraction: incremental
   next_vertical_slice: diagnostics-and-logging

@@ -1,4 +1,8 @@
-# Developer Setup
-Windows (MSYS2): run `scripts/setup_windows.ps1` in an elevated PowerShell.
-Linux/macOS: run `scripts/setup_unix.sh`.
-Then `meson setup build && meson compile -C build`.
+# Developer setup
+
+- Windows: read `docs/how-to/build-windows-msys2.md`.
+- Linux/macOS: read `docs/how-to/build-unix.md`.
+- Build system: CMake + Ninja.
+- C language standard: C23.
+- Framework dependency: checked out under `framework` or supplied as an installed
+  `UmicomFramework` package.

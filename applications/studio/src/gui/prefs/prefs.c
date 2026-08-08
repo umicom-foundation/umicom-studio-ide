@@ -20,16 +20,6 @@ typedef struct {
   GtkWidget *spin_auto;
 } PrefsCtx;
 
-static GtkWidget *mk_labeled(GtkWidget **out_entry, const char *lbl, const char *text){
-  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-  gtk_box_append(GTK_BOX(box), gtk_label_new(lbl));
-  GtkWidget *e = gtk_entry_new();
-  gtk_editable_set_text(GTK_EDITABLE(e), text?text:"");
-  gtk_box_append(GTK_BOX(box), e);
-  if(out_entry) *out_entry = e;
-  return box;
-}
-
 static UmiSettings *defaults(void){
   UmiSettings *s = g_new0(UmiSettings,1);
   s->theme = g_strdup("light");

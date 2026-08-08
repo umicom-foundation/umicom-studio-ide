@@ -1,15 +1,12 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: applications/studio/src/core/bootstrap.c
+ * File: applications/studio/src/app/bootstrap.c
  *
  * PURPOSE:
- *   Introduce Umicom Framework beneath the existing Studio implementation
- *   without rewriting the current GTK4 application in one unsafe step.
- *
- * MIGRATION STAGE:
- *   The first registered module is a compatibility module representing the
- *   preserved Studio shell.  Later commits replace it with Workspace,
- *   Document, Build, Output, Search and AI Slave Controllers.
+ *   Own the Umicom Framework composition root used by every Studio frontend.
+ *   The Studio product shell is registered with the Framework Master
+ *   Controller and will be decomposed into bounded Slave Controllers as the
+ *   migration continues.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -22,7 +19,7 @@
 
 struct UmiStudioBootstrap {
     UmiMasterController *master;
-    UmiModuleDescriptor legacy_shell_module;
+    UmiModuleDescriptor studio_shell_module;
     int started;
 };
 
@@ -39,32 +36,32 @@ static void studio_diagnostic_sink(const UmiDiagnostic *diagnostic, void *user_d
                   diagnostic->message != NULL ? diagnostic->message : "");
 }
 
-static UmiStatus legacy_shell_configure(UmiModuleContext *context)
+static UmiStatus studio_shell_configure(UmiModuleContext *context)
 {
     return context != NULL ? UMI_STATUS_OK : UMI_STATUS_INVALID_ARGUMENT;
 }
 
-static UmiStatus legacy_shell_initialise(UmiModuleContext *context)
+static UmiStatus studio_shell_initialise(UmiModuleContext *context)
 {
     return context != NULL ? UMI_STATUS_OK : UMI_STATUS_INVALID_ARGUMENT;
 }
 
-static UmiStatus legacy_shell_start(UmiModuleContext *context)
+static UmiStatus studio_shell_start(UmiModuleContext *context)
 {
     return context != NULL ? UMI_STATUS_OK : UMI_STATUS_INVALID_ARGUMENT;
 }
 
-static UmiStatus legacy_shell_quiesce(UmiModuleContext *context)
+static UmiStatus studio_shell_quiesce(UmiModuleContext *context)
 {
     return context != NULL ? UMI_STATUS_OK : UMI_STATUS_INVALID_ARGUMENT;
 }
 
-static UmiStatus legacy_shell_stop(UmiModuleContext *context)
+static UmiStatus studio_shell_stop(UmiModuleContext *context)
 {
     return context != NULL ? UMI_STATUS_OK : UMI_STATUS_INVALID_ARGUMENT;
 }
 
-static void legacy_shell_destroy(UmiModuleContext *context)
+static void studio_shell_destroy(UmiModuleContext *context)
 {
     (void)context;
 }
@@ -95,26 +92,26 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         return status;
     }
 
-    bootstrap->legacy_shell_module.structure_size =
-        (uint32_t)sizeof(bootstrap->legacy_shell_module);
-    bootstrap->legacy_shell_module.abi_version = UMICOM_FRAMEWORK_ABI_VERSION;
-    bootstrap->legacy_shell_module.module_id = "org.umicom.studio.legacy-shell";
-    bootstrap->legacy_shell_module.display_name = "Studio legacy GTK shell";
-    bootstrap->legacy_shell_module.module_version = (UmiVersion){0U, 10U, 0U};
-    bootstrap->legacy_shell_module.kind = UMI_MODULE_UI;
-    bootstrap->legacy_shell_module.provided_capabilities = NULL;
-    bootstrap->legacy_shell_module.required_capabilities = NULL;
-    bootstrap->legacy_shell_module.module_state = bootstrap;
-    bootstrap->legacy_shell_module.lifecycle.configure = legacy_shell_configure;
-    bootstrap->legacy_shell_module.lifecycle.initialise = legacy_shell_initialise;
-    bootstrap->legacy_shell_module.lifecycle.start = legacy_shell_start;
-    bootstrap->legacy_shell_module.lifecycle.quiesce = legacy_shell_quiesce;
-    bootstrap->legacy_shell_module.lifecycle.stop = legacy_shell_stop;
-    bootstrap->legacy_shell_module.lifecycle.destroy = legacy_shell_destroy;
+    bootstrap->studio_shell_module.structure_size =
+        (uint32_t)sizeof(bootstrap->studio_shell_module);
+    bootstrap->studio_shell_module.abi_version = UMICOM_FRAMEWORK_ABI_VERSION;
+    bootstrap->studio_shell_module.module_id = "org.umicom.studio.shell";
+    bootstrap->studio_shell_module.display_name = "Umicom Studio product shell";
+    bootstrap->studio_shell_module.module_version = (UmiVersion){0U, 11U, 0U};
+    bootstrap->studio_shell_module.kind = UMI_MODULE_UI;
+    bootstrap->studio_shell_module.provided_capabilities = NULL;
+    bootstrap->studio_shell_module.required_capabilities = NULL;
+    bootstrap->studio_shell_module.module_state = bootstrap;
+    bootstrap->studio_shell_module.lifecycle.configure = studio_shell_configure;
+    bootstrap->studio_shell_module.lifecycle.initialise = studio_shell_initialise;
+    bootstrap->studio_shell_module.lifecycle.start = studio_shell_start;
+    bootstrap->studio_shell_module.lifecycle.quiesce = studio_shell_quiesce;
+    bootstrap->studio_shell_module.lifecycle.stop = studio_shell_stop;
+    bootstrap->studio_shell_module.lifecycle.destroy = studio_shell_destroy;
 
     status = umi_master_controller_register(
         bootstrap->master,
-        &bootstrap->legacy_shell_module
+        &bootstrap->studio_shell_module
     );
     if (status != UMI_STATUS_OK) {
         umi_master_controller_destroy(bootstrap->master);

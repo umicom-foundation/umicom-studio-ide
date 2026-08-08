@@ -16,7 +16,7 @@
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_TESTING": "ON",
-        "UMICOM_STUDIO_BUILD_LEGACY_GTK": "OFF",
+        "UMICOM_STUDIO_BUILD_GTK": "OFF",
         "UMICOM_ENABLE_STRICT_WARNINGS": "ON"
       }
     },
@@ -32,7 +32,7 @@
         "PKG_CONFIG_EXECUTABLE": "C:/msys64/ucrt64/bin/pkg-config.exe",
         "CMAKE_PREFIX_PATH": "C:/msys64/ucrt64",
         "BUILD_TESTING": "ON",
-        "UMICOM_STUDIO_BUILD_LEGACY_GTK": "ON",
+        "UMICOM_STUDIO_BUILD_GTK": "ON",
         "UMICOM_STUDIO_GUI": "ON",
         "UMICOM_ENABLE_STRICT_WARNINGS": "ON"
       }

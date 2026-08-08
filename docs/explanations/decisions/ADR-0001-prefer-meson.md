@@ -1,9 +1,8 @@
-# ADR‑0001: Prefer Meson as the primary build system
+# Historical ADR-0001: Meson experiment
 
-Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
+**Status:** Superseded  
+**Superseding decision:** CMake + Ninja is the canonical build system.
 
-**Context.** We need fast, cross‑platform builds and simple CI integration.
-
-**Decision.** Use **Meson** + **Ninja** as the primary build system. Provide CMake files later only if needed by downstreams.
-
-**Consequences.** Cleaner CI, easier contributor onboarding, and consistent build flags.
+This document records an earlier experiment in which Meson was considered as the
+primary build system. It is retained only as historical context. Active build
+files, CI, presets and contributor instructions use CMake and Ninja.

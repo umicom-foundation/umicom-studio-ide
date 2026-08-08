@@ -1,20 +1,15 @@
-# Build on Windows (MSYS2)
+# Build on Windows with MSYS2 UCRT64
 
-Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
+Umicom Studio IDE uses CMake and Ninja. Meson is no longer an active build
+system.
 
-1. Install **MSYS2** from <https://www.msys2.org/> and open *MSYS2 UCRT64*.
-2. Install dependencies:
+Open PowerShell in the repository root:
 
-```bash
-pacman -S --noconfirm mingw-w64-ucrt-x86_64-gtk4 mingw-w64-ucrt-x86_64-json-glib ripgrep meson ninja
+```powershell
+$env:Path = "C:\msys64\ucrt64\bin;$env:Path"
+git submodule update --init --recursive
+cmake --preset windows-ucrt64-debug
+cmake --build --preset windows-ucrt64-debug
+ctest --preset windows-ucrt64-debug
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-ide.exe" --console
 ```
-
-3. Configure and build:
-
-```bash
-meson setup build -Dbuildtype=debug || meson setup build --reconfigure
-meson compile -C build
-./build/umicom-studio
-```
-
-If GTK cannot load, ensure you are using the **UCRT64** environment and not MSYS.

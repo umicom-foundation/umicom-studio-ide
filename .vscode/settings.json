@@ -3,14 +3,13 @@
   "cmake.configureOnOpen": false,
 
   "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/clang.exe",
-
   "C_Cpp.default.compileCommands": "${workspaceFolder}/build/windows-ucrt64-debug/compile_commands.json",
 
   "C_Cpp.default.includePath": [
     "${workspaceFolder}/framework/include",
     "${workspaceFolder}/applications/studio/include",
-    "${workspaceFolder}/applications/studio/src/legacy",
-    "${workspaceFolder}/applications/studio/src/legacy/**",
+    "${workspaceFolder}/applications/studio/src",
+    "${workspaceFolder}/applications/studio/src/**",
     "C:/msys64/ucrt64/include",
     "C:/msys64/ucrt64/include/**"
   ],
@@ -18,7 +17,7 @@
   "C_Cpp.default.browse.path": [
     "${workspaceFolder}/framework/include",
     "${workspaceFolder}/applications/studio/include",
-    "${workspaceFolder}/applications/studio/src/legacy",
+    "${workspaceFolder}/applications/studio/src",
     "C:/msys64/ucrt64/include"
   ],
 

@@ -1,19 +1,20 @@
-# Umicom Studio IDE — developer bootstrap for Windows (PowerShell)
-# Purpose: install MSYS2 toolchain, GTK, json-glib, and ripgrep; then build.
-# Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-01 | MIT
-Param(
-  [string]$Workspace = (Get-Location).Path
-)
+# Umicom Studio IDE — Windows dependency check and canonical build
+# Created by: Umicom Foundation | Author: Sammy Hegab | License: MIT
+param([switch]$Run)
 
-Write-Host ">>> Setting up developer environment at $Workspace"
-# 1) Check MSYS2
-if (-not (Test-Path "C:\msys64\usr\bin\bash.exe")) {
-  Write-Host "MSYS2 not found. Please install from https://www.msys2.org/ and re-run." -ForegroundColor Yellow
-  exit 1
+$ErrorActionPreference = "Stop"
+$ucrt = "C:\msys64\ucrt64\bin"
+if (-not (Test-Path "$ucrt\clang.exe")) {
+    throw "MSYS2 UCRT64 Clang was not found. Install MSYS2 UCRT64 dependencies first."
 }
-# 2) Install deps
-& C:\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm mingw-w64-ucrt-x86_64-gtk4 mingw-w64-ucrt-x86_64-json-glib ripgrep"
-# 3) Configure build (Meson)
-& C:\msys64\usr\bin\bash.exe -lc "meson setup build && meson compile -C build"
-Write-Host ">>> Done. Launching app..."
-& C:\msys64\usr\bin\bash.exe -lc "./build/umicom-studio"
+
+$env:Path = "$ucrt;$env:Path"
+
+git submodule update --init --recursive
+cmake --preset windows-ucrt64-debug
+cmake --build --preset windows-ucrt64-debug
+ctest --preset windows-ucrt64-debug
+
+if ($Run) {
+    & ".\build\windows-ucrt64-debug\bin\umicom-studio-ide.exe" --console
+}
