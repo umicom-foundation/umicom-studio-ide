@@ -1,19 +1,65 @@
 {
-  "version": 5,
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
   "configurePresets": [
     {
-      "name": "default",
+      "name": "headless-debug",
+      "displayName": "Framework and Studio headless validation",
       "generator": "Ninja",
-      "binaryDir": "build",
+      "binaryDir": "${sourceDir}/build/headless-debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang",
+        "BUILD_TESTING": "ON",
+        "UMICOM_STUDIO_BUILD_LEGACY_GTK": "OFF",
+        "UMICOM_ENABLE_STRICT_WARNINGS": "ON"
+      }
+    },
+    {
+      "name": "windows-ucrt64-debug",
+      "displayName": "Windows MSYS2 UCRT64 GTK4 Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/windows-ucrt64-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/clang.exe",
+        "PKG_CONFIG_EXECUTABLE": "C:/msys64/ucrt64/bin/pkg-config.exe",
+        "CMAKE_PREFIX_PATH": "C:/msys64/ucrt64",
+        "BUILD_TESTING": "ON",
+        "UMICOM_STUDIO_BUILD_LEGACY_GTK": "ON",
+        "UMICOM_STUDIO_GUI": "ON",
+        "UMICOM_ENABLE_STRICT_WARNINGS": "ON"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "default",
-      "configurePreset": "default"
+      "name": "headless-debug",
+      "configurePreset": "headless-debug"
+    },
+    {
+      "name": "windows-ucrt64-debug",
+      "configurePreset": "windows-ucrt64-debug"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "headless-debug",
+      "configurePreset": "headless-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-ucrt64-debug",
+      "configurePreset": "windows-ucrt64-debug",
+      "output": {
+        "outputOnFailure": true
+      }
     }
   ]
 }

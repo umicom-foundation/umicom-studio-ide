@@ -1,183 +1,231 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
- * File: src/main.c   (Single entry with console, test window, and bare GTK)
+ * File: applications/studio/src/gtk/main.c
  *
  * PURPOSE:
- *   Start the application and guarantee we can visualize a window in dev:
- *     - Normal path:   umi_app_new() -> g_application_run()
- *     - --test-window: tiny GtkApplication that always shows a window (NON_UNIQUE)
- *     - --bare-gtk:    NO GtkApplication; create/present a GtkWindow + GMainLoop
+ *   Preserve the existing GTK4 application entry paths while starting and
+ *   stopping the Umicom Framework Master Controller around the GUI lifecycle.
  *
- * DEV FLAGS:
- *   --console  / USIDE_DEV=1  -> attach/allocate a console for logs on Win32
- *   --test-window             -> show a tiny window via GtkApplication (non-unique)
- *   --bare-gtk                -> show a tiny window with pure GTK (no GApplication)
+ * This file is the first migration bridge.  The existing GTK shell remains
+ * usable; later changes replace internal services one vertical slice at a time.
  *
- * Created by: Umicom Foundation | Developer: Sammy Hegab | Date: 2025-10-14 | MIT
+ * Created by: Sammy Hegab
+ * Organisation: Umicom Foundation
+ * Licence: MIT
  *---------------------------------------------------------------------------*/
-
 #include <gtk/gtk.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include "app.h"  /* umi_app_new(), UmiApp accessors */
 
-static int  str_eq(const char *a, const char *b) { return a && b && strcmp(a,b)==0; }
-static void log_line(const char *s) { fprintf(stderr, "%s\n", s); }
+#include "app.h"
+#include "umicom/studio/bootstrap.h"
 
-/* ------------------------------ bare GTK path ------------------------------ */
-
-static gboolean on_bare_close(GtkWindow *win, gpointer user_data)
+static int str_eq(const char *a, const char *b)
 {
-    (void)win;
-    GMainLoop *loop = (GMainLoop*)user_data;
-    if (loop) g_main_loop_quit(loop);
-    return FALSE; /* propagate default handling */
+    return a != NULL && b != NULL && strcmp(a, b) == 0;
+}
+
+static void log_line(const char *text)
+{
+    (void)fprintf(stderr, "%s\n", text != NULL ? text : "");
+}
+
+static gboolean on_bare_close(GtkWindow *window, gpointer user_data)
+{
+    GMainLoop *loop = (GMainLoop *)user_data;
+    (void)window;
+    if (loop != NULL) {
+        g_main_loop_quit(loop);
+    }
+    return FALSE;
 }
 
 static int run_bare_gtk(void)
 {
-    log_line("[USIDE] run_bare_gtk(): gtk_init()");
+    GMainLoop *loop;
+    GtkWindow *window;
+    GtkWidget *label;
+
+    log_line("[USIDE] bare GTK validation selected");
     gtk_init();
-
-    GtkWindow *win = GTK_WINDOW(gtk_window_new());
-    gtk_window_set_title(win, "USIDE bare GTK window");
-    gtk_window_set_default_size(win, 640, 400);
-
-    GtkWidget *label = gtk_label_new("Bare GTK path — if you see this, rendering works.");
-    gtk_window_set_child(win, label);
-
-    GMainLoop *loop = g_main_loop_new(NULL, FALSE);
-    g_signal_connect(win, "close-request", G_CALLBACK(on_bare_close), loop);
-
-    log_line("[USIDE] run_bare_gtk(): presenting window...");
-    gtk_window_present(win);
-
-    log_line("[USIDE] run_bare_gtk(): entering main loop");
+    window = GTK_WINDOW(gtk_window_new());
+    gtk_window_set_title(window, "Umicom Studio IDE - bare GTK validation");
+    gtk_window_set_default_size(window, 640, 400);
+    label = gtk_label_new("GTK4 is working. Umicom Framework is running.");
+    gtk_window_set_child(window, label);
+    loop = g_main_loop_new(NULL, FALSE);
+    g_signal_connect(window, "close-request", G_CALLBACK(on_bare_close), loop);
+    gtk_window_present(window);
     g_main_loop_run(loop);
     g_main_loop_unref(loop);
-
-    log_line("[USIDE] run_bare_gtk(): exiting");
     return 0;
 }
 
-/* ---------------------------- test window path ----------------------------- */
-
-static void on_test_activate(GtkApplication *a, gpointer user_data)
+static void on_test_activate(GtkApplication *application, gpointer user_data)
 {
+    GtkWindow *window;
+    GtkWidget *label;
     (void)user_data;
-    log_line("[USIDE] on_test_activate(): building test window");
-    GtkWindow *win = GTK_WINDOW(gtk_application_window_new(a));
-    gtk_window_set_title(win, "USIDE test window");
-    gtk_window_set_default_size(win, 640, 400);
-
-    GtkWidget *label = gtk_label_new("GtkApplication test — if you see this, app loop is OK.");
-    gtk_window_set_child(win, label);
-
-    gtk_window_present(win);
-    log_line("[USIDE] on_test_activate(): presented");
+    window = GTK_WINDOW(gtk_application_window_new(application));
+    gtk_window_set_title(window, "Umicom Studio IDE - test window");
+    gtk_window_set_default_size(window, 640, 400);
+    label = gtk_label_new("GtkApplication and Umicom Framework are working.");
+    gtk_window_set_child(window, label);
+    gtk_window_present(window);
 }
 
 static int run_test_window_app(int argc, char **argv)
 {
-    log_line("[USIDE] run_test_window_app(): creating NON_UNIQUE GtkApplication");
-    GtkApplication *app = gtk_application_new("org.umicom.studio.testwin", G_APPLICATION_NON_UNIQUE);
-    g_signal_connect(app, "activate", G_CALLBACK(on_test_activate), NULL);
-    int status = g_application_run(G_APPLICATION(app), argc, argv);
-    g_object_unref(app);
-    fprintf(stderr, "[USIDE] run_test_window_app(): exited with status %d\n", status);
-    return status;
+    GtkApplication *application = gtk_application_new(
+        "org.umicom.studio.test-window",
+        G_APPLICATION_NON_UNIQUE
+    );
+    int result;
+    g_signal_connect(application, "activate", G_CALLBACK(on_test_activate), NULL);
+    result = g_application_run(G_APPLICATION(application), argc, argv);
+    g_object_unref(application);
+    return result;
 }
 
-/* ---------------------------- argv filtering ------------------------------- */
-/* Remove dev-only flags so GApplication doesn't error on unknown options. */
 static int filter_dev_flags(int argc, char **argv, char ***out_argv)
 {
-    /* we preserve argv[0]; strip only --console and --dev */
-    char **res = (char**)malloc((size_t)(argc + 1) * sizeof(char*));
-    int n = 0;
-    res[n++] = argv[0];
-    for (int i = 1; i < argc; ++i) {
-        if (str_eq(argv[i], "--console") || str_eq(argv[i], "--dev"))
-            continue; /* drop */
-        res[n++] = argv[i];
+    char **filtered;
+    int count = 0;
+    int index;
+    if (out_argv == NULL) {
+        return 0;
     }
-    res[n] = NULL;
-    *out_argv = res;
-    return n;
+    filtered = (char **)malloc((size_t)(argc + 1) * sizeof(*filtered));
+    if (filtered == NULL) {
+        *out_argv = NULL;
+        return 0;
+    }
+    filtered[count++] = argv[0];
+    for (index = 1; index < argc; ++index) {
+        if (str_eq(argv[index], "--console") || str_eq(argv[index], "--dev")) {
+            continue;
+        }
+        filtered[count++] = argv[index];
+    }
+    filtered[count] = NULL;
+    *out_argv = filtered;
+    return count;
 }
 
-/* --------------------------------- normal ---------------------------------- */
-
-int main(int argc, char **argv)
+static int run_existing_studio(int argc, char **argv)
 {
-    fprintf(stderr, "[USIDE] main(): argc=%d\n", argc);
-    for (int i = 0; i < argc; ++i) fprintf(stderr, "  argv[%d] = %s\n", i, argv[i] ? argv[i] : "(null)");
+    char **filtered_argv = NULL;
+    int filtered_argc;
+    int index;
+    GtkApplication *application;
+    int result;
 
-    for (int i = 0; i < argc; ++i) {
-        if (str_eq(argv[i], "--bare-gtk")) {
-            log_line("[USIDE] main(): --bare-gtk selected");
+    for (index = 0; index < argc; ++index) {
+        if (str_eq(argv[index], "--bare-gtk")) {
             return run_bare_gtk();
         }
-        if (str_eq(argv[i], "--test-window")) {
-            log_line("[USIDE] main(): --test-window selected");
+        if (str_eq(argv[index], "--test-window")) {
             return run_test_window_app(argc, argv);
         }
     }
 
-    /* Filter out dev-only flags BEFORE giving args to GApplication. */
-    char **argv_filtered = NULL;
-    int argc_filtered = filter_dev_flags(argc, argv, &argv_filtered);
+    filtered_argc = filter_dev_flags(argc, argv, &filtered_argv);
+    if (filtered_argv == NULL) {
+        return 1;
+    }
 
-    log_line("[USIDE] main(): launching umi_app_new() / g_application_run()");
-    GtkApplication *app = umi_app_new();  /* should create+present in 'activate' */
-    int status = g_application_run(G_APPLICATION(app), argc_filtered, argv_filtered);
-    g_object_unref(app);
-    free(argv_filtered);
-    fprintf(stderr, "[USIDE] main(): g_application_run() returned %d\n", status);
-    return status;
+    application = umi_app_new();
+    if (application == NULL) {
+        free(filtered_argv);
+        return 1;
+    }
+    result = g_application_run(
+        G_APPLICATION(application),
+        filtered_argc,
+        filtered_argv
+    );
+    g_object_unref(application);
+    free(filtered_argv);
+    return result;
 }
 
-/*---------------------------- Windows console support -----------------------*/
+int main(int argc, char **argv)
+{
+    UmiStudioBootstrap *bootstrap = NULL;
+    UmiStatus status;
+    int result;
+
+    status = umi_studio_bootstrap_create(&bootstrap);
+    if (status != UMI_STATUS_OK) {
+        (void)fprintf(stderr,
+                      "[USIDE] Framework create failed: %s\n",
+                      umi_status_text(status));
+        return 1;
+    }
+
+    status = umi_studio_bootstrap_start(bootstrap);
+    if (status != UMI_STATUS_OK) {
+        (void)fprintf(stderr,
+                      "[USIDE] Framework start failed: %s\n",
+                      umi_status_text(status));
+        umi_studio_bootstrap_destroy(bootstrap);
+        return 1;
+    }
+
+    result = run_existing_studio(argc, argv);
+    umi_studio_bootstrap_destroy(bootstrap);
+    return result;
+}
+
 #ifdef _WIN32
-#  include <windows.h>
-#  include <stdio.h>
+#include <windows.h>
 
 static int wants_console(int argc, char **argv)
 {
-    const char *env = getenv("USIDE_DEV");
-    if (env && (str_eq(env,"1") || _stricmp(env,"true")==0)) return 1;
-    for (int i = 0; i < argc; ++i) {
-        if (str_eq(argv[i],"--console") || str_eq(argv[i],"--dev")
-            || str_eq(argv[i],"--test-window") || str_eq(argv[i],"--bare-gtk"))
-            return 1; /* force console for dev/test paths */
+    const char *environment = getenv("USIDE_DEV");
+    int index;
+    if (environment != NULL &&
+        (str_eq(environment, "1") || _stricmp(environment, "true") == 0)) {
+        return 1;
+    }
+    for (index = 0; index < argc; ++index) {
+        if (str_eq(argv[index], "--console") ||
+            str_eq(argv[index], "--dev") ||
+            str_eq(argv[index], "--test-window") ||
+            str_eq(argv[index], "--bare-gtk")) {
+            return 1;
+        }
     }
     return 0;
 }
 
-static void attach_or_alloc_console(void)
+static void attach_or_allocate_console(void)
 {
-    if (!AttachConsole(ATTACH_PARENT_PROCESS)) AllocConsole();
+    if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
+        (void)AllocConsole();
+    }
     (void)freopen("CONOUT$", "w", stdout);
     (void)freopen("CONOUT$", "w", stderr);
-    (void)freopen("CONIN$",  "r", stdin);
-    setvbuf(stdout, NULL, _IONBF, 0);
-    setvbuf(stderr, NULL, _IONBF, 0);
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
-    fprintf(stderr, "[USIDE] console attached\n");
+    (void)freopen("CONIN$", "r", stdin);
+    (void)setvbuf(stdout, NULL, _IONBF, 0);
+    (void)setvbuf(stderr, NULL, _IONBF, 0);
+    (void)SetConsoleOutputCP(CP_UTF8);
+    (void)SetConsoleCP(CP_UTF8);
 }
 
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nShowCmd)
+int WINAPI WinMain(HINSTANCE instance,
+                   HINSTANCE previous_instance,
+                   LPSTR command_line,
+                   int show_command)
 {
-    (void)hInst; (void)hPrev; (void)lpCmdLine; (void)nShowCmd;
-
+    (void)instance;
+    (void)previous_instance;
+    (void)command_line;
+    (void)show_command;
     if (wants_console(__argc, __argv)) {
-        attach_or_alloc_console();
-        if (!getenv("G_MESSAGES_DEBUG")) _putenv("G_MESSAGES_DEBUG=");
+        attach_or_allocate_console();
     }
-    fprintf(stderr, "[USIDE] WinMain forwarding to main()\n");
     return main(__argc, __argv);
 }
 #endif
-/*---------------------------------------------------------------------------*/
