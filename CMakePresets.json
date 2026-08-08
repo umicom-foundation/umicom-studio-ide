@@ -14,6 +14,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "clang",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_TESTING": "ON",
         "UMICOM_STUDIO_BUILD_LEGACY_GTK": "OFF",
         "UMICOM_ENABLE_STRICT_WARNINGS": "ON"
@@ -27,6 +28,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/clang.exe",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "PKG_CONFIG_EXECUTABLE": "C:/msys64/ucrt64/bin/pkg-config.exe",
         "CMAKE_PREFIX_PATH": "C:/msys64/ucrt64",
         "BUILD_TESTING": "ON",
