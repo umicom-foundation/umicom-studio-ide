@@ -2,18 +2,71 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "meson setup",
+      "label": "Umicom: Configure headless migration",
       "type": "shell",
-      "command": "meson setup build",
-      "group": "build",
+      "command": "cmake --preset headless-debug",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     },
     {
-      "label": "meson build",
+      "label": "Umicom: Build headless migration",
       "type": "shell",
-      "command": "meson compile -C build",
-      "dependsOn": "meson setup",
-      "group": "build",
+      "command": "cmake --build --preset headless-debug",
+      "dependsOn": "Umicom: Configure headless migration",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Umicom: Test headless migration",
+      "type": "shell",
+      "command": "ctest --preset headless-debug",
+      "dependsOn": "Umicom: Build headless migration",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Umicom: Configure Windows GTK",
+      "type": "shell",
+      "command": "cmake --preset windows-ucrt64-debug",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Umicom: Build Windows GTK",
+      "type": "shell",
+      "command": "cmake --build --preset windows-ucrt64-debug",
+      "dependsOn": "Umicom: Configure Windows GTK",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Umicom: Run Studio console",
+      "type": "shell",
+      "command": "& '${workspaceFolder}\\build\\windows-ucrt64-debug\\bin\\umicom-studio-console.exe'",
+      "dependsOn": "Umicom: Build Windows GTK",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Umicom: Run Studio GTK",
+      "type": "shell",
+      "command": "& '${workspaceFolder}\\build\\windows-ucrt64-debug\\bin\\umicom-studio-ide.exe' --console",
+      "dependsOn": "Umicom: Build Windows GTK",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     }
   ]

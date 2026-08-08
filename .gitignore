@@ -69,3 +69,16 @@ junk-folder/Umicom Studio Ide — Build Log Issues (14 Oct).pdf
 .gitignore
 junk-folder/Umicom Studio IDE_ Technical and Architectural Review.pdf
 junk-folder/umicom-studio-ide-project-directory-tree-structure.txt
+
+# Migration build folders
+/build/
+/build-baseline/
+/build-ninja/
+/framework/build/
+
+# Generated Gradle caches in documentation examples
+**/.gradle/
+/docs/examples/templates/**/build/
+
+# Local archive and migration packages
+*.zip
