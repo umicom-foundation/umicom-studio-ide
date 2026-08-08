@@ -3,9 +3,8 @@
  * File: applications/studio/include/umicom/studio/bootstrap.h
  *
  * PURPOSE:
- *   Own the Umicom Framework composition root used by the existing Studio GUI.
- *   The preserved GTK implementation remains operational while shared services
- *   move into Framework one vertical slice at a time.
+ *   Own the Umicom Framework composition root shared by the console and GTK4
+ *   frontends.  Studio services and Slave Controllers are registered here.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation

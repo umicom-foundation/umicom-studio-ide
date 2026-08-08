@@ -13,12 +13,15 @@
  * Licence: MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/bootstrap.h"
+#include "umicom/studio/services.h"
+#include "umicom/studio/version.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 struct UmiStudioBootstrap {
     UmiMasterController *master;
+    UmiStudioServices *services;
     UmiModuleDescriptor studio_shell_module;
     int started;
 };
@@ -82,12 +85,21 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         return UMI_STATUS_OUT_OF_MEMORY;
     }
 
+    status = umi_studio_services_create(studio_diagnostic_sink, bootstrap,
+                                        &bootstrap->services);
+    if (status != UMI_STATUS_OK) {
+        free(bootstrap);
+        return status;
+    }
+
     config.application_name = "Umicom Studio IDE";
-    config.diagnostic_sink = studio_diagnostic_sink;
-    config.diagnostic_user_data = bootstrap;
+    config.diagnostic_sink = umi_studio_services_diagnostic_sink();
+    config.diagnostic_user_data =
+        umi_studio_services_diagnostic_user_data(bootstrap->services);
 
     status = umi_master_controller_create(&config, &bootstrap->master);
     if (status != UMI_STATUS_OK) {
+        umi_studio_services_destroy(bootstrap->services);
         free(bootstrap);
         return status;
     }
@@ -97,7 +109,7 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
     bootstrap->studio_shell_module.abi_version = UMICOM_FRAMEWORK_ABI_VERSION;
     bootstrap->studio_shell_module.module_id = "org.umicom.studio.shell";
     bootstrap->studio_shell_module.display_name = "Umicom Studio product shell";
-    bootstrap->studio_shell_module.module_version = (UmiVersion){0U, 11U, 0U};
+    bootstrap->studio_shell_module.module_version = umi_studio_version();
     bootstrap->studio_shell_module.kind = UMI_MODULE_UI;
     bootstrap->studio_shell_module.provided_capabilities = NULL;
     bootstrap->studio_shell_module.required_capabilities = NULL;
@@ -115,6 +127,7 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
     );
     if (status != UMI_STATUS_OK) {
         umi_master_controller_destroy(bootstrap->master);
+        umi_studio_services_destroy(bootstrap->services);
         free(bootstrap);
         return status;
     }
@@ -163,6 +176,8 @@ void umi_studio_bootstrap_destroy(UmiStudioBootstrap *bootstrap)
     (void)umi_studio_bootstrap_stop(bootstrap);
     umi_master_controller_destroy(bootstrap->master);
     bootstrap->master = NULL;
+    umi_studio_services_destroy(bootstrap->services);
+    bootstrap->services = NULL;
     free(bootstrap);
 }
 

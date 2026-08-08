@@ -15,13 +15,16 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.11.0")
+set(UMICOM_STUDIO_VERSION "0.11.1")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
 # -----------------------------------------------------------------------------
 add_library(umicom_studio_core STATIC
     src/app/bootstrap.c
+    src/app/services.c
+    src/app/version.c
+    src/app/doctor.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -45,6 +48,15 @@ target_link_libraries(umicom-studio-console PRIVATE
 )
 umicom_apply_warnings(umicom-studio-console)
 umicom_apply_sanitizers(umicom-studio-console)
+
+# Native project-health command.  This is intentionally implemented in C23 so
+# normal repository validation does not depend on Python.
+add_executable(umicom-studio-doctor
+    src/tools/doctor_main.c
+)
+target_link_libraries(umicom-studio-doctor PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-doctor)
+umicom_apply_sanitizers(umicom-studio-doctor)
 
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
@@ -113,7 +125,7 @@ if(UMICOM_STUDIO_BUILD_GTK)
         _CRT_SECURE_NO_WARNINGS
         UMICOM_VERSION_MAJOR=0
         UMICOM_VERSION_MINOR=11
-        UMICOM_VERSION_PATCH=0
+        UMICOM_VERSION_PATCH=1
         gtk_widget_destroy=g_object_unref
     )
 
@@ -188,7 +200,7 @@ if(UMICOM_STUDIO_BUILD_GTK)
         _CRT_SECURE_NO_WARNINGS
         UMICOM_VERSION_MAJOR=0
         UMICOM_VERSION_MINOR=11
-        UMICOM_VERSION_PATCH=0
+        UMICOM_VERSION_PATCH=1
     )
 
     if(WIN32 AND UMICOM_STUDIO_GUI)
@@ -215,6 +227,30 @@ if(BUILD_TESTING)
         NAME studio.framework_bootstrap
         COMMAND umicom-studio-framework-bootstrap-test
     )
+
+    add_executable(umicom-studio-version-test
+        tests/test_version.c
+    )
+    target_link_libraries(umicom-studio-version-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-version-test)
+    add_test(NAME studio.version COMMAND umicom-studio-version-test)
+
+    add_executable(umicom-studio-services-test
+        tests/test_services.c
+    )
+    target_link_libraries(umicom-studio-services-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-services-test)
+    add_test(NAME studio.services COMMAND umicom-studio-services-test)
+
+    add_executable(umicom-studio-doctor-test
+        tests/test_doctor.c
+    )
+    target_link_libraries(umicom-studio-doctor-test PRIVATE Umicom::StudioCore)
+    target_compile_definitions(umicom-studio-doctor-test PRIVATE
+        UMICOM_STUDIO_SOURCE_ROOT="${CMAKE_SOURCE_DIR}"
+    )
+    umicom_apply_warnings(umicom-studio-doctor-test)
+    add_test(NAME studio.doctor COMMAND umicom-studio-doctor-test)
 endif()
 
-install(TARGETS umicom-studio-console RUNTIME DESTINATION bin)
+install(TARGETS umicom-studio-console umicom-studio-doctor RUNTIME DESTINATION bin)

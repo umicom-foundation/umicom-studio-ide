@@ -1,6 +1,6 @@
 # Umicom Studio IDE
 
-Umicom Studio IDE is the C23 and GTK4 development environment for building,
+Umicom Studio IDE 0.11.1 is the C23 and GTK4 development environment for building,
 inspecting and operating applications based on Umicom Framework.
 
 ## Architecture
@@ -9,7 +9,7 @@ The repository builds Umicom Framework first and then composes Studio from
 explicit application targets:
 
 - `Umicom::Framework` — reusable runtime and platform capabilities.
-- `Umicom::StudioCore` — Studio's Framework composition root.
+- `Umicom::StudioCore` — Studio's Framework composition root and shared service container.
 - `Umicom::StudioProduct` — the active Studio product implementation.
 - `umicom-studio-console` — headless lifecycle and diagnostic frontend.
 - `umicom-studio-ide` — GTK4 desktop frontend.
@@ -28,6 +28,7 @@ cmake --preset windows-ucrt64-debug
 cmake --build --preset windows-ucrt64-debug
 ctest --preset windows-ucrt64-debug
 
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-doctor.exe" "."
 & ".\build\windows-ucrt64-debug\bin\umicom-studio-ide.exe" --console
 ```
 

@@ -79,3 +79,6 @@ jobs:
 
       - name: Run Studio console smoke test
         run: ./build/ci/bin/umicom-studio-console
+
+      - name: Run native Studio doctor
+        run: ./build/ci/bin/umicom-studio-doctor .

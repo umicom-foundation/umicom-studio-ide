@@ -4,8 +4,12 @@
  *
  * PURPOSE:
  *   Provide a small console starter for Framework lifecycle validation.
+ * Created by: Sammy Hegab
+ * Organisation: Umicom Foundation
+ * Licence: MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/bootstrap.h"
+#include "umicom/studio/version.h"
 
 #include <stdio.h>
 
@@ -27,6 +31,7 @@ int main(void)
 
     (void)printf("Application: %s\n",
                  umi_studio_bootstrap_application_name(bootstrap));
+    (void)printf("Studio: %s\n", umi_studio_version_string());
     (void)printf("Framework: %s\n", UMICOM_FRAMEWORK_VERSION_STRING);
     (void)printf("Registered modules: %zu\n",
                  umi_studio_bootstrap_module_count(bootstrap));

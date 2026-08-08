@@ -1,18 +1,9 @@
 {
-  "schema": "umicom.source-package-lock.v1",
-  "studio": {
-    "version": "0.11.0",
-    "remote_base_commit": "e5ffe703a84a5167ca3031b177debffcf6d5d15d"
-  },
-  "framework": {
-    "version": "0.4.1",
-    "commit": "51e83de1de6c08afea161eace0cd5262f98c813b"
-  },
-  "author_engine": {
-    "version": "0.1.4",
-    "commit": "fc1ca481022b60eb6f6b52d7e95256e85192e09e"
-  },
-  "llama_cpp": {
-    "commit": "a4a0aa5ea2a88e4858996199fefd5439f17b481c"
-  }
+  "schema": "umicom.version-lock.v1",
+  "studio_version": "0.11.1",
+  "studio_parent_base_commit": "9fe83710d98aaaeafce09de2ff2939e1ee42f221",
+  "framework_version": "0.4.2",
+  "framework_commit": "9e4e1351d7790fec02d45dec83fe9b22684b9c32",
+  "authorengine_commit": "fc1ca481022b60eb6f6b52d7e95256e85192e09e",
+  "llama_cpp_commit": "a4a0aa5ea2a88e4858996199fefd5439f17b481c"
 }

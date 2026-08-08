@@ -39,7 +39,9 @@ jobs:
           sudo apt-get install -y doxygen graphviz
 
       - name: Build API documentation
-        run: doxygen docs/Doxyfile
+        run: |
+          mkdir -p build/doxygen
+          doxygen docs/Doxyfile
 
       - name: Upload generated HTML
         uses: actions/upload-artifact@v4
