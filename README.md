@@ -1,6 +1,6 @@
 # Umicom Studio IDE
 
-Umicom Studio IDE 0.12.0 is the C23 and GTK4 development environment for
+Umicom Studio IDE 0.13.0 is the C23 and GTK4 development environment for
 building, inspecting and operating applications based on Umicom Framework.
 
 ## Architecture
@@ -11,43 +11,71 @@ explicit application targets:
 - `Umicom::Framework` — reusable runtime and platform capabilities.
 - `Umicom::StudioCore` — Studio's Framework composition root and shared services.
 - `Umicom::StudioProduct` — the active Studio product implementation.
-- `umicom-studio-console` — headless lifecycle and diagnostic frontend.
+- `umicom-studio-console` — headless lifecycle frontend.
 - `umicom-studio-doctor` — native project-health validation.
-- `umicom-studio-diagnostics` — retained Framework diagnostic inspection.
+- `umicom-studio-diagnostics` — retained diagnostic inspection.
+- `umicom-studio-settings` — typed settings inspection and editing.
 - `umicom-studio-ide` — GTK4 desktop frontend.
 
-## Diagnostics feature slice
+## Windows PowerShell start
 
-Framework 0.4.3 provides a bounded, thread-safe diagnostic store.  Studio
-registers that store with its Framework diagnostic hub, retains lifecycle and
-feature diagnostics, and exposes them through a native C23 command.
+Every new PowerShell process must use the MSYS2 UCRT64 toolchain before manual
+build commands are entered:
 
 ```powershell
-Set-Location C:\Dev\umicom\umicom-studio-ide
+Set-Location "C:\Dev\umicom\umicom-studio"
 $env:Path = "C:\msys64\ucrt64\bin;$env:Path"
+```
 
-git submodule update --init --recursive
+The helper below performs the same setup and checks the required tools:
+
+```powershell
+. ".\scripts\enter-umicom-ucrt64.ps1"
+```
+
+The Windows presets use absolute UCRT64 compiler and Ninja paths, which prevents
+CMake from selecting standalone LLVM accidentally.
+
+## Windows headless validation
+
+```powershell
+Remove-Item -Recurse -Force ".\build\windows-ucrt64-headless-debug" `
+    -ErrorAction SilentlyContinue
+
+cmake --preset windows-ucrt64-headless-debug
+cmake --build --preset windows-ucrt64-headless-debug
+ctest --preset windows-ucrt64-headless-debug
+```
+
+## Windows GTK4 build
+
+```powershell
+Remove-Item -Recurse -Force ".\build\windows-ucrt64-debug" `
+    -ErrorAction SilentlyContinue
 
 cmake --preset windows-ucrt64-debug
 cmake --build --preset windows-ucrt64-debug
 ctest --preset windows-ucrt64-debug
+
 & ".\build\windows-ucrt64-debug\bin\umicom-studio-ide.exe" --console
-& ".\build\windows-ucrt64-debug\bin\umicom-studio-doctor.exe" "."
-& ".\build\windows-ucrt64-debug\bin\umicom-studio-diagnostics.exe" `
-    --min info --limit 20 --demo
 ```
 
-## Headless validation
+## Typed settings feature slice
+
+Framework 0.4.4 provides a schema-driven settings repository supporting string,
+boolean, integer and real values, defaults, numeric ranges, reset, load and save.
+Studio 0.13.0 defines its application schema in one place and exposes a native
+command:
 
 ```powershell
-cmake --preset headless-debug
-cmake --build --preset headless-debug
-ctest --preset headless-debug
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-settings.exe" `
+    --file ".\config\studio.settings" list
 
-& ".\build\headless-debug\bin\umicom-studio-console.exe"
-& ".\build\headless-debug\bin\umicom-studio-doctor.exe" "."
-& ".\build\headless-debug\bin\umicom-studio-diagnostics.exe" `
-    --min info --limit 20 --demo
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-settings.exe" `
+    --file ".\config\studio.settings" set studio.editor.tab_width 8
+
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-settings.exe" `
+    --file ".\config\studio.settings" validate
 ```
 
 ## Repository structure
@@ -85,5 +113,3 @@ time.  The next slice is diagnostics and logging.
 - Author: Sammy Hegab
 - Organisation: Umicom Foundation
 - Licence: MIT
-
-MIT. See `LICENSE` and the relevant third-party notices.

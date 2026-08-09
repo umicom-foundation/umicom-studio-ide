@@ -5,8 +5,8 @@
  * PURPOSE:
  *   Own the Umicom Framework services shared by Studio frontends and Slave
  *   Controllers.  The container creates one diagnostic hub, one bounded
- *   retained diagnostic store, and one Framework clock so features do not
- *   create uncontrolled global services.
+ *   retained diagnostic store, one typed settings repository, and one
+ *   Framework clock so features do not create uncontrolled global services.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -18,12 +18,11 @@
 #include <stddef.h>
 
 #include "umicom/umicom.h"
+#include "umicom/studio/settings.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define UMI_STUDIO_DIAGNOSTIC_STORE_CAPACITY 512U
 
 typedef struct UmiStudioServices UmiStudioServices;
 
@@ -50,6 +49,7 @@ UmiStatus umi_studio_services_remove_diagnostic_sink(
 UmiDiagnosticSink umi_studio_services_diagnostic_sink(void);
 void *umi_studio_services_diagnostic_user_data(UmiStudioServices *services);
 UmiClock *umi_studio_services_clock(UmiStudioServices *services);
+UmiSettings *umi_studio_services_settings(UmiStudioServices *services);
 UmiDiagnosticStore *umi_studio_services_diagnostic_store(
     UmiStudioServices *services
 );

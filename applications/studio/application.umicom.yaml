@@ -4,12 +4,12 @@ application:
   id: org.umicom.studio
   name: Umicom Studio IDE
   short_name: Studio
-  version: 0.12.0
+  version: 0.13.0
   executable: umicom-studio-ide
   aliases: [usi, ustudio]
 
 framework:
-  minimum_version: 0.4.3
+  minimum_version: 0.4.4
   compatible_major: 0
 
 frontends:
@@ -36,7 +36,7 @@ source_layout:
   gtk_frontend: src/gtk
 
 migration:
-  stage: retained-diagnostics-integrated
+  stage: typed-settings-integrated
   product_source_root: src
-  completed_vertical_slice: diagnostics-foundation
-  next_vertical_slice: configuration-and-typed-settings
+  completed_vertical_slice: configuration-and-typed-settings
+  next_vertical_slice: filesystem-and-file-watching

@@ -4,8 +4,8 @@
  *
  * PURPOSE:
  *   Verify that Studio owns one Framework diagnostic hub, one retained
- *   diagnostic store, one clock, and optional presentation sinks through the
- *   explicit UmiStudioServices container.
+ *   diagnostic store, one typed settings repository, one clock, and optional
+ *   presentation sinks through the explicit UmiStudioServices container.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -47,6 +47,7 @@ int main(void)
     /* The retained Framework store is always the first registered sink. */
     assert(umi_studio_services_diagnostic_sink_count(services) == 2U);
     assert(umi_studio_services_diagnostic_store(services) != NULL);
+    assert(umi_studio_services_settings(services) != NULL);
     assert(umi_studio_services_clock(services) != NULL);
 
     assert(umi_studio_services_add_diagnostic_sink(services,
@@ -67,6 +68,7 @@ int main(void)
         &summary
     ) == UMI_STATUS_OK);
     assert(summary.retained_count == 1U);
+    assert(summary.capacity == 512U);
     assert(summary.retained_by_severity[1] == 1U);
 
     assert(umi_studio_services_remove_diagnostic_sink(services,

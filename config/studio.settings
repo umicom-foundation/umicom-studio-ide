@@ -1,0 +1,12 @@
+# Umicom Studio IDE typed settings
+# Values are validated by Umicom Framework 0.4.4.
+
+studio.ui.theme=system
+studio.editor.tab_width=4
+studio.editor.insert_spaces=true
+studio.workspace.restore_session=true
+studio.build.parallel_jobs=4
+studio.ai.enabled=true
+studio.diagnostics.capacity=512
+studio.files.auto_save=false
+studio.files.auto_save_seconds=60

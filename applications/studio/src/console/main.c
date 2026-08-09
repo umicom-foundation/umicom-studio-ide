@@ -4,7 +4,8 @@
  *
  * PURPOSE:
  *   Provide a headless Studio frontend for validating Framework lifecycle,
- *   application versioning, module registration, and retained diagnostics.
+ *   application versioning, module registration, typed settings, and retained
+ *   diagnostics.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -12,6 +13,7 @@
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/bootstrap.h"
 #include "umicom/studio/diagnostics.h"
+#include "umicom/studio/settings.h"
 #include "umicom/studio/version.h"
 
 #include <inttypes.h>
@@ -21,6 +23,8 @@ int main(void)
 {
     UmiStudioBootstrap *bootstrap = NULL;
     UmiDiagnosticStoreSummary summary;
+    UmiSettings *settings;
+    char theme[UMI_SETTING_VALUE_CAPACITY];
     UmiStatus status = umi_studio_bootstrap_create(&bootstrap);
 
     if (status != UMI_STATUS_OK) {
@@ -41,6 +45,18 @@ int main(void)
     (void)printf("Framework: %s\n", UMICOM_FRAMEWORK_VERSION_STRING);
     (void)printf("Registered modules: %zu\n",
                  umi_studio_bootstrap_module_count(bootstrap));
+
+    settings = umi_studio_services_settings(
+        umi_studio_bootstrap_services(bootstrap)
+    );
+    if (settings != NULL &&
+        umi_settings_get_text(settings,
+                              UMI_STUDIO_SETTING_UI_THEME,
+                              theme,
+                              sizeof(theme)) == UMI_STATUS_OK) {
+        (void)printf("Typed settings: %zu\n", umi_settings_count(settings));
+        (void)printf("Theme setting: %s\n", theme);
+    }
 
     status = umi_studio_diagnostics_summary(
         umi_studio_bootstrap_services(bootstrap),

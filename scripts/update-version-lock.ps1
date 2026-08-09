@@ -34,9 +34,9 @@ $llamaRoot = Join-Path $authorEngineRoot "third_party\llama.cpp"
 
 $lock = [ordered]@{
     schema = "umicom.version-lock.v1"
-    studio_version = "0.12.0"
+    studio_version = "0.13.0"
     studio_parent_base_commit = Get-GitCommit -WorkingDirectory $studioRoot
-    framework_version = "0.4.3"
+    framework_version = "0.4.4"
     framework_commit = Get-GitCommit -WorkingDirectory $frameworkRoot
     authorengine_commit = Get-GitCommit -WorkingDirectory $authorEngineRoot
     llama_cpp_commit = Get-GitCommit -WorkingDirectory $llamaRoot

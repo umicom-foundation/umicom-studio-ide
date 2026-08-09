@@ -8,7 +8,8 @@
   "configurePresets": [
     {
       "name": "headless-debug",
-      "displayName": "Framework and Studio headless validation",
+      "displayName": "Portable headless validation",
+      "description": "Used by Linux, CI, and terminals where clang and Ninja are already configured.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/headless-debug",
       "cacheVariables": {
@@ -21,13 +22,40 @@
       }
     },
     {
-      "name": "windows-ucrt64-debug",
-      "displayName": "Windows MSYS2 UCRT64 GTK4 Debug",
+      "name": "windows-ucrt64-headless-debug",
+      "displayName": "Windows MSYS2 UCRT64 headless Debug",
+      "description": "Canonical Windows headless preset with absolute UCRT64 tools so a new PowerShell cannot select standalone LLVM accidentally.",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/windows-ucrt64-debug",
+      "binaryDir": "${sourceDir}/build/windows-ucrt64-headless-debug",
+      "environment": {
+        "PATH": "C:/msys64/ucrt64/bin;$penv{PATH}"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/clang.exe",
+        "CMAKE_MAKE_PROGRAM": "C:/msys64/ucrt64/bin/ninja.exe",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "PKG_CONFIG_EXECUTABLE": "C:/msys64/ucrt64/bin/pkg-config.exe",
+        "CMAKE_PREFIX_PATH": "C:/msys64/ucrt64",
+        "BUILD_TESTING": "ON",
+        "UMICOM_STUDIO_BUILD_GTK": "OFF",
+        "UMICOM_ENABLE_STRICT_WARNINGS": "ON"
+      }
+    },
+    {
+      "name": "windows-ucrt64-debug",
+      "displayName": "Windows MSYS2 UCRT64 GTK4 Debug",
+      "description": "Canonical Windows GTK4 preset with absolute compiler, Ninja, pkg-config, and UCRT64 prefix paths.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/windows-ucrt64-debug",
+      "environment": {
+        "PATH": "C:/msys64/ucrt64/bin;$penv{PATH}"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/clang.exe",
+        "CMAKE_RC_COMPILER": "C:/msys64/ucrt64/bin/windres.exe",
+        "CMAKE_MAKE_PROGRAM": "C:/msys64/ucrt64/bin/ninja.exe",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "PKG_CONFIG_EXECUTABLE": "C:/msys64/ucrt64/bin/pkg-config.exe",
         "CMAKE_PREFIX_PATH": "C:/msys64/ucrt64",
@@ -44,6 +72,10 @@
       "configurePreset": "headless-debug"
     },
     {
+      "name": "windows-ucrt64-headless-debug",
+      "configurePreset": "windows-ucrt64-headless-debug"
+    },
+    {
       "name": "windows-ucrt64-debug",
       "configurePreset": "windows-ucrt64-debug"
     }
@@ -52,6 +84,13 @@
     {
       "name": "headless-debug",
       "configurePreset": "headless-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-ucrt64-headless-debug",
+      "configurePreset": "windows-ucrt64-headless-debug",
       "output": {
         "outputOnFailure": true
       }

@@ -85,3 +85,6 @@ jobs:
 
       - name: Run retained diagnostics command
         run: ./build/ci/bin/umicom-studio-diagnostics --min info --limit 20 --demo
+
+      - name: Validate typed Studio settings
+        run: ./build/ci/bin/umicom-studio-settings --file config/studio.settings validate
