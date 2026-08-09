@@ -15,7 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.11.1")
+set(UMICOM_STUDIO_VERSION "0.12.0")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
@@ -25,6 +25,7 @@ add_library(umicom_studio_core STATIC
     src/app/services.c
     src/app/version.c
     src/app/doctor.c
+    src/app/diagnostics.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -57,6 +58,14 @@ add_executable(umicom-studio-doctor
 target_link_libraries(umicom-studio-doctor PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-doctor)
 umicom_apply_sanitizers(umicom-studio-doctor)
+
+# Native retained-diagnostics inspection command.
+add_executable(umicom-studio-diagnostics
+    src/tools/diagnostics_main.c
+)
+target_link_libraries(umicom-studio-diagnostics PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-diagnostics)
+umicom_apply_sanitizers(umicom-studio-diagnostics)
 
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
@@ -124,8 +133,8 @@ if(UMICOM_STUDIO_BUILD_GTK)
         NOMINMAX
         _CRT_SECURE_NO_WARNINGS
         UMICOM_VERSION_MAJOR=0
-        UMICOM_VERSION_MINOR=11
-        UMICOM_VERSION_PATCH=1
+        UMICOM_VERSION_MINOR=12
+        UMICOM_VERSION_PATCH=0
         gtk_widget_destroy=g_object_unref
     )
 
@@ -199,8 +208,8 @@ if(UMICOM_STUDIO_BUILD_GTK)
         NOMINMAX
         _CRT_SECURE_NO_WARNINGS
         UMICOM_VERSION_MAJOR=0
-        UMICOM_VERSION_MINOR=11
-        UMICOM_VERSION_PATCH=1
+        UMICOM_VERSION_MINOR=12
+        UMICOM_VERSION_PATCH=0
     )
 
     if(WIN32 AND UMICOM_STUDIO_GUI)
@@ -251,6 +260,19 @@ if(BUILD_TESTING)
     )
     umicom_apply_warnings(umicom-studio-doctor-test)
     add_test(NAME studio.doctor COMMAND umicom-studio-doctor-test)
+
+    add_executable(umicom-studio-diagnostics-test
+        tests/test_diagnostics.c
+    )
+    target_link_libraries(umicom-studio-diagnostics-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-diagnostics-test)
+    umicom_apply_sanitizers(umicom-studio-diagnostics-test)
+    add_test(NAME studio.diagnostics COMMAND umicom-studio-diagnostics-test)
 endif()
 
-install(TARGETS umicom-studio-console umicom-studio-doctor RUNTIME DESTINATION bin)
+install(TARGETS
+    umicom-studio-console
+    umicom-studio-doctor
+    umicom-studio-diagnostics
+    RUNTIME DESTINATION bin
+)

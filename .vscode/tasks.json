@@ -84,6 +84,16 @@
       "problemMatcher": []
     },
     {
+      "label": "Umicom: Run Studio diagnostics",
+      "type": "shell",
+      "command": "& '${workspaceFolder}\\build\\windows-ucrt64-debug\\bin\\umicom-studio-diagnostics.exe' --min info --limit 20 --demo",
+      "dependsOn": "Umicom: Build Windows GTK",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Umicom: Update dependency lock",
       "type": "shell",
       "command": "& '${workspaceFolder}\\scripts\\update-version-lock.ps1' -RepositoryRoot '${workspaceFolder}'",

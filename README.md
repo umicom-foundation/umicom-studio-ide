@@ -1,7 +1,7 @@
 # Umicom Studio IDE
 
-Umicom Studio IDE 0.11.1 is the C23 and GTK4 development environment for building,
-inspecting and operating applications based on Umicom Framework.
+Umicom Studio IDE 0.12.0 is the C23 and GTK4 development environment for
+building, inspecting and operating applications based on Umicom Framework.
 
 ## Architecture
 
@@ -9,14 +9,18 @@ The repository builds Umicom Framework first and then composes Studio from
 explicit application targets:
 
 - `Umicom::Framework` — reusable runtime and platform capabilities.
-- `Umicom::StudioCore` — Studio's Framework composition root and shared service container.
+- `Umicom::StudioCore` — Studio's Framework composition root and shared services.
 - `Umicom::StudioProduct` — the active Studio product implementation.
 - `umicom-studio-console` — headless lifecycle and diagnostic frontend.
+- `umicom-studio-doctor` — native project-health validation.
+- `umicom-studio-diagnostics` — retained Framework diagnostic inspection.
 - `umicom-studio-ide` — GTK4 desktop frontend.
 
-## Windows development profile
+## Diagnostics feature slice
 
-The canonical Windows profile is MSYS2 UCRT64 with Clang, CMake and Ninja.
+Framework 0.4.3 provides a bounded, thread-safe diagnostic store.  Studio
+registers that store with its Framework diagnostic hub, retains lifecycle and
+feature diagnostics, and exposes them through a native C23 command.
 
 ```powershell
 Set-Location C:\Dev\umicom\umicom-studio-ide
@@ -27,9 +31,10 @@ git submodule update --init --recursive
 cmake --preset windows-ucrt64-debug
 cmake --build --preset windows-ucrt64-debug
 ctest --preset windows-ucrt64-debug
-
-& ".\build\windows-ucrt64-debug\bin\umicom-studio-doctor.exe" "."
 & ".\build\windows-ucrt64-debug\bin\umicom-studio-ide.exe" --console
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-doctor.exe" "."
+& ".\build\windows-ucrt64-debug\bin\umicom-studio-diagnostics.exe" `
+    --min info --limit 20 --demo
 ```
 
 ## Headless validation
@@ -40,6 +45,9 @@ cmake --build --preset headless-debug
 ctest --preset headless-debug
 
 & ".\build\headless-debug\bin\umicom-studio-console.exe"
+& ".\build\headless-debug\bin\umicom-studio-doctor.exe" "."
+& ".\build\headless-debug\bin\umicom-studio-diagnostics.exe" `
+    --min info --limit 20 --demo
 ```
 
 ## Repository structure
@@ -72,6 +80,10 @@ The current product source is active and must remain buildable.  Reusable
 capabilities are migrated into Umicom Framework one tested vertical slice at a
 time.  The next slice is diagnostics and logging.
 
-## Licence
+## Author and organisation
+
+- Author: Sammy Hegab
+- Organisation: Umicom Foundation
+- Licence: MIT
 
 MIT. See `LICENSE` and the relevant third-party notices.

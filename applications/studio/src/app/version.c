@@ -1,6 +1,10 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: applications/studio/src/app/version.c
+ *
+ * PURPOSE:
+ *   Implement the runtime Studio version API from the public version macros.
+ *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
  * Licence: MIT

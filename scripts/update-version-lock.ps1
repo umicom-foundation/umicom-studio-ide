@@ -3,9 +3,8 @@
 # File: scripts/update-version-lock.ps1
 #
 # PURPOSE:
-#   Record the exact Framework, AuthorEngine and llama.cpp commits consumed by
-#   the current Studio checkout. The script is read-only apart from writing
-#   VERSION_LOCK.json at the Studio repository root.
+#   Record the exact Studio, Framework, AuthorEngine and llama.cpp commits used
+#   by the current checkout.  The script changes only VERSION_LOCK.json.
 #
 # Created by: Sammy Hegab
 # Organisation: Umicom Foundation
@@ -35,14 +34,15 @@ $llamaRoot = Join-Path $authorEngineRoot "third_party\llama.cpp"
 
 $lock = [ordered]@{
     schema = "umicom.version-lock.v1"
-    studio_version = "0.11.1"
+    studio_version = "0.12.0"
     studio_parent_base_commit = Get-GitCommit -WorkingDirectory $studioRoot
-    framework_version = "0.4.2"
+    framework_version = "0.4.3"
     framework_commit = Get-GitCommit -WorkingDirectory $frameworkRoot
     authorengine_commit = Get-GitCommit -WorkingDirectory $authorEngineRoot
     llama_cpp_commit = Get-GitCommit -WorkingDirectory $llamaRoot
 }
 
 $destination = Join-Path $studioRoot "VERSION_LOCK.json"
-$lock | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $destination -Encoding utf8
+$lock | ConvertTo-Json -Depth 4 |
+    Set-Content -LiteralPath $destination -Encoding utf8
 Write-Host "Updated $destination" -ForegroundColor Green

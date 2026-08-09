@@ -196,3 +196,8 @@ size_t umi_studio_bootstrap_module_count(const UmiStudioBootstrap *bootstrap)
     }
     return umi_master_controller_module_count(bootstrap->master);
 }
+
+UmiStudioServices *umi_studio_bootstrap_services(UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL ? bootstrap->services : NULL;
+}

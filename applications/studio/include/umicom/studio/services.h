@@ -3,12 +3,19 @@
  * File: applications/studio/include/umicom/studio/services.h
  *
  * PURPOSE:
- *   Own the Framework services shared by Studio frontends and Slave
- *   Controllers.  This creates one controlled place for diagnostics and time
- *   instead of allowing each feature to create private global services.
+ *   Own the Umicom Framework services shared by Studio frontends and Slave
+ *   Controllers.  The container creates one diagnostic hub, one bounded
+ *   retained diagnostic store, and one Framework clock so features do not
+ *   create uncontrolled global services.
+ *
+ * Created by: Sammy Hegab
+ * Organisation: Umicom Foundation
+ * Licence: MIT
  *---------------------------------------------------------------------------*/
 #ifndef UMICOM_STUDIO_SERVICES_H
 #define UMICOM_STUDIO_SERVICES_H
+
+#include <stddef.h>
 
 #include "umicom/umicom.h"
 
@@ -16,19 +23,40 @@
 extern "C" {
 #endif
 
+#define UMI_STUDIO_DIAGNOSTIC_STORE_CAPACITY 512U
+
 typedef struct UmiStudioServices UmiStudioServices;
 
-UmiStatus umi_studio_services_create(UmiDiagnosticSink initial_sink,
-                                     void *initial_user_data,
-                                     UmiStudioServices **out_services);
+UmiStatus umi_studio_services_create(
+    UmiDiagnosticSink initial_sink,
+    void *initial_user_data,
+    UmiStudioServices **out_services
+);
+
 void umi_studio_services_destroy(UmiStudioServices *services);
-UmiStatus umi_studio_services_add_diagnostic_sink(UmiStudioServices *services,
-                                                  UmiDiagnosticSink sink,
-                                                  void *user_data);
+
+UmiStatus umi_studio_services_add_diagnostic_sink(
+    UmiStudioServices *services,
+    UmiDiagnosticSink sink,
+    void *user_data
+);
+
+UmiStatus umi_studio_services_remove_diagnostic_sink(
+    UmiStudioServices *services,
+    UmiDiagnosticSink sink,
+    void *user_data
+);
+
 UmiDiagnosticSink umi_studio_services_diagnostic_sink(void);
 void *umi_studio_services_diagnostic_user_data(UmiStudioServices *services);
 UmiClock *umi_studio_services_clock(UmiStudioServices *services);
-size_t umi_studio_services_diagnostic_sink_count(const UmiStudioServices *services);
+UmiDiagnosticStore *umi_studio_services_diagnostic_store(
+    UmiStudioServices *services
+);
+
+size_t umi_studio_services_diagnostic_sink_count(
+    const UmiStudioServices *services
+);
 
 #ifdef __cplusplus
 }

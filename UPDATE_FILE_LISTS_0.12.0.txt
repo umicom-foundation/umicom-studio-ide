@@ -1,0 +1,53 @@
+Umicom Framework 0.4.3 changed files
+============================================
+CMakeLists.txt
+README.md
+include/umicom/base/version.h
+include/umicom/diagnostics/store.h
+include/umicom/umicom.h
+src/diagnostics/store.c
+tests/test_diagnostic_store.c
+templates/workspace/framework/CMakeLists.txt
+templates/workspace/framework/include/umicom/base/version.h
+templates/workspace/framework/include/umicom/diagnostics/store.h
+templates/workspace/framework/include/umicom/umicom.h
+templates/workspace/framework/src/diagnostics/store.c
+templates/workspace/framework/tests/test_diagnostic_store.c
+
+Umicom Studio IDE 0.12.0 changed files
+=============================================
+.github/workflows/ci.yml
+.vscode/tasks.json
+CMakeLists.txt
+README.md
+applications/studio/CMakeLists.txt
+applications/studio/application.umicom.yaml
+applications/studio/include/umicom/studio/bootstrap.h
+applications/studio/include/umicom/studio/diagnostics.h
+applications/studio/include/umicom/studio/services.h
+applications/studio/include/umicom/studio/version.h
+applications/studio/src/app/bootstrap.c
+applications/studio/src/app/diagnostics.c
+applications/studio/src/app/doctor.c
+applications/studio/src/app/services.c
+applications/studio/src/app/version.c
+applications/studio/src/console/main.c
+applications/studio/src/tools/diagnostics_main.c
+applications/studio/tests/test_diagnostics.c
+applications/studio/tests/test_services.c
+applications/studio/tests/test_version.c
+docs/Doxyfile
+docs/BUILD_AND_RELEASE_0.12.0.md
+docs/FEATURE_DEVELOPMENT_PLAN_0.12.0.md
+docs/adr/ADR-0004-bounded-diagnostic-store.md
+docs/migration/FRAMEWORK_DEPENDENCY_MATRIX_0.12.0.md
+scripts/update-version-lock.ps1
+UPDATE_FILE_LISTS_0.12.0.txt
+VALIDATION_REPORT_0.12.0.md
+
+Generated after the Framework commit
+====================================
+VERSION_LOCK.json
+
+The changed-files backup deliberately excludes unchanged source, generated build
+directories, binaries, offline-package manifests and submodule working trees.

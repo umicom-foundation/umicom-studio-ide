@@ -2,7 +2,7 @@
 # Umicom Studio IDE and Umicom Framework API documentation
 # =============================================================================
 PROJECT_NAME           = "Umicom Studio IDE"
-PROJECT_NUMBER         = "0.11.1"
+PROJECT_NUMBER         = "0.12.0"
 OUTPUT_DIRECTORY       = build/doxygen
 CREATE_SUBDIRS         = NO
 ALLOW_UNICODE_NAMES    = YES

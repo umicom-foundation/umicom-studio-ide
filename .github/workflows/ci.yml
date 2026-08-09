@@ -82,3 +82,6 @@ jobs:
 
       - name: Run native Studio doctor
         run: ./build/ci/bin/umicom-studio-doctor .
+
+      - name: Run retained diagnostics command
+        run: ./build/ci/bin/umicom-studio-diagnostics --min info --limit 20 --demo
