@@ -18,6 +18,8 @@
 #include <string.h>
 
 #include "umicom/studio/developer_platform.h"
+#include "umicom/studio/declarative.h"
+#include "umicom/studio/designer.h"
 #include "umicom/studio/fabric.h"
 #include "umicom/studio/operations.h"
 #include "umicom/studio/session.h"
@@ -48,6 +50,8 @@ struct UmiStudioServices {
     UmiMessageMetricsCounter *message_metrics;
     UmiStudioOperations *operations;
     UmiStudioDeveloperPlatform *developer_platform;
+    UmiStudioDeclarative *declarative;
+    UmiStudioDesigner *designer;
     UmiClock clock;
     int published;
 };
@@ -84,6 +88,10 @@ static void destroy_partial(UmiStudioServices *services)
     if (services->task_queue != NULL) {
         (void)umi_task_queue_shutdown(services->task_queue, 1);
     }
+    umi_studio_designer_destroy(services->designer);
+    services->designer = NULL;
+    umi_studio_declarative_destroy(services->declarative);
+    services->declarative = NULL;
     umi_studio_developer_platform_destroy(services->developer_platform);
     services->developer_platform = NULL;
     umi_studio_operations_destroy(services->operations);
@@ -371,6 +379,16 @@ UmiStatus umi_studio_services_create(
         return status;
     }
 
+    status = umi_studio_declarative_create(&services->declarative);
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_designer_create(services->declarative,
+                                            &services->designer);
+    }
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+
     *out_services = services;
     return UMI_STATUS_OK;
 }
@@ -521,6 +539,16 @@ UmiStatus umi_studio_services_publish(
             umi_studio_developer_platform_source_control(
                 services->developer_platform),
             UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.declarative",
+            services->declarative,
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.designer",
+            services->designer,
+            UMI_SERVICE_SINGLETON);
+    status = umi_studio_designer_bind_commands(
+        services->designer,
+        umi_master_controller_command_registry(master));
+    if (status != UMI_STATUS_OK) return status;
     PUBLISH("umicom.studio.clock",
             &services->clock,
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
@@ -792,4 +820,14 @@ size_t umi_studio_services_diagnostic_sink_count(
     return services != NULL
         ? umi_diagnostic_hub_count(&services->diagnostic_hub)
         : 0U;
+}
+
+UmiStudioDeclarative *umi_studio_services_declarative(UmiStudioServices *services)
+{
+    return services != NULL ? services->declarative : NULL;
+}
+
+UmiStudioDesigner *umi_studio_services_designer(UmiStudioServices *services)
+{
+    return services != NULL ? services->designer : NULL;
 }

@@ -17,7 +17,10 @@ int main(void)
 {
     UmiStudioSourceControlService *service = NULL;
     UmiStudioSourceControlSnapshot snapshot;
-    const char *root = ".umicom-source-control-test";
+    char temp_root[UMI_PATH_CAPACITY];
+    char root[UMI_PATH_CAPACITY];
+    assert(umi_fs_temp_directory(temp_root, sizeof(temp_root)) == UMI_STATUS_OK);
+    assert(umi_fs_join(root, sizeof(root), temp_root, "umicom-source-control-test") == UMI_STATUS_OK);
     (void)umi_fs_remove_tree(root);
     assert(umi_fs_make_directories(root) == UMI_STATUS_OK);
     assert(umi_studio_source_control_service_create(root, &service) == UMI_STATUS_OK);

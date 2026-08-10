@@ -20,6 +20,8 @@
 
 #include "umicom/umicom.h"
 #include "umicom/studio/developer_platform.h"
+#include "umicom/studio/declarative.h"
+#include "umicom/studio/designer.h"
 #include "umicom/studio/settings.h"
 
 #ifdef __cplusplus
@@ -86,6 +88,8 @@ UmiStudioOperations *umi_studio_services_operations(UmiStudioServices *services)
 UmiStudioDeveloperPlatform *umi_studio_services_developer_platform(
     UmiStudioServices *services
 );
+UmiStudioDeclarative *umi_studio_services_declarative(UmiStudioServices *services);
+UmiStudioDesigner *umi_studio_services_designer(UmiStudioServices *services);
 UmiStudioBuildService *umi_studio_services_build(UmiStudioServices *services);
 UmiStudioTestService *umi_studio_services_tests(UmiStudioServices *services);
 UmiStudioTerminalService *umi_studio_services_terminal(

@@ -62,6 +62,13 @@ add_library(umicom_studio_core STATIC
     src/app/debugger.c
     src/app/source_control.c
     src/app/developer_platform.c
+    src/app/declarative.c
+    src/app/designer.c
+    src/app/designer_catalogue.c
+    src/app/designer_preview.c
+    src/app/designer_project.c
+    src/app/new_project.c
+    src/app/designer_state.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -216,6 +223,22 @@ foreach(UMICOM_STUDIO_DEVELOPER_TOOL
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL})
 endforeach()
 
+# Native declarative-template and visual-designer commands.
+foreach(UMICOM_STUDIO_DESIGNER_TOOL
+        template
+        designer
+        designer-catalogue
+        new-project)
+    string(REPLACE "-" "_" UMICOM_STUDIO_DESIGNER_SOURCE
+        "${UMICOM_STUDIO_DESIGNER_TOOL}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_DESIGNER_TOOL}
+        src/tools/${UMICOM_STUDIO_DESIGNER_SOURCE}_main.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_DESIGNER_TOOL}
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DESIGNER_TOOL})
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DESIGNER_TOOL})
+endforeach()
+
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
 # -----------------------------------------------------------------------------
@@ -346,6 +369,27 @@ if(UMICOM_STUDIO_BUILD_GTK)
     )
     umicom_apply_warnings(umicom-studio-workbench-demo)
     umicom_apply_sanitizers(umicom-studio-workbench-demo)
+
+    add_executable(umicom-studio-designer-demo
+        src/gtk/designer_main.c
+        src/gui/designer/designer_window.c
+        src/gui/designer/palette_view.c
+        src/gui/designer/tree_view.c
+        src/gui/designer/inspector_view.c
+        src/gui/designer/surface_view.c
+        src/gui/designer/preview_view.c
+    )
+    target_include_directories(umicom-studio-designer-demo PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/designer/include"
+    )
+    target_link_libraries(umicom-studio-designer-demo PRIVATE
+        Umicom::StudioCore
+        Umicom::ui_gtk4
+        PkgConfig::GTK4
+        PkgConfig::GLIB
+    )
+    umicom_apply_warnings(umicom-studio-designer-demo)
+    umicom_apply_sanitizers(umicom-studio-designer-demo)
 
     add_executable(umicom-studio-ide
         src/gtk/main.c
@@ -628,6 +672,27 @@ if(BUILD_TESTING)
         umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TEST_TARGET}-test)
         add_test(NAME studio.${UMICOM_STUDIO_DEVELOPER_TEST}
             COMMAND umicom-studio-${UMICOM_STUDIO_DEVELOPER_TEST_TARGET}-test)
+    endforeach()
+
+    foreach(UMICOM_STUDIO_DESIGNER_TEST
+            declarative
+            designer
+            designer_history
+            designer_catalogue
+            designer_preview
+            new_project
+            designer_state
+            designer_project)
+        string(REPLACE "_" "-" UMICOM_STUDIO_DESIGNER_TEST_TARGET
+            "${UMICOM_STUDIO_DESIGNER_TEST}")
+        add_executable(umicom-studio-${UMICOM_STUDIO_DESIGNER_TEST_TARGET}-test
+            tests/test_${UMICOM_STUDIO_DESIGNER_TEST}.c)
+        target_link_libraries(umicom-studio-${UMICOM_STUDIO_DESIGNER_TEST_TARGET}-test
+            PRIVATE Umicom::StudioCore)
+        umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DESIGNER_TEST_TARGET}-test)
+        umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DESIGNER_TEST_TARGET}-test)
+        add_test(NAME studio.${UMICOM_STUDIO_DESIGNER_TEST}
+            COMMAND umicom-studio-${UMICOM_STUDIO_DESIGNER_TEST_TARGET}-test)
     endforeach()
 
     # Studio integration tests share the default .umicom session/recovery
