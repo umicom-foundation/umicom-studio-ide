@@ -15,6 +15,7 @@
 #include "umicom/studio/bootstrap.h"
 #include "umicom/studio/commands.h"
 #include "umicom/studio/services.h"
+#include "umicom/studio/ui.h"
 #include "umicom/studio/version.h"
 
 #include <stdio.h>
@@ -23,6 +24,7 @@
 struct UmiStudioBootstrap {
     UmiMasterController *master;
     UmiStudioServices *services;
+    UmiStudioUi *ui;
     UmiModuleDescriptor studio_shell_module;
     int started;
 };
@@ -119,6 +121,25 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         bootstrap->services
     );
     if (status != UMI_STATUS_OK) {
+        umi_master_controller_destroy(bootstrap->master);
+        umi_studio_services_destroy(bootstrap->services);
+        free(bootstrap);
+        return status;
+    }
+
+    status = umi_studio_ui_create(
+        bootstrap->services,
+        umi_master_controller_command_registry(bootstrap->master),
+        &bootstrap->ui
+    );
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_ui_publish(
+            bootstrap->ui,
+            umi_master_controller_services(bootstrap->master)
+        );
+    }
+    if (status != UMI_STATUS_OK) {
+        umi_studio_ui_destroy(bootstrap->ui);
         umi_master_controller_destroy(bootstrap->master);
         umi_studio_services_destroy(bootstrap->services);
         free(bootstrap);
@@ -230,6 +251,8 @@ void umi_studio_bootstrap_destroy(UmiStudioBootstrap *bootstrap)
         return;
     }
     (void)umi_studio_bootstrap_stop(bootstrap);
+    umi_studio_ui_destroy(bootstrap->ui);
+    bootstrap->ui = NULL;
     umi_master_controller_destroy(bootstrap->master);
     bootstrap->master = NULL;
     umi_studio_services_destroy(bootstrap->services);
@@ -280,4 +303,9 @@ UmiHealthRegistry *umi_studio_bootstrap_health_registry(
     return bootstrap != NULL
         ? umi_master_controller_health(bootstrap->master)
         : NULL;
+}
+
+UmiStudioUi *umi_studio_bootstrap_ui(UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL ? bootstrap->ui : NULL;
 }

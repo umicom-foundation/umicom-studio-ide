@@ -81,6 +81,12 @@ function(umicom_apply_sanitizers target)
     endif()
 endfunction()
 
+# The Studio GTK4 build consumes the Framework GTK4 reference adapter.
+if(UMICOM_STUDIO_BUILD_GTK)
+    set(UMICOM_BUILD_GTK4_ADAPTER ON CACHE BOOL
+        "Build the Framework GTK4 adapter required by Studio" FORCE)
+endif()
+
 # Framework resolution order:
 #   1. A suite or superbuild has already created Umicom::Framework.
 #   2. This standalone Studio checkout contains framework/CMakeLists.txt.

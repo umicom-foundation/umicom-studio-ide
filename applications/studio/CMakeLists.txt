@@ -48,6 +48,13 @@ add_library(umicom_studio_core STATIC
     src/app/plugins.c
     src/app/observability.c
     src/app/resilience.c
+    src/app/ui.c
+    src/app/workbench.c
+    src/app/perspectives.c
+    src/app/contributions.c
+    src/app/view_models.c
+    src/app/workbench_commands.c
+    src/app/ui_catalogue.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -57,6 +64,8 @@ target_include_directories(umicom_studio_core PUBLIC
 
 target_link_libraries(umicom_studio_core PUBLIC
     Umicom::Framework
+    Umicom::ui
+    Umicom::ui_headless
 )
 
 umicom_apply_warnings(umicom_studio_core)
@@ -169,6 +178,17 @@ foreach(UMICOM_STUDIO_OPERATION_TOOL
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL})
 endforeach()
 
+# Native toolkit-neutral workbench and UI catalogue commands.
+add_executable(umicom-studio-workbench src/tools/workbench_main.c)
+target_link_libraries(umicom-studio-workbench PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-workbench)
+umicom_apply_sanitizers(umicom-studio-workbench)
+
+add_executable(umicom-studio-ui-catalogue src/tools/ui_catalogue_main.c)
+target_link_libraries(umicom-studio-ui-catalogue PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-ui-catalogue)
+umicom_apply_sanitizers(umicom-studio-ui-catalogue)
+
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
 # -----------------------------------------------------------------------------
@@ -277,6 +297,29 @@ if(UMICOM_STUDIO_BUILD_GTK)
         )
     endif()
 
+    add_executable(umicom-studio-workbench-demo
+        src/gtk/workbench_main.c
+        src/gui/workbench/workbench_window.c
+        src/gui/workbench/perspective_switcher.c
+        src/gui/workbench/status_strip.c
+        src/gui/explorer/project_explorer_view.c
+        src/gui/editor/editor_host_view.c
+    )
+    target_include_directories(umicom-studio-workbench-demo PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/workbench/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/explorer/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/editor/include"
+    )
+    target_link_libraries(umicom-studio-workbench-demo PRIVATE
+        Umicom::StudioCore
+        Umicom::ui_gtk4
+        PkgConfig::GTK4
+        PkgConfig::GLIB
+        PkgConfig::GIO
+    )
+    umicom_apply_warnings(umicom-studio-workbench-demo)
+    umicom_apply_sanitizers(umicom-studio-workbench-demo)
+
     add_executable(umicom-studio-ide
         src/gtk/main.c
     )
@@ -318,7 +361,10 @@ if(UMICOM_STUDIO_BUILD_GTK)
         set_property(TARGET umicom-studio-ide PROPERTY WIN32_EXECUTABLE TRUE)
     endif()
 
-    install(TARGETS umicom-studio-ide RUNTIME DESTINATION bin)
+    install(TARGETS
+        umicom-studio-ide
+        umicom-studio-workbench-demo
+        RUNTIME DESTINATION bin)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -516,6 +562,27 @@ if(BUILD_TESTING)
             COMMAND umicom-studio-${UMICOM_STUDIO_OPERATION_TEST}-test)
     endforeach()
 
+    foreach(UMICOM_STUDIO_UI_TEST
+            ui
+            workbench
+            perspectives
+            contributions
+            view_models
+            ui_catalogue
+            ui_headless
+            ui_services
+            ui_session
+            ui_actions)
+        add_executable(umicom-studio-${UMICOM_STUDIO_UI_TEST}-test
+            tests/test_${UMICOM_STUDIO_UI_TEST}.c)
+        target_link_libraries(umicom-studio-${UMICOM_STUDIO_UI_TEST}-test
+            PRIVATE Umicom::StudioCore)
+        umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_UI_TEST}-test)
+        umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_UI_TEST}-test)
+        add_test(NAME studio.${UMICOM_STUDIO_UI_TEST}
+            COMMAND umicom-studio-${UMICOM_STUDIO_UI_TEST}-test)
+    endforeach()
+
     # Studio integration tests share the default .umicom session/recovery
     # directory.  A named CTest resource lock preserves parallel Framework
     # testing while preventing Studio tests from deleting one another's state.
@@ -549,6 +616,16 @@ if(BUILD_TESTING)
         studio.plugins
         studio.observability
         studio.resilience
+        studio.ui
+        studio.workbench
+        studio.perspectives
+        studio.contributions
+        studio.view_models
+        studio.ui_catalogue
+        studio.ui_headless
+        studio.ui_services
+        studio.ui_session
+        studio.ui_actions
         PROPERTIES RESOURCE_LOCK umicom_studio_runtime_state
     )
 endif()
@@ -571,5 +648,7 @@ install(TARGETS
     umicom-studio-observability
     umicom-studio-resilience
     umicom-studio-operations
+    umicom-studio-workbench
+    umicom-studio-ui-catalogue
     RUNTIME DESTINATION bin
 )

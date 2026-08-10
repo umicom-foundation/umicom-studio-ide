@@ -12,6 +12,7 @@
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/commands.h"
 #include "umicom/studio/bootstrap.h"
+#include "umicom/studio/workbench_commands.h"
 
 #include <assert.h>
 #include <string.h>
@@ -29,7 +30,7 @@ int main(void)
 
     registry = umi_studio_bootstrap_command_registry(bootstrap);
     assert(registry != NULL);
-    assert(umi_command_registry_count(registry) == 14U);
+    assert(umi_command_registry_count(registry) == 19U);
     assert(umi_command_registry_snapshot(
         registry,
         UMI_STUDIO_COMMAND_SESSION_SAVE,
@@ -91,6 +92,15 @@ int main(void)
     ) == UMI_STATUS_OK);
     assert(strstr(message, "Replayed") != NULL);
 
+
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_NOTIFICATION_INFO,
+        "Command test notification",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(strstr(message, "published") != NULL);
 
     assert(umi_command_registry_execute(
         registry,

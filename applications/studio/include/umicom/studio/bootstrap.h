@@ -4,8 +4,8 @@
  *
  * PURPOSE:
  *   Own the Umicom Framework composition root shared by the console and GTK4
- *   frontends.  Studio services and Slave Controllers are registered here,
- *   including access to retained Framework diagnostics.
+ *   frontends.  Studio services, commands and Slave Controllers are registered
+ *   here, including access to retained diagnostics and runtime registries.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -18,6 +18,7 @@
 
 #include "umicom/umicom.h"
 #include "umicom/studio/services.h"
+#include "umicom/studio/ui.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,6 +52,7 @@ UmiCommandRegistry *umi_studio_bootstrap_command_registry(
 UmiHealthRegistry *umi_studio_bootstrap_health_registry(
     UmiStudioBootstrap *bootstrap
 );
+UmiStudioUi *umi_studio_bootstrap_ui(UmiStudioBootstrap *bootstrap);
 
 #ifdef __cplusplus
 }
