@@ -43,6 +43,11 @@ add_library(umicom_studio_core STATIC
     src/app/history.c
     src/app/replay.c
     src/app/fabric.c
+    src/app/operations.c
+    src/app/security.c
+    src/app/plugins.c
+    src/app/observability.c
+    src/app/resilience.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -148,6 +153,21 @@ add_executable(umicom-studio-history src/tools/history_main.c)
 target_link_libraries(umicom-studio-history PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-history)
 umicom_apply_sanitizers(umicom-studio-history)
+
+# Native security, plug-in, observability and resilience commands.
+foreach(UMICOM_STUDIO_OPERATION_TOOL
+        security
+        plugins
+        observability
+        resilience
+        operations)
+    add_executable(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL}
+        src/tools/${UMICOM_STUDIO_OPERATION_TOOL}_main.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL}
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL})
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL})
+endforeach()
 
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
@@ -479,6 +499,58 @@ if(BUILD_TESTING)
     target_link_libraries(umicom-studio-dead-letters-test PRIVATE Umicom::StudioCore)
     umicom_apply_warnings(umicom-studio-dead-letters-test)
     add_test(NAME studio.dead_letters COMMAND umicom-studio-dead-letters-test)
+
+    foreach(UMICOM_STUDIO_OPERATION_TEST
+            operations
+            security
+            plugins
+            observability
+            resilience)
+        add_executable(umicom-studio-${UMICOM_STUDIO_OPERATION_TEST}-test
+            tests/test_${UMICOM_STUDIO_OPERATION_TEST}.c)
+        target_link_libraries(umicom-studio-${UMICOM_STUDIO_OPERATION_TEST}-test
+            PRIVATE Umicom::StudioCore)
+        umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_OPERATION_TEST}-test)
+        umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_OPERATION_TEST}-test)
+        add_test(NAME studio.${UMICOM_STUDIO_OPERATION_TEST}
+            COMMAND umicom-studio-${UMICOM_STUDIO_OPERATION_TEST}-test)
+    endforeach()
+
+    # Studio integration tests share the default .umicom session/recovery
+    # directory.  A named CTest resource lock preserves parallel Framework
+    # testing while preventing Studio tests from deleting one another's state.
+    set_tests_properties(
+        studio.framework_bootstrap
+        studio.version
+        studio.services
+        studio.doctor
+        studio.diagnostics
+        studio.platform
+        studio.settings
+        studio.documents
+        studio.tasks
+        studio.commands
+        studio.state
+        studio.workspace
+        studio.files
+        studio.search
+        studio.processes
+        studio.watcher
+        studio.data
+        studio.messages
+        studio.history
+        studio.replay
+        studio.fabric
+        studio.outbox
+        studio.persistence
+        studio.dead_letters
+        studio.operations
+        studio.security
+        studio.plugins
+        studio.observability
+        studio.resilience
+        PROPERTIES RESOURCE_LOCK umicom_studio_runtime_state
+    )
 endif()
 
 install(TARGETS
@@ -494,5 +566,10 @@ install(TARGETS
     umicom-studio-messages
     umicom-studio-replay
     umicom-studio-history
+    umicom-studio-security
+    umicom-studio-plugins
+    umicom-studio-observability
+    umicom-studio-resilience
+    umicom-studio-operations
     RUNTIME DESTINATION bin
 )

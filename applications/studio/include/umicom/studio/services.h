@@ -26,6 +26,7 @@ extern "C" {
 #endif
 
 typedef struct UmiStudioServices UmiStudioServices;
+typedef struct UmiStudioOperations UmiStudioOperations;
 
 UmiStatus umi_studio_services_create(
     UmiDiagnosticSink initial_sink,
@@ -80,6 +81,7 @@ UmiTopicRegistry *umi_studio_services_topics(UmiStudioServices *services);
 UmiMessageStore *umi_studio_services_message_store(UmiStudioServices *services);
 UmiJournalStore *umi_studio_services_journal(UmiStudioServices *services);
 UmiMessageMetricsCounter *umi_studio_services_message_metrics(UmiStudioServices *services);
+UmiStudioOperations *umi_studio_services_operations(UmiStudioServices *services);
 UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,
                                              const char *root,
                                              int trusted);

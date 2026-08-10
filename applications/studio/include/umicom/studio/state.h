@@ -16,6 +16,7 @@
 #include <stddef.h>
 
 #include "umicom/studio/bootstrap.h"
+#include "umicom/studio/operations.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,6 +41,7 @@ typedef struct UmiStudioStateReport {
     size_t journal_messages;
     UmiOutboxStats outbox;
     size_t dead_letters;
+    UmiStudioOperationsReport operations;
 } UmiStudioStateReport;
 
 UmiStatus umi_studio_state_capture(UmiStudioBootstrap *bootstrap,

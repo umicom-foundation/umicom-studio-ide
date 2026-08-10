@@ -66,6 +66,9 @@ UmiStatus umi_studio_state_capture(UmiStudioBootstrap *bootstrap,
         umi_studio_services_watcher(services));
     out_report->processes = umi_process_supervisor_stats(
         umi_studio_services_process_supervisor(services));
+    (void)umi_studio_operations_report(
+        umi_studio_services_operations(services),
+        &out_report->operations);
     {
         UmiStudioDataReport data;
         UmiStudioMessageReport messages;
@@ -119,7 +122,13 @@ UmiStatus umi_studio_state_format(const UmiStudioStateReport *report,
         "Message topics: %zu\n"
         "Journal messages: %zu\n"
         "Outbox pending: %zu\n"
-        "Dead letters: %zu\n",
+        "Dead letters: %zu\n"
+        "Security identities: %zu\n"
+        "Plug-ins: %zu\n"
+        "Operational metrics: %zu\n"
+        "Operational events: %zu\n"
+        "Supervised components: %zu\n"
+        "Operations ready: %s\n",
         report->module_count,
         report->service_count,
         report->command_count,
@@ -143,7 +152,13 @@ UmiStatus umi_studio_state_format(const UmiStudioStateReport *report,
         report->message_topics,
         report->journal_messages,
         report->outbox.pending,
-        report->dead_letters
+        report->dead_letters,
+        report->operations.identities,
+        report->operations.plugins,
+        report->operations.metrics,
+        report->operations.operational_events,
+        report->operations.supervised_components,
+        report->operations.ready ? "yes" : "no"
     );
 
     return written < 0 || (size_t)written >= text_capacity

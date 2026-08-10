@@ -29,6 +29,10 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_DATA_INTEGRITY "studio.data.integrity"
 #define UMI_STUDIO_COMMAND_MESSAGES_FLUSH "studio.messages.flush"
 #define UMI_STUDIO_COMMAND_MESSAGES_REPLAY "studio.messages.replay"
+#define UMI_STUDIO_COMMAND_SECURITY_REPORT "studio.security.report"
+#define UMI_STUDIO_COMMAND_PLUGINS_REPORT "studio.plugins.report"
+#define UMI_STUDIO_COMMAND_OBSERVABILITY_REPORT "studio.observability.report"
+#define UMI_STUDIO_COMMAND_RESILIENCE_REPORT "studio.resilience.report"
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

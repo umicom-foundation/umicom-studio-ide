@@ -27,8 +27,8 @@ int main(void)
     assert(umi_studio_state_capture(bootstrap, &report) == UMI_STATUS_OK);
 
     assert(report.module_count == 1U);
-    assert(report.service_count >= 23U);
-    assert(report.command_count == 10U);
+    assert(report.service_count >= 31U);
+    assert(report.command_count == 14U);
     assert(report.health_count >= 3U);
     assert(report.overall_health == UMI_HEALTH_READY);
     assert(report.tasks.worker_count == 4U);
@@ -36,6 +36,9 @@ int main(void)
     assert(report.workspace.open);
     assert(report.files.capacity > 0U);
     assert(report.processes.capacity > 0U);
+    assert(report.operations.identities == 1U);
+    assert(report.operations.supervised_components == 4U);
+    assert(report.operations.ready);
 
     assert(umi_studio_state_format(&report,
                                    text,

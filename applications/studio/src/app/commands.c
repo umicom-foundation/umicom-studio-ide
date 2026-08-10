@@ -20,6 +20,10 @@
 #include "umicom/studio/data.h"
 #include "umicom/studio/documents.h"
 #include "umicom/studio/messages.h"
+#include "umicom/studio/observability.h"
+#include "umicom/studio/plugins.h"
+#include "umicom/studio/resilience.h"
+#include "umicom/studio/security.h"
 #include "umicom/studio/replay.h"
 #include "umicom/studio/session.h"
 #include "umicom/studio/watcher.h"
@@ -238,6 +242,89 @@ static UmiStatus messages_replay_handler(void *user_data,
     return status;
 }
 
+static UmiStatus security_report_handler(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t message_capacity)
+{
+    UmiStudioSecurityReport report;
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_security_report((UmiStudioServices *)user_data,
+                                        &report);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "Security: %zu identities, %zu roles, %zu events",
+                       report.identities,
+                       report.roles,
+                       report.events);
+    }
+    return status;
+}
+
+static UmiStatus plugins_report_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    UmiStudioPluginReport report;
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_plugins_report((UmiStudioServices *)user_data,
+                                       &report);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "Plug-ins: %zu registered, %zu contributions",
+                       report.registered,
+                       report.contributions);
+    }
+    return status;
+}
+
+static UmiStatus observability_report_handler(void *user_data,
+                                              const char *argument,
+                                              char *out_message,
+                                              size_t message_capacity)
+{
+    UmiStudioObservabilityReport report;
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_observability_report((UmiStudioServices *)user_data,
+                                             &report);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "Observability: %zu metrics, %zu events, ready %s",
+                       report.snapshot.metrics,
+                       report.snapshot.operational_events,
+                       report.snapshot.ready ? "yes" : "no");
+    }
+    return status;
+}
+
+static UmiStatus resilience_report_handler(void *user_data,
+                                           const char *argument,
+                                           char *out_message,
+                                           size_t message_capacity)
+{
+    UmiStudioResilienceReport report;
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_resilience_report((UmiStudioServices *)user_data,
+                                          &report);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "Resilience: %zu supervised, %zu running, %zu failed",
+                       report.supervised_components,
+                       report.running_components,
+                       report.failed_components);
+    }
+    return status;
+}
+
 static UmiStatus register_command(UmiCommandRegistry *registry,
                                   UmiStudioServices *services,
                                   const char *command_id,
@@ -375,13 +462,57 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               messages_flush_handler);
     if (status != UMI_STATUS_OK) return status;
 
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_MESSAGES_REPLAY,
+                              "Replay durable messages",
+                              "Messaging",
+                              "Replay Studio journal records through the dispatcher.",
+                              "messaging.replay",
+                              UMI_COMMAND_AUDITED,
+                              messages_replay_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_SECURITY_REPORT,
+                              "Security report",
+                              "Security",
+                              "Inspect Studio identities, roles, trust and policy evidence.",
+                              "studio.security.read",
+                              UMI_COMMAND_AUDITED,
+                              security_report_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_PLUGINS_REPORT,
+                              "Plug-in report",
+                              "Plug-ins",
+                              "Inspect the Studio plug-in catalogue and contributions.",
+                              "studio.plugins.read",
+                              UMI_COMMAND_NONE,
+                              plugins_report_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_OBSERVABILITY_REPORT,
+                              "Observability report",
+                              "Operations",
+                              "Inspect metrics, traces, audit, readiness and events.",
+                              "studio.observability.read",
+                              UMI_COMMAND_NONE,
+                              observability_report_handler);
+    if (status != UMI_STATUS_OK) return status;
+
     return register_command(registry,
                             services,
-                            UMI_STUDIO_COMMAND_MESSAGES_REPLAY,
-                            "Replay durable messages",
-                            "Messaging",
-                            "Replay Studio journal records through the dispatcher.",
-                            "messaging.replay",
-                            UMI_COMMAND_AUDITED,
-                            messages_replay_handler);
+                            UMI_STUDIO_COMMAND_RESILIENCE_REPORT,
+                            "Resilience report",
+                            "Operations",
+                            "Inspect supervised components, circuits and rate limits.",
+                            "studio.resilience.read",
+                            UMI_COMMAND_NONE,
+                            resilience_report_handler);
 }

@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "umicom/studio/fabric.h"
+#include "umicom/studio/operations.h"
 #include "umicom/studio/session.h"
 #include "umicom/studio/version.h"
 
@@ -44,6 +45,7 @@ struct UmiStudioServices {
     UmiMessageStore *message_store;
     UmiJournalStore journal;
     UmiMessageMetricsCounter *message_metrics;
+    UmiStudioOperations *operations;
     UmiClock clock;
     int published;
 };
@@ -80,6 +82,8 @@ static void destroy_partial(UmiStudioServices *services)
     if (services->task_queue != NULL) {
         (void)umi_task_queue_shutdown(services->task_queue, 1);
     }
+    umi_studio_operations_destroy(services->operations);
+    services->operations = NULL;
     umi_watcher_destroy(services->watcher);
     services->watcher = NULL;
     umi_file_index_destroy(services->file_index);
@@ -189,6 +193,12 @@ UmiStatus umi_studio_services_create(
 
     umi_diagnostic_hub_init(&services->diagnostic_hub);
     services->clock = umi_clock_system();
+    status = umi_studio_operations_create(&services->clock,
+                                          &services->operations);
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
 
     store_config = umi_diagnostic_store_config_default();
     store_config.capacity = (size_t)diagnostic_capacity;
@@ -451,6 +461,30 @@ UmiStatus umi_studio_services_publish(
     PUBLISH("umicom.studio.message-journal",
             &services->journal,
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.security",
+            umi_studio_operations_security(services->operations),
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.plugins",
+            umi_studio_operations_plugins(services->operations),
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.metrics",
+            umi_studio_operations_metrics(services->operations),
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.traces",
+            umi_studio_operations_traces(services->operations),
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.audit",
+            umi_studio_operations_audit(services->operations),
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.readiness",
+            umi_studio_operations_readiness(services->operations),
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.operational-events",
+            umi_studio_operations_events(services->operations),
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.resilience",
+            umi_studio_operations_resilience(services->operations),
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
     PUBLISH("umicom.studio.clock",
             &services->clock,
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
@@ -616,6 +650,11 @@ UmiJournalStore *umi_studio_services_journal(UmiStudioServices *services)
 UmiMessageMetricsCounter *umi_studio_services_message_metrics(UmiStudioServices *services)
 {
     return services != NULL ? services->message_metrics : NULL;
+}
+
+UmiStudioOperations *umi_studio_services_operations(UmiStudioServices *services)
+{
+    return services != NULL ? services->operations : NULL;
 }
 
 UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,
