@@ -28,9 +28,30 @@ struct UmiStudioServices {
     UmiDocumentStore *documents;
     UmiSessionStore *session;
     UmiRecoveryManager *recovery;
+    UmiWorkspaceGraph *workspace;
+    UmiFileIndex *file_index;
+    UmiWatcher *watcher;
+    UmiProcessSupervisor *process_supervisor;
     UmiClock clock;
     int published;
 };
+
+static void studio_watch_sink(const UmiWatchEvent *event, void *user_data)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    if (services == NULL || services->file_index == NULL || event == NULL) {
+        return;
+    }
+    if (event->kind == UMI_WATCH_OVERFLOW ||
+        event->kind == UMI_WATCH_RESCAN_REQUIRED || event->directory) {
+        (void)umi_file_index_rebuild(services->file_index);
+    } else if (event->kind == UMI_WATCH_DELETED) {
+        (void)umi_file_index_remove(services->file_index, event->path);
+    } else if (event->kind == UMI_WATCH_CREATED ||
+               event->kind == UMI_WATCH_MODIFIED) {
+        (void)umi_file_index_update(services->file_index, event->path);
+    }
+}
 
 static void destroy_partial(UmiStudioServices *services)
 {
@@ -38,9 +59,23 @@ static void destroy_partial(UmiStudioServices *services)
         return;
     }
 
+    if (services->watcher != NULL) {
+        (void)umi_watcher_stop(services->watcher);
+    }
+    if (services->process_supervisor != NULL) {
+        (void)umi_process_supervisor_shutdown(services->process_supervisor);
+    }
     if (services->task_queue != NULL) {
         (void)umi_task_queue_shutdown(services->task_queue, 1);
     }
+    umi_watcher_destroy(services->watcher);
+    services->watcher = NULL;
+    umi_file_index_destroy(services->file_index);
+    services->file_index = NULL;
+    umi_workspace_graph_destroy(services->workspace);
+    services->workspace = NULL;
+    umi_process_supervisor_destroy(services->process_supervisor);
+    services->process_supervisor = NULL;
     umi_recovery_manager_destroy(services->recovery);
     services->recovery = NULL;
     umi_session_store_destroy(services->session);
@@ -70,6 +105,9 @@ UmiStatus umi_studio_services_create(
     int session_loaded = 0;
     int64_t diagnostic_capacity = 0;
     int64_t parallel_jobs = 0;
+    char current_directory[UMI_PATH_CAPACITY];
+    UmiFileIndexConfig file_index_config;
+    UmiWatcherConfig watcher_config;
 
     if (out_services == NULL) {
         return UMI_STATUS_INVALID_ARGUMENT;
@@ -184,6 +222,45 @@ UmiStatus umi_studio_services_create(
         return status;
     }
 
+    status = umi_process_supervisor_create(NULL,
+                                           &services->process_supervisor);
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+
+    status = umi_workspace_graph_create(&services->workspace);
+    if (status != UMI_STATUS_OK ||
+        umi_fs_current_directory(current_directory,
+                                 sizeof(current_directory)) != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status != UMI_STATUS_OK ? status : UMI_STATUS_IO_ERROR;
+    }
+    status = umi_workspace_graph_open(services->workspace,
+                                      current_directory,
+                                      0);
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+
+    file_index_config = umi_file_index_config_default(current_directory);
+    status = umi_file_index_create(&file_index_config,
+                                   &services->file_index);
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+
+    watcher_config = umi_watcher_config_default(current_directory);
+    watcher_config.sink = studio_watch_sink;
+    watcher_config.sink_user_data = services;
+    status = umi_watcher_create(&watcher_config, &services->watcher);
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+
     *out_services = services;
     return UMI_STATUS_OK;
 }
@@ -254,6 +331,18 @@ UmiStatus umi_studio_services_publish(
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
     PUBLISH("umicom.studio.recovery",
             services->recovery,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.workspace",
+            services->workspace,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.file-index",
+            services->file_index,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.watcher",
+            services->watcher,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.process-supervisor",
+            services->process_supervisor,
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
     PUBLISH("umicom.studio.clock",
             &services->clock,
@@ -344,6 +433,67 @@ UmiSessionStore *umi_studio_services_session(UmiStudioServices *services)
 UmiRecoveryManager *umi_studio_services_recovery(UmiStudioServices *services)
 {
     return services != NULL ? services->recovery : NULL;
+}
+
+UmiWorkspaceGraph *umi_studio_services_workspace(UmiStudioServices *services)
+{
+    return services != NULL ? services->workspace : NULL;
+}
+
+UmiFileIndex *umi_studio_services_file_index(UmiStudioServices *services)
+{
+    return services != NULL ? services->file_index : NULL;
+}
+
+UmiWatcher *umi_studio_services_watcher(UmiStudioServices *services)
+{
+    return services != NULL ? services->watcher : NULL;
+}
+
+UmiProcessSupervisor *umi_studio_services_process_supervisor(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->process_supervisor : NULL;
+}
+
+UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,
+                                             const char *root,
+                                             int trusted)
+{
+    UmiStatus status;
+
+    if (services == NULL || root == NULL || root[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_watcher_stop(services->watcher);
+    if (status == UMI_STATUS_OK) {
+        status = umi_file_index_set_root(services->file_index, root);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_watcher_set_root(services->watcher, root);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_workspace_graph_open(services->workspace, root, trusted);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_workspace_graph_discover(services->workspace);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_file_index_rebuild(services->file_index);
+    }
+    return status;
+}
+
+UmiStatus umi_studio_services_close_workspace(UmiStudioServices *services)
+{
+    UmiStatus status;
+    if (services == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    (void)umi_watcher_stop(services->watcher);
+    status = umi_workspace_graph_close(services->workspace);
+    if (status == UMI_STATUS_OK) {
+        status = umi_file_index_clear(services->file_index);
+    }
+    return status;
 }
 
 size_t umi_studio_services_diagnostic_sink_count(

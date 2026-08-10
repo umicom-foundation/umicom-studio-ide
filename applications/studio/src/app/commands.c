@@ -19,6 +19,8 @@
 
 #include "umicom/studio/documents.h"
 #include "umicom/studio/session.h"
+#include "umicom/studio/watcher.h"
+#include "umicom/studio/workspace.h"
 
 static UmiStatus session_save_handler(void *user_data,
                                       const char *argument,
@@ -116,6 +118,63 @@ static UmiStatus recovery_purge_handler(void *user_data,
     return status;
 }
 
+static UmiStatus workspace_refresh_handler(void *user_data,
+                                           const char *argument,
+                                           char *out_message,
+                                           size_t message_capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_workspace_refresh((UmiStudioServices *)user_data);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "%s",
+                       status == UMI_STATUS_OK
+                           ? "Studio workspace refreshed"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus workspace_close_handler(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t message_capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_workspace_close((UmiStudioServices *)user_data);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "%s",
+                       status == UMI_STATUS_OK
+                           ? "Studio workspace closed"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus watcher_scan_handler(void *user_data,
+                                      const char *argument,
+                                      char *out_message,
+                                      size_t message_capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_watcher_scan_once((UmiStudioServices *)user_data);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "%s",
+                       status == UMI_STATUS_OK
+                           ? "Studio workspace watcher scanned"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
 static UmiStatus register_command(UmiCommandRegistry *registry,
                                   UmiStudioServices *services,
                                   const char *command_id,
@@ -185,15 +244,48 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               tasks_wait_idle_handler);
     if (status != UMI_STATUS_OK) return status;
 
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_RECOVERY_PURGE,
+                              "Purge recovery data",
+                              "Recovery",
+                              "Remove all Studio crash-recovery records.",
+                              "studio.recovery.delete",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_AUDITED |
+                                  UMI_COMMAND_REQUIRES_TRUST,
+                              recovery_purge_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_WORKSPACE_REFRESH,
+                              "Refresh workspace",
+                              "Workspace",
+                              "Rediscover projects and rebuild the file index.",
+                              "studio.workspace.read",
+                              UMI_COMMAND_NONE,
+                              workspace_refresh_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_WORKSPACE_CLOSE,
+                              "Close workspace",
+                              "Workspace",
+                              "Stop watching and close the active workspace.",
+                              "studio.workspace.write",
+                              UMI_COMMAND_MUTATES_STATE,
+                              workspace_close_handler);
+    if (status != UMI_STATUS_OK) return status;
+
     return register_command(registry,
                             services,
-                            UMI_STUDIO_COMMAND_RECOVERY_PURGE,
-                            "Purge recovery data",
-                            "Recovery",
-                            "Remove all Studio crash-recovery records.",
-                            "studio.recovery.delete",
-                            UMI_COMMAND_MUTATES_STATE |
-                                UMI_COMMAND_AUDITED |
-                                UMI_COMMAND_REQUIRES_TRUST,
-                            recovery_purge_handler);
+                            UMI_STUDIO_COMMAND_WATCHER_SCAN,
+                            "Scan workspace",
+                            "Workspace",
+                            "Run one deterministic workspace watcher scan.",
+                            "studio.workspace.read",
+                            UMI_COMMAND_NONE,
+                            watcher_scan_handler);
 }

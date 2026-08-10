@@ -4,9 +4,9 @@
  *
  * PURPOSE:
  *   Own the Umicom Framework services shared by Studio frontends and Slave
- *   Controllers.  The container creates one diagnostic hub, one bounded
- *   retained diagnostic store, one typed settings repository, and one
- *   Framework clock so features do not create uncontrolled global services.
+ *   Controllers.  The container creates one instance of each authoritative
+ *   settings, diagnostics, task, document, session, recovery, workspace, file
+ *   index, watcher, process-supervision and clock service.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -62,6 +62,16 @@ UmiTaskQueue *umi_studio_services_task_queue(UmiStudioServices *services);
 UmiDocumentStore *umi_studio_services_documents(UmiStudioServices *services);
 UmiSessionStore *umi_studio_services_session(UmiStudioServices *services);
 UmiRecoveryManager *umi_studio_services_recovery(UmiStudioServices *services);
+UmiWorkspaceGraph *umi_studio_services_workspace(UmiStudioServices *services);
+UmiFileIndex *umi_studio_services_file_index(UmiStudioServices *services);
+UmiWatcher *umi_studio_services_watcher(UmiStudioServices *services);
+UmiProcessSupervisor *umi_studio_services_process_supervisor(
+    UmiStudioServices *services
+);
+UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,
+                                             const char *root,
+                                             int trusted);
+UmiStatus umi_studio_services_close_workspace(UmiStudioServices *services);
 
 size_t umi_studio_services_diagnostic_sink_count(
     const UmiStudioServices *services

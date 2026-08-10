@@ -30,6 +30,10 @@ typedef struct UmiStudioStateReport {
     UmiTaskQueueStats tasks;
     size_t document_count;
     size_t session_entry_count;
+    UmiWorkspaceGraphSnapshot workspace;
+    UmiFileIndexStats files;
+    UmiWatcherStats watcher;
+    UmiProcessSupervisorStats processes;
 } UmiStudioStateReport;
 
 UmiStatus umi_studio_state_capture(UmiStudioBootstrap *bootstrap,

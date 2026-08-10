@@ -27,17 +27,22 @@ int main(void)
     assert(umi_studio_state_capture(bootstrap, &report) == UMI_STATUS_OK);
 
     assert(report.module_count == 1U);
-    assert(report.service_count >= 19U);
-    assert(report.command_count == 4U);
+    assert(report.service_count >= 23U);
+    assert(report.command_count == 7U);
     assert(report.health_count >= 3U);
     assert(report.overall_health == UMI_HEALTH_READY);
     assert(report.tasks.worker_count == 4U);
     assert(report.document_count == 0U);
+    assert(report.workspace.open);
+    assert(report.files.capacity > 0U);
+    assert(report.processes.capacity > 0U);
 
     assert(umi_studio_state_format(&report,
                                    text,
                                    sizeof(text)) == UMI_STATUS_OK);
     assert(strstr(text, "Overall health: ready") != NULL);
+    assert(strstr(text, "Workspace open: yes") != NULL);
+    assert(strstr(text, "Indexed files:") != NULL);
 
     assert(umi_studio_bootstrap_stop(bootstrap) == UMI_STATUS_OK);
     umi_studio_bootstrap_destroy(bootstrap);

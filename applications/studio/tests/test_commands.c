@@ -29,7 +29,7 @@ int main(void)
 
     registry = umi_studio_bootstrap_command_registry(bootstrap);
     assert(registry != NULL);
-    assert(umi_command_registry_count(registry) == 4U);
+    assert(umi_command_registry_count(registry) == 7U);
     assert(umi_command_registry_snapshot(
         registry,
         UMI_STUDIO_COMMAND_SESSION_SAVE,
@@ -45,6 +45,24 @@ int main(void)
         sizeof(message)
     ) == UMI_STATUS_OK);
     assert(strstr(message, "idle") != NULL);
+
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_WORKSPACE_REFRESH,
+        "",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(strstr(message, "refreshed") != NULL);
+
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_WATCHER_SCAN,
+        "",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(strstr(message, "scanned") != NULL);
 
     assert(umi_command_registry_execute(
         registry,

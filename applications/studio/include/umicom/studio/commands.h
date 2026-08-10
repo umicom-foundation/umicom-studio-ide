@@ -23,6 +23,9 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_DOCUMENTS_SAVE_ALL "studio.documents.save-all"
 #define UMI_STUDIO_COMMAND_TASKS_WAIT_IDLE "studio.tasks.wait-idle"
 #define UMI_STUDIO_COMMAND_RECOVERY_PURGE "studio.recovery.purge"
+#define UMI_STUDIO_COMMAND_WORKSPACE_REFRESH "studio.workspace.refresh"
+#define UMI_STUDIO_COMMAND_WORKSPACE_CLOSE "studio.workspace.close"
+#define UMI_STUDIO_COMMAND_WATCHER_SCAN "studio.watcher.scan"
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

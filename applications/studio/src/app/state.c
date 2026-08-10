@@ -54,6 +54,15 @@ UmiStatus umi_studio_state_capture(UmiStudioBootstrap *bootstrap,
     out_report->session_entry_count = umi_session_store_count(
         umi_studio_services_session(services)
     );
+    (void)umi_workspace_graph_snapshot(
+        umi_studio_services_workspace(services),
+        &out_report->workspace);
+    out_report->files = umi_file_index_stats(
+        umi_studio_services_file_index(services));
+    out_report->watcher = umi_watcher_stats(
+        umi_studio_services_watcher(services));
+    out_report->processes = umi_process_supervisor_stats(
+        umi_studio_services_process_supervisor(services));
     return UMI_STATUS_OK;
 }
 
@@ -79,7 +88,15 @@ UmiStatus umi_studio_state_format(const UmiStudioStateReport *report,
         "Tasks queued: %zu\n"
         "Tasks running: %zu\n"
         "Documents: %zu\n"
-        "Session entries: %zu\n",
+        "Session entries: %zu\n"
+        "Workspace open: %s\n"
+        "Workspace trusted: %s\n"
+        "Workspace projects: %zu\n"
+        "Indexed files: %zu\n"
+        "Watcher running: %s\n"
+        "Watcher events: %llu\n"
+        "Process jobs: %zu\n"
+        "Process jobs running: %zu\n",
         report->module_count,
         report->service_count,
         report->command_count,
@@ -89,7 +106,15 @@ UmiStatus umi_studio_state_format(const UmiStudioStateReport *report,
         report->tasks.queued,
         report->tasks.running,
         report->document_count,
-        report->session_entry_count
+        report->session_entry_count,
+        report->workspace.open ? "yes" : "no",
+        report->workspace.trusted ? "yes" : "no",
+        report->workspace.project_count,
+        report->files.files,
+        report->watcher.running ? "yes" : "no",
+        (unsigned long long)report->watcher.events,
+        report->processes.jobs,
+        report->processes.running
     );
 
     return written < 0 || (size_t)written >= text_capacity

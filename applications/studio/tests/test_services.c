@@ -54,6 +54,10 @@ int main(void)
     assert(umi_studio_services_documents(services) != NULL);
     assert(umi_studio_services_session(services) != NULL);
     assert(umi_studio_services_recovery(services) != NULL);
+    assert(umi_studio_services_workspace(services) != NULL);
+    assert(umi_studio_services_file_index(services) != NULL);
+    assert(umi_studio_services_watcher(services) != NULL);
+    assert(umi_studio_services_process_supervisor(services) != NULL);
 
     assert(umi_studio_services_add_diagnostic_sink(services,
                                                    count_sink,

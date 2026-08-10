@@ -33,6 +33,11 @@ add_library(umicom_studio_core STATIC
     src/app/tasks.c
     src/app/commands.c
     src/app/state.c
+    src/app/workspace.c
+    src/app/files.c
+    src/app/search.c
+    src/app/processes.c
+    src/app/watcher.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -98,6 +103,22 @@ add_executable(umicom-studio-state
 target_link_libraries(umicom-studio-state PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-state)
 umicom_apply_sanitizers(umicom-studio-state)
+
+# Native workspace, index and search inspection command.
+add_executable(umicom-studio-workspace
+    src/tools/workspace_main.c
+)
+target_link_libraries(umicom-studio-workspace PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-workspace)
+umicom_apply_sanitizers(umicom-studio-workspace)
+
+# Native supervised process execution command.
+add_executable(umicom-studio-process
+    src/tools/process_main.c
+)
+target_link_libraries(umicom-studio-process PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-process)
+umicom_apply_sanitizers(umicom-studio-process)
 
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
@@ -349,6 +370,46 @@ if(BUILD_TESTING)
     umicom_apply_warnings(umicom-studio-state-test)
     umicom_apply_sanitizers(umicom-studio-state-test)
     add_test(NAME studio.state COMMAND umicom-studio-state-test)
+
+    add_executable(umicom-studio-workspace-test
+        tests/test_workspace.c
+    )
+    target_link_libraries(umicom-studio-workspace-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-workspace-test)
+    umicom_apply_sanitizers(umicom-studio-workspace-test)
+    add_test(NAME studio.workspace COMMAND umicom-studio-workspace-test)
+
+    add_executable(umicom-studio-files-test
+        tests/test_files.c
+    )
+    target_link_libraries(umicom-studio-files-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-files-test)
+    umicom_apply_sanitizers(umicom-studio-files-test)
+    add_test(NAME studio.files COMMAND umicom-studio-files-test)
+
+    add_executable(umicom-studio-search-test
+        tests/test_search.c
+    )
+    target_link_libraries(umicom-studio-search-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-search-test)
+    umicom_apply_sanitizers(umicom-studio-search-test)
+    add_test(NAME studio.search COMMAND umicom-studio-search-test)
+
+    add_executable(umicom-studio-processes-test
+        tests/test_processes.c
+    )
+    target_link_libraries(umicom-studio-processes-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-processes-test)
+    umicom_apply_sanitizers(umicom-studio-processes-test)
+    add_test(NAME studio.processes COMMAND umicom-studio-processes-test)
+
+    add_executable(umicom-studio-watcher-test
+        tests/test_watcher.c
+    )
+    target_link_libraries(umicom-studio-watcher-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-watcher-test)
+    umicom_apply_sanitizers(umicom-studio-watcher-test)
+    add_test(NAME studio.watcher COMMAND umicom-studio-watcher-test)
 endif()
 
 install(TARGETS
@@ -358,5 +419,7 @@ install(TARGETS
     umicom-studio-settings
     umicom-studio-platform
     umicom-studio-state
+    umicom-studio-workspace
+    umicom-studio-process
     RUNTIME DESTINATION bin
 )

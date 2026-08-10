@@ -14,16 +14,7 @@
 #include "umicom/studio/bootstrap.h"
 #include "umicom/studio/diagnostics.h"
 #include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
-#include "umicom/studio/platform.h"
+#include "umicom/studio/workspace.h"
 #include "umicom/studio/settings.h"
 #include "umicom/studio/version.h"
 
@@ -70,6 +61,18 @@ int main(void)
                               sizeof(theme)) == UMI_STATUS_OK) {
         (void)printf("Typed settings: %zu\n", umi_settings_count(settings));
         (void)printf("Theme setting: %s\n", theme);
+    }
+
+    {
+        UmiStudioWorkspaceSnapshot workspace;
+        if (umi_studio_workspace_snapshot(
+                umi_studio_bootstrap_services(bootstrap),
+                &workspace) == UMI_STATUS_OK) {
+            (void)printf("Workspace root: %s\n", workspace.graph.root);
+            (void)printf("Workspace projects: %zu\n",
+                         workspace.graph.project_count);
+            (void)printf("Indexed files: %zu\n", workspace.files.files);
+        }
     }
 
     status = umi_studio_diagnostics_summary(
