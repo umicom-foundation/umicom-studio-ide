@@ -42,6 +42,16 @@ UmiStudioServices *umi_studio_bootstrap_services(
     UmiStudioBootstrap *bootstrap
 );
 
+UmiServiceRegistry *umi_studio_bootstrap_service_registry(
+    UmiStudioBootstrap *bootstrap
+);
+UmiCommandRegistry *umi_studio_bootstrap_command_registry(
+    UmiStudioBootstrap *bootstrap
+);
+UmiHealthRegistry *umi_studio_bootstrap_health_registry(
+    UmiStudioBootstrap *bootstrap
+);
+
 #ifdef __cplusplus
 }
 #endif

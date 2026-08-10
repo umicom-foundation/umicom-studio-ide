@@ -13,6 +13,7 @@
  * Licence: MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/bootstrap.h"
+#include "umicom/studio/commands.h"
 #include "umicom/studio/services.h"
 #include "umicom/studio/version.h"
 
@@ -104,6 +105,26 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         return status;
     }
 
+    status = umi_studio_services_publish(bootstrap->services,
+                                         bootstrap->master);
+    if (status != UMI_STATUS_OK) {
+        umi_master_controller_destroy(bootstrap->master);
+        umi_studio_services_destroy(bootstrap->services);
+        free(bootstrap);
+        return status;
+    }
+
+    status = umi_studio_commands_register(
+        umi_master_controller_command_registry(bootstrap->master),
+        bootstrap->services
+    );
+    if (status != UMI_STATUS_OK) {
+        umi_master_controller_destroy(bootstrap->master);
+        umi_studio_services_destroy(bootstrap->services);
+        free(bootstrap);
+        return status;
+    }
+
     bootstrap->studio_shell_module.structure_size =
         (uint32_t)sizeof(bootstrap->studio_shell_module);
     bootstrap->studio_shell_module.abi_version = UMICOM_FRAMEWORK_ABI_VERSION;
@@ -111,8 +132,39 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
     bootstrap->studio_shell_module.display_name = "Umicom Studio product shell";
     bootstrap->studio_shell_module.module_version = umi_studio_version();
     bootstrap->studio_shell_module.kind = UMI_MODULE_UI;
-    bootstrap->studio_shell_module.provided_capabilities = NULL;
-    bootstrap->studio_shell_module.required_capabilities = NULL;
+    {
+        static const char *provided_capabilities[] = {
+            "umicom.studio.shell",
+            "umicom.studio.workbench",
+            NULL
+        };
+        static const char *required_capabilities[] = {
+            "umicom.diagnostics",
+            "umicom.configuration",
+            "umicom.runtime.capabilities",
+            "umicom.security.policy",
+            NULL
+        };
+        static const char *optional_capabilities[] = {
+            "umicom.filesystem",
+            "umicom.process",
+            NULL
+        };
+        static const char *requested_permissions[] = {
+            "filesystem.read",
+            "filesystem.write.workspace",
+            "process.execute.build-tools",
+            NULL
+        };
+        bootstrap->studio_shell_module.provided_capabilities =
+            provided_capabilities;
+        bootstrap->studio_shell_module.required_capabilities =
+            required_capabilities;
+        bootstrap->studio_shell_module.optional_capabilities =
+            optional_capabilities;
+        bootstrap->studio_shell_module.requested_permissions =
+            requested_permissions;
+    }
     bootstrap->studio_shell_module.module_state = bootstrap;
     bootstrap->studio_shell_module.lifecycle.configure = studio_shell_configure;
     bootstrap->studio_shell_module.lifecycle.initialise = studio_shell_initialise;
@@ -200,4 +252,28 @@ size_t umi_studio_bootstrap_module_count(const UmiStudioBootstrap *bootstrap)
 UmiStudioServices *umi_studio_bootstrap_services(UmiStudioBootstrap *bootstrap)
 {
     return bootstrap != NULL ? bootstrap->services : NULL;
+}
+
+UmiServiceRegistry *umi_studio_bootstrap_service_registry(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_services(bootstrap->master)
+        : NULL;
+}
+
+UmiCommandRegistry *umi_studio_bootstrap_command_registry(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_command_registry(bootstrap->master)
+        : NULL;
+}
+
+UmiHealthRegistry *umi_studio_bootstrap_health_registry(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_health(bootstrap->master)
+        : NULL;
 }

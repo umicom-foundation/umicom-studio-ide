@@ -1,0 +1,62 @@
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * File: applications/studio/tests/test_commands.c
+ *
+ * PURPOSE:
+ *   Verify that canonical Studio commands are registered once and execute
+ *   through the Framework command registry without a graphical frontend.
+ *
+ * Created by: Sammy Hegab
+ * Organisation: Umicom Foundation
+ * Licence: MIT
+ *---------------------------------------------------------------------------*/
+#include "umicom/studio/commands.h"
+#include "umicom/studio/bootstrap.h"
+
+#include <assert.h>
+#include <string.h>
+
+int main(void)
+{
+    UmiStudioBootstrap *bootstrap = NULL;
+    UmiCommandRegistry *registry;
+    UmiCommandSnapshot snapshot;
+    char message[512];
+
+    (void)umi_fs_remove_tree(".umicom");
+    assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
+    assert(umi_studio_bootstrap_start(bootstrap) == UMI_STATUS_OK);
+
+    registry = umi_studio_bootstrap_command_registry(bootstrap);
+    assert(registry != NULL);
+    assert(umi_command_registry_count(registry) == 4U);
+    assert(umi_command_registry_snapshot(
+        registry,
+        UMI_STUDIO_COMMAND_SESSION_SAVE,
+        &snapshot
+    ) == UMI_STATUS_OK);
+    assert(strcmp(snapshot.category, "Session") == 0);
+
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_TASKS_WAIT_IDLE,
+        "1000",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(strstr(message, "idle") != NULL);
+
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_SESSION_SAVE,
+        "",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(umi_fs_is_file(".umicom/studio.session"));
+
+    assert(umi_studio_bootstrap_stop(bootstrap) == UMI_STATUS_OK);
+    umi_studio_bootstrap_destroy(bootstrap);
+    assert(umi_fs_remove_tree(".umicom") == UMI_STATUS_OK);
+    return 0;
+}

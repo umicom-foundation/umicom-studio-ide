@@ -3,9 +3,8 @@
  * File: applications/studio/tests/test_services.c
  *
  * PURPOSE:
- *   Verify that Studio owns one Framework diagnostic hub, one retained
- *   diagnostic store, one typed settings repository, one clock, and optional
- *   presentation sinks through the explicit UmiStudioServices container.
+ *   Verify that Studio owns one shared Framework container for diagnostics,
+ *   settings, clock, tasks, documents, sessions and crash recovery.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -39,6 +38,8 @@ int main(void)
     size_t first_count = 0U;
     size_t second_count = 0U;
 
+    (void)umi_fs_remove_tree(".umicom");
+
     assert(umi_studio_services_create(count_sink,
                                       &first_count,
                                       &services) == UMI_STATUS_OK);
@@ -49,6 +50,10 @@ int main(void)
     assert(umi_studio_services_diagnostic_store(services) != NULL);
     assert(umi_studio_services_settings(services) != NULL);
     assert(umi_studio_services_clock(services) != NULL);
+    assert(umi_studio_services_task_queue(services) != NULL);
+    assert(umi_studio_services_documents(services) != NULL);
+    assert(umi_studio_services_session(services) != NULL);
+    assert(umi_studio_services_recovery(services) != NULL);
 
     assert(umi_studio_services_add_diagnostic_sink(services,
                                                    count_sink,
@@ -77,5 +82,6 @@ int main(void)
     assert(umi_studio_services_diagnostic_sink_count(services) == 2U);
 
     umi_studio_services_destroy(services);
+    assert(umi_fs_remove_tree(".umicom") == UMI_STATUS_OK);
     return 0;
 }

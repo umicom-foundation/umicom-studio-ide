@@ -4,8 +4,8 @@
  *
  * PURPOSE:
  *   Provide a headless Studio frontend for validating Framework lifecycle,
- *   application versioning, module registration, typed settings, and retained
- *   diagnostics.
+ *   application versioning, module registration, typed settings, retained
+ *   diagnostics, and Framework platform capability integration.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -13,6 +13,17 @@
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/bootstrap.h"
 #include "umicom/studio/diagnostics.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
+#include "umicom/studio/platform.h"
 #include "umicom/studio/settings.h"
 #include "umicom/studio/version.h"
 
@@ -45,6 +56,9 @@ int main(void)
     (void)printf("Framework: %s\n", UMICOM_FRAMEWORK_VERSION_STRING);
     (void)printf("Registered modules: %zu\n",
                  umi_studio_bootstrap_module_count(bootstrap));
+    (void)printf("Framework capabilities: %zu\n",
+                 umi_framework_capability_catalogue_count());
+    (void)printf("Native command: umicom\n");
 
     settings = umi_studio_services_settings(
         umi_studio_bootstrap_services(bootstrap)

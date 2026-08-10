@@ -1,7 +1,8 @@
 # Umicom Studio IDE
 
-Umicom Studio IDE 0.13.0 is the C23 and GTK4 development environment for
-building, inspecting and operating applications based on Umicom Framework.
+Umicom Studio IDE 0.14.0 is the C23 and GTK4 reference application for Umicom
+Framework 0.5.0.  It is a local major-release candidate until all Windows,
+headless, generated-application, documentation, and repository checks pass.
 
 ## Architecture
 

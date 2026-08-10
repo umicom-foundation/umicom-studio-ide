@@ -15,7 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.13.0")
+set(UMICOM_STUDIO_VERSION "0.14.0")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
@@ -27,6 +27,12 @@ add_library(umicom_studio_core STATIC
     src/app/doctor.c
     src/app/diagnostics.c
     src/app/settings.c
+    src/app/platform.c
+    src/app/session.c
+    src/app/documents.c
+    src/app/tasks.c
+    src/app/commands.c
+    src/app/state.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -76,6 +82,22 @@ add_executable(umicom-studio-settings
 target_link_libraries(umicom-studio-settings PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-settings)
 umicom_apply_sanitizers(umicom-studio-settings)
+
+# Native Framework platform and toolchain inspection command.
+add_executable(umicom-studio-platform
+    src/tools/platform_main.c
+)
+target_link_libraries(umicom-studio-platform PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-platform)
+umicom_apply_sanitizers(umicom-studio-platform)
+
+# Native Framework and Studio operational-state command.
+add_executable(umicom-studio-state
+    src/tools/state_main.c
+)
+target_link_libraries(umicom-studio-state PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-state)
+umicom_apply_sanitizers(umicom-studio-state)
 
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
@@ -143,7 +165,7 @@ if(UMICOM_STUDIO_BUILD_GTK)
         NOMINMAX
         _CRT_SECURE_NO_WARNINGS
         UMICOM_VERSION_MAJOR=0
-        UMICOM_VERSION_MINOR=13
+        UMICOM_VERSION_MINOR=14
         UMICOM_VERSION_PATCH=0
         gtk_widget_destroy=g_object_unref
     )
@@ -218,7 +240,7 @@ if(UMICOM_STUDIO_BUILD_GTK)
         NOMINMAX
         _CRT_SECURE_NO_WARNINGS
         UMICOM_VERSION_MAJOR=0
-        UMICOM_VERSION_MINOR=13
+        UMICOM_VERSION_MINOR=14
         UMICOM_VERSION_PATCH=0
     )
 
@@ -280,6 +302,14 @@ if(BUILD_TESTING)
     add_test(NAME studio.diagnostics COMMAND umicom-studio-diagnostics-test)
 
 
+    add_executable(umicom-studio-platform-test
+        tests/test_platform.c
+    )
+    target_link_libraries(umicom-studio-platform-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-platform-test)
+    umicom_apply_sanitizers(umicom-studio-platform-test)
+    add_test(NAME studio.platform COMMAND umicom-studio-platform-test)
+
     add_executable(umicom-studio-settings-test
         tests/test_settings.c
     )
@@ -287,6 +317,38 @@ if(BUILD_TESTING)
     umicom_apply_warnings(umicom-studio-settings-test)
     umicom_apply_sanitizers(umicom-studio-settings-test)
     add_test(NAME studio.settings COMMAND umicom-studio-settings-test)
+
+    add_executable(umicom-studio-documents-test
+        tests/test_documents.c
+    )
+    target_link_libraries(umicom-studio-documents-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-documents-test)
+    umicom_apply_sanitizers(umicom-studio-documents-test)
+    add_test(NAME studio.documents COMMAND umicom-studio-documents-test)
+
+    add_executable(umicom-studio-tasks-test
+        tests/test_tasks.c
+    )
+    target_link_libraries(umicom-studio-tasks-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-tasks-test)
+    umicom_apply_sanitizers(umicom-studio-tasks-test)
+    add_test(NAME studio.tasks COMMAND umicom-studio-tasks-test)
+
+    add_executable(umicom-studio-commands-test
+        tests/test_commands.c
+    )
+    target_link_libraries(umicom-studio-commands-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-commands-test)
+    umicom_apply_sanitizers(umicom-studio-commands-test)
+    add_test(NAME studio.commands COMMAND umicom-studio-commands-test)
+
+    add_executable(umicom-studio-state-test
+        tests/test_state.c
+    )
+    target_link_libraries(umicom-studio-state-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-state-test)
+    umicom_apply_sanitizers(umicom-studio-state-test)
+    add_test(NAME studio.state COMMAND umicom-studio-state-test)
 endif()
 
 install(TARGETS
@@ -294,5 +356,7 @@ install(TARGETS
     umicom-studio-doctor
     umicom-studio-diagnostics
     umicom-studio-settings
+    umicom-studio-platform
+    umicom-studio-state
     RUNTIME DESTINATION bin
 )

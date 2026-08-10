@@ -34,6 +34,11 @@ UmiStatus umi_studio_services_create(
 
 void umi_studio_services_destroy(UmiStudioServices *services);
 
+UmiStatus umi_studio_services_publish(
+    UmiStudioServices *services,
+    UmiMasterController *master
+);
+
 UmiStatus umi_studio_services_add_diagnostic_sink(
     UmiStudioServices *services,
     UmiDiagnosticSink sink,
@@ -53,6 +58,10 @@ UmiSettings *umi_studio_services_settings(UmiStudioServices *services);
 UmiDiagnosticStore *umi_studio_services_diagnostic_store(
     UmiStudioServices *services
 );
+UmiTaskQueue *umi_studio_services_task_queue(UmiStudioServices *services);
+UmiDocumentStore *umi_studio_services_documents(UmiStudioServices *services);
+UmiSessionStore *umi_studio_services_session(UmiStudioServices *services);
+UmiRecoveryManager *umi_studio_services_recovery(UmiStudioServices *services);
 
 size_t umi_studio_services_diagnostic_sink_count(
     const UmiStudioServices *services

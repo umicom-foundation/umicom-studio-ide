@@ -4,12 +4,12 @@ application:
   id: org.umicom.studio
   name: Umicom Studio IDE
   short_name: Studio
-  version: 0.13.0
+  version: 0.14.0
   executable: umicom-studio-ide
   aliases: [usi, ustudio]
 
 framework:
-  minimum_version: 0.4.4
+  minimum_version: 0.5.0
   compatible_major: 0
 
 frontends:
@@ -28,6 +28,11 @@ capabilities:
   - problems
   - plugins
   - ai
+  - runtime-capabilities
+  - security-policy
+  - toolchain-discovery
+  - repository-scaffolding
+  - suite-composition
 
 source_layout:
   product_root: src
@@ -36,7 +41,7 @@ source_layout:
   gtk_frontend: src/gtk
 
 migration:
-  stage: typed-settings-integrated
+  stage: native-platform-foundation-integrated
   product_source_root: src
-  completed_vertical_slice: configuration-and-typed-settings
-  next_vertical_slice: filesystem-and-file-watching
+  completed_vertical_slice: native-platform-and-repository-foundation
+  next_vertical_slice: workbench-and-framework-service-adoption
