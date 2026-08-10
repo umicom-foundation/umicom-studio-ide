@@ -6,7 +6,8 @@
  *   Own the Umicom Framework services shared by Studio frontends and Slave
  *   Controllers.  The container creates one instance of each authoritative
  *   settings, diagnostics, task, document, session, recovery, workspace, file
- *   index, watcher, process-supervision and clock service.
+ *   index, watcher, process-supervision, Data Server, Integration Fabric and
+ *   clock service.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -68,6 +69,17 @@ UmiWatcher *umi_studio_services_watcher(UmiStudioServices *services);
 UmiProcessSupervisor *umi_studio_services_process_supervisor(
     UmiStudioServices *services
 );
+UmiDataServer *umi_studio_services_data_server(UmiStudioServices *services);
+UmiStore *umi_studio_services_store(UmiStudioServices *services);
+UmiSchemaRegistry *umi_studio_services_schema_registry(UmiStudioServices *services);
+UmiDispatcher *umi_studio_services_dispatcher(UmiStudioServices *services);
+UmiInbox *umi_studio_services_inbox(UmiStudioServices *services);
+UmiOutbox *umi_studio_services_outbox(UmiStudioServices *services);
+UmiDeadLetterStore *umi_studio_services_dead_letters(UmiStudioServices *services);
+UmiTopicRegistry *umi_studio_services_topics(UmiStudioServices *services);
+UmiMessageStore *umi_studio_services_message_store(UmiStudioServices *services);
+UmiJournalStore *umi_studio_services_journal(UmiStudioServices *services);
+UmiMessageMetricsCounter *umi_studio_services_message_metrics(UmiStudioServices *services);
 UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,
                                              const char *root,
                                              int trusted);

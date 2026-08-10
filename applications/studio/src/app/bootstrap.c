@@ -136,6 +136,8 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         static const char *provided_capabilities[] = {
             "umicom.studio.shell",
             "umicom.studio.workbench",
+            "umicom.studio.data",
+            "umicom.studio.integration-fabric",
             NULL
         };
         static const char *required_capabilities[] = {
@@ -148,6 +150,8 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         static const char *optional_capabilities[] = {
             "umicom.filesystem",
             "umicom.process",
+            "umicom.data",
+            "umicom.messaging.events",
             NULL
         };
         static const char *requested_permissions[] = {

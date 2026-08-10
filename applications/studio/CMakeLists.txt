@@ -38,6 +38,11 @@ add_library(umicom_studio_core STATIC
     src/app/search.c
     src/app/processes.c
     src/app/watcher.c
+    src/app/data.c
+    src/app/messages.c
+    src/app/history.c
+    src/app/replay.c
+    src/app/fabric.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -119,6 +124,30 @@ add_executable(umicom-studio-process
 target_link_libraries(umicom-studio-process PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-process)
 umicom_apply_sanitizers(umicom-studio-process)
+
+# Native Data Server inspection command.
+add_executable(umicom-studio-data src/tools/data_main.c)
+target_link_libraries(umicom-studio-data PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-data)
+umicom_apply_sanitizers(umicom-studio-data)
+
+# Native Integration Fabric inspection and publication command.
+add_executable(umicom-studio-messages src/tools/messages_main.c)
+target_link_libraries(umicom-studio-messages PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-messages)
+umicom_apply_sanitizers(umicom-studio-messages)
+
+# Native durable replay command.
+add_executable(umicom-studio-replay src/tools/replay_main.c)
+target_link_libraries(umicom-studio-replay PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-replay)
+umicom_apply_sanitizers(umicom-studio-replay)
+
+# Native Studio operational-history command.
+add_executable(umicom-studio-history src/tools/history_main.c)
+target_link_libraries(umicom-studio-history PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-history)
+umicom_apply_sanitizers(umicom-studio-history)
 
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
@@ -410,6 +439,46 @@ if(BUILD_TESTING)
     umicom_apply_warnings(umicom-studio-watcher-test)
     umicom_apply_sanitizers(umicom-studio-watcher-test)
     add_test(NAME studio.watcher COMMAND umicom-studio-watcher-test)
+
+    add_executable(umicom-studio-data-test tests/test_data.c)
+    target_link_libraries(umicom-studio-data-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-data-test)
+    add_test(NAME studio.data COMMAND umicom-studio-data-test)
+
+    add_executable(umicom-studio-messages-test tests/test_messages.c)
+    target_link_libraries(umicom-studio-messages-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-messages-test)
+    add_test(NAME studio.messages COMMAND umicom-studio-messages-test)
+
+    add_executable(umicom-studio-history-test tests/test_history.c)
+    target_link_libraries(umicom-studio-history-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-history-test)
+    add_test(NAME studio.history COMMAND umicom-studio-history-test)
+
+    add_executable(umicom-studio-replay-test tests/test_replay.c)
+    target_link_libraries(umicom-studio-replay-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-replay-test)
+    add_test(NAME studio.replay COMMAND umicom-studio-replay-test)
+
+    add_executable(umicom-studio-fabric-test tests/test_fabric.c)
+    target_link_libraries(umicom-studio-fabric-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-fabric-test)
+    add_test(NAME studio.fabric COMMAND umicom-studio-fabric-test)
+
+    add_executable(umicom-studio-outbox-test tests/test_outbox.c)
+    target_link_libraries(umicom-studio-outbox-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-outbox-test)
+    add_test(NAME studio.outbox COMMAND umicom-studio-outbox-test)
+
+    add_executable(umicom-studio-persistence-test tests/test_persistence.c)
+    target_link_libraries(umicom-studio-persistence-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-persistence-test)
+    add_test(NAME studio.persistence COMMAND umicom-studio-persistence-test)
+
+    add_executable(umicom-studio-dead-letters-test tests/test_dead_letters.c)
+    target_link_libraries(umicom-studio-dead-letters-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-dead-letters-test)
+    add_test(NAME studio.dead_letters COMMAND umicom-studio-dead-letters-test)
 endif()
 
 install(TARGETS
@@ -421,5 +490,9 @@ install(TARGETS
     umicom-studio-state
     umicom-studio-workspace
     umicom-studio-process
+    umicom-studio-data
+    umicom-studio-messages
+    umicom-studio-replay
+    umicom-studio-history
     RUNTIME DESTINATION bin
 )

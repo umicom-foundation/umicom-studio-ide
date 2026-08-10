@@ -13,6 +13,9 @@
 #include "umicom/studio/state.h"
 #include "umicom/studio/tasks.h"
 
+#include "umicom/studio/data.h"
+#include "umicom/studio/messages.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -63,6 +66,20 @@ UmiStatus umi_studio_state_capture(UmiStudioBootstrap *bootstrap,
         umi_studio_services_watcher(services));
     out_report->processes = umi_process_supervisor_stats(
         umi_studio_services_process_supervisor(services));
+    {
+        UmiStudioDataReport data;
+        UmiStudioMessageReport messages;
+        if (umi_studio_data_report(services, &data) == UMI_STATUS_OK) {
+            out_report->data_records = data.records;
+        }
+        if (umi_studio_messages_report(services, &messages) == UMI_STATUS_OK) {
+            out_report->message_schemas = messages.schemas;
+            out_report->message_topics = messages.topics;
+            out_report->journal_messages = messages.journal_messages;
+            out_report->outbox = messages.outbox;
+            out_report->dead_letters = messages.dead_letters;
+        }
+    }
     return UMI_STATUS_OK;
 }
 
@@ -96,7 +113,13 @@ UmiStatus umi_studio_state_format(const UmiStudioStateReport *report,
         "Watcher running: %s\n"
         "Watcher events: %llu\n"
         "Process jobs: %zu\n"
-        "Process jobs running: %zu\n",
+        "Process jobs running: %zu\n"
+        "Data records: %zu\n"
+        "Message schemas: %zu\n"
+        "Message topics: %zu\n"
+        "Journal messages: %zu\n"
+        "Outbox pending: %zu\n"
+        "Dead letters: %zu\n",
         report->module_count,
         report->service_count,
         report->command_count,
@@ -114,7 +137,13 @@ UmiStatus umi_studio_state_format(const UmiStudioStateReport *report,
         report->watcher.running ? "yes" : "no",
         (unsigned long long)report->watcher.events,
         report->processes.jobs,
-        report->processes.running
+        report->processes.running,
+        report->data_records,
+        report->message_schemas,
+        report->message_topics,
+        report->journal_messages,
+        report->outbox.pending,
+        report->dead_letters
     );
 
     return written < 0 || (size_t)written >= text_capacity

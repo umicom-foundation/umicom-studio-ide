@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "umicom/studio/fabric.h"
 #include "umicom/studio/session.h"
 #include "umicom/studio/version.h"
 
@@ -32,6 +33,17 @@ struct UmiStudioServices {
     UmiFileIndex *file_index;
     UmiWatcher *watcher;
     UmiProcessSupervisor *process_supervisor;
+    UmiDataServer *data_server;
+    UmiStore store;
+    UmiSchemaRegistry *schemas;
+    UmiDispatcher *dispatcher;
+    UmiInbox *inbox;
+    UmiOutbox *outbox;
+    UmiDeadLetterStore *dead_letters;
+    UmiTopicRegistry *topics;
+    UmiMessageStore *message_store;
+    UmiJournalStore journal;
+    UmiMessageMetricsCounter *message_metrics;
     UmiClock clock;
     int published;
 };
@@ -74,6 +86,25 @@ static void destroy_partial(UmiStudioServices *services)
     services->file_index = NULL;
     umi_workspace_graph_destroy(services->workspace);
     services->workspace = NULL;
+    free(services->message_metrics);
+    services->message_metrics = NULL;
+    umi_journal_store_dispose(&services->journal);
+    umi_message_store_destroy(services->message_store);
+    services->message_store = NULL;
+    umi_topic_registry_destroy(services->topics);
+    services->topics = NULL;
+    umi_dead_letter_store_destroy(services->dead_letters);
+    services->dead_letters = NULL;
+    umi_outbox_destroy(services->outbox);
+    services->outbox = NULL;
+    umi_inbox_destroy(services->inbox);
+    services->inbox = NULL;
+    umi_dispatcher_destroy(services->dispatcher);
+    services->dispatcher = NULL;
+    umi_schema_registry_destroy(services->schemas);
+    services->schemas = NULL;
+    umi_data_server_destroy(services->data_server);
+    services->data_server = NULL;
     umi_process_supervisor_destroy(services->process_supervisor);
     services->process_supervisor = NULL;
     umi_recovery_manager_destroy(services->recovery);
@@ -229,6 +260,61 @@ UmiStatus umi_studio_services_create(
         return status;
     }
 
+    {
+        const char *data_path = getenv("UMICOM_STUDIO_DATA_PATH");
+        status = data_path != NULL && data_path[0] != '\0'
+            ? umi_data_server_create_sqlite(data_path, &services->data_server)
+            : umi_data_server_create_memory(&services->data_server);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_store_from_data_server(services->data_server,
+                                            &services->store);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_schema_registry_create(&services->schemas);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_dispatcher_create(services->schemas,
+                                       &services->dispatcher);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_inbox_create(4096U, &services->inbox);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_outbox_create(4096U, &services->outbox);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_dead_letter_store_create(2048U,
+                                              &services->dead_letters);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_topic_registry_create(256U, &services->topics);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_message_store_create(&services->store,
+                                          "studio-history",
+                                          &services->message_store);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_journal_store_init(&services->journal,
+                                        &services->store,
+                                        "studio-journal");
+    }
+    if (status == UMI_STATUS_OK) {
+        services->message_metrics = (UmiMessageMetricsCounter *)calloc(
+            1U, umi_message_metrics_counter_size());
+        status = services->message_metrics != NULL
+            ? UMI_STATUS_OK : UMI_STATUS_OUT_OF_MEMORY;
+    }
+    if (status == UMI_STATUS_OK) {
+        umi_message_metrics_init(services->message_metrics);
+        status = umi_studio_fabric_register_defaults(services);
+    }
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+
     status = umi_workspace_graph_create(&services->workspace);
     if (status != UMI_STATUS_OK ||
         umi_fs_current_directory(current_directory,
@@ -344,6 +430,27 @@ UmiStatus umi_studio_services_publish(
     PUBLISH("umicom.studio.process-supervisor",
             services->process_supervisor,
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.data-server",
+            services->data_server,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.message-schemas",
+            services->schemas,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.message-dispatcher",
+            services->dispatcher,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.message-inbox",
+            services->inbox,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.message-outbox",
+            services->outbox,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.dead-letters",
+            services->dead_letters,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.message-journal",
+            &services->journal,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
     PUBLISH("umicom.studio.clock",
             &services->clock,
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
@@ -454,6 +561,61 @@ UmiProcessSupervisor *umi_studio_services_process_supervisor(
     UmiStudioServices *services)
 {
     return services != NULL ? services->process_supervisor : NULL;
+}
+
+UmiDataServer *umi_studio_services_data_server(UmiStudioServices *services)
+{
+    return services != NULL ? services->data_server : NULL;
+}
+
+UmiStore *umi_studio_services_store(UmiStudioServices *services)
+{
+    return services != NULL ? &services->store : NULL;
+}
+
+UmiSchemaRegistry *umi_studio_services_schema_registry(UmiStudioServices *services)
+{
+    return services != NULL ? services->schemas : NULL;
+}
+
+UmiDispatcher *umi_studio_services_dispatcher(UmiStudioServices *services)
+{
+    return services != NULL ? services->dispatcher : NULL;
+}
+
+UmiInbox *umi_studio_services_inbox(UmiStudioServices *services)
+{
+    return services != NULL ? services->inbox : NULL;
+}
+
+UmiOutbox *umi_studio_services_outbox(UmiStudioServices *services)
+{
+    return services != NULL ? services->outbox : NULL;
+}
+
+UmiDeadLetterStore *umi_studio_services_dead_letters(UmiStudioServices *services)
+{
+    return services != NULL ? services->dead_letters : NULL;
+}
+
+UmiTopicRegistry *umi_studio_services_topics(UmiStudioServices *services)
+{
+    return services != NULL ? services->topics : NULL;
+}
+
+UmiMessageStore *umi_studio_services_message_store(UmiStudioServices *services)
+{
+    return services != NULL ? services->message_store : NULL;
+}
+
+UmiJournalStore *umi_studio_services_journal(UmiStudioServices *services)
+{
+    return services != NULL ? &services->journal : NULL;
+}
+
+UmiMessageMetricsCounter *umi_studio_services_message_metrics(UmiStudioServices *services)
+{
+    return services != NULL ? services->message_metrics : NULL;
 }
 
 UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,

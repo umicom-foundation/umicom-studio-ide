@@ -15,6 +15,7 @@
 #include "umicom/studio/diagnostics.h"
 #include "umicom/studio/platform.h"
 #include "umicom/studio/workspace.h"
+#include "umicom/studio/messages.h"
 #include "umicom/studio/settings.h"
 #include "umicom/studio/version.h"
 
@@ -26,6 +27,7 @@ int main(void)
     UmiStudioBootstrap *bootstrap = NULL;
     UmiDiagnosticStoreSummary summary;
     UmiSettings *settings;
+    UmiStudioServices *services;
     char theme[UMI_SETTING_VALUE_CAPACITY];
     UmiStatus status = umi_studio_bootstrap_create(&bootstrap);
 
@@ -51,9 +53,8 @@ int main(void)
                  umi_framework_capability_catalogue_count());
     (void)printf("Native command: umicom\n");
 
-    settings = umi_studio_services_settings(
-        umi_studio_bootstrap_services(bootstrap)
-    );
+    services = umi_studio_bootstrap_services(bootstrap);
+    settings = umi_studio_services_settings(services);
     if (settings != NULL &&
         umi_settings_get_text(settings,
                               UMI_STUDIO_SETTING_UI_THEME,
@@ -61,6 +62,16 @@ int main(void)
                               sizeof(theme)) == UMI_STATUS_OK) {
         (void)printf("Typed settings: %zu\n", umi_settings_count(settings));
         (void)printf("Theme setting: %s\n", theme);
+    }
+
+    {
+        UmiStudioMessageReport message_report;
+        if (umi_studio_messages_report(services, &message_report) == UMI_STATUS_OK) {
+            (void)printf("Message schemas: %zu\n", message_report.schemas);
+            (void)printf("Message topics: %zu\n", message_report.topics);
+            (void)printf("Durable journal records: %zu\n",
+                         message_report.journal_messages);
+        }
     }
 
     {

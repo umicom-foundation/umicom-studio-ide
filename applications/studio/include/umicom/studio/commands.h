@@ -26,6 +26,9 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_WORKSPACE_REFRESH "studio.workspace.refresh"
 #define UMI_STUDIO_COMMAND_WORKSPACE_CLOSE "studio.workspace.close"
 #define UMI_STUDIO_COMMAND_WATCHER_SCAN "studio.watcher.scan"
+#define UMI_STUDIO_COMMAND_DATA_INTEGRITY "studio.data.integrity"
+#define UMI_STUDIO_COMMAND_MESSAGES_FLUSH "studio.messages.flush"
+#define UMI_STUDIO_COMMAND_MESSAGES_REPLAY "studio.messages.replay"
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

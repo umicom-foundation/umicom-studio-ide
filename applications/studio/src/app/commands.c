@@ -17,7 +17,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "umicom/studio/data.h"
 #include "umicom/studio/documents.h"
+#include "umicom/studio/messages.h"
+#include "umicom/studio/replay.h"
 #include "umicom/studio/session.h"
 #include "umicom/studio/watcher.h"
 #include "umicom/studio/workspace.h"
@@ -175,6 +178,66 @@ static UmiStatus watcher_scan_handler(void *user_data,
     return status;
 }
 
+
+static UmiStatus data_integrity_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    UmiStudioDataReport report;
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_data_report((UmiStudioServices *)user_data, &report);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Data Server %s: %zu record(s), integrity %s",
+                       report.backend_name,
+                       report.records,
+                       umi_status_text(report.integrity_status));
+    }
+    return status;
+}
+
+static UmiStatus messages_flush_handler(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t message_capacity)
+{
+    size_t delivered = 0U;
+    size_t failed = 0U;
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_messages_flush_outbox((UmiStudioServices *)user_data,
+                                              0U,
+                                              &delivered,
+                                              &failed);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Outbox delivered %zu; failed %zu",
+                       delivered, failed);
+    }
+    return status;
+}
+
+static UmiStatus messages_replay_handler(void *user_data,
+                                          const char *argument,
+                                          char *out_message,
+                                          size_t message_capacity)
+{
+    UmiStudioReplayRequest request = umi_studio_replay_request_default();
+    size_t replayed = 0U;
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_replay((UmiStudioServices *)user_data,
+                               &request,
+                               &replayed);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Replayed %zu durable message(s)", replayed);
+    }
+    return status;
+}
+
 static UmiStatus register_command(UmiCommandRegistry *registry,
                                   UmiStudioServices *services,
                                   const char *command_id,
@@ -279,13 +342,46 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               workspace_close_handler);
     if (status != UMI_STATUS_OK) return status;
 
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_WATCHER_SCAN,
+                              "Scan workspace",
+                              "Workspace",
+                              "Run one deterministic workspace watcher scan.",
+                              "studio.workspace.read",
+                              UMI_COMMAND_NONE,
+                              watcher_scan_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_DATA_INTEGRITY,
+                              "Check Data Server integrity",
+                              "Data",
+                              "Verify the authoritative Studio Data Server.",
+                              "data.read",
+                              UMI_COMMAND_NONE,
+                              data_integrity_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_MESSAGES_FLUSH,
+                              "Flush message outbox",
+                              "Messaging",
+                              "Deliver pending Studio Integration Fabric records.",
+                              "messaging.publish",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              messages_flush_handler);
+    if (status != UMI_STATUS_OK) return status;
+
     return register_command(registry,
                             services,
-                            UMI_STUDIO_COMMAND_WATCHER_SCAN,
-                            "Scan workspace",
-                            "Workspace",
-                            "Run one deterministic workspace watcher scan.",
-                            "studio.workspace.read",
-                            UMI_COMMAND_NONE,
-                            watcher_scan_handler);
+                            UMI_STUDIO_COMMAND_MESSAGES_REPLAY,
+                            "Replay durable messages",
+                            "Messaging",
+                            "Replay Studio journal records through the dispatcher.",
+                            "messaging.replay",
+                            UMI_COMMAND_AUDITED,
+                            messages_replay_handler);
 }

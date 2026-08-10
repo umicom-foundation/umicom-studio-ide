@@ -34,6 +34,12 @@ typedef struct UmiStudioStateReport {
     UmiFileIndexStats files;
     UmiWatcherStats watcher;
     UmiProcessSupervisorStats processes;
+    size_t data_records;
+    size_t message_schemas;
+    size_t message_topics;
+    size_t journal_messages;
+    UmiOutboxStats outbox;
+    size_t dead_letters;
 } UmiStudioStateReport;
 
 UmiStatus umi_studio_state_capture(UmiStudioBootstrap *bootstrap,
