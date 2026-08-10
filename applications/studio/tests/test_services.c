@@ -58,6 +58,13 @@ int main(void)
     assert(umi_studio_services_file_index(services) != NULL);
     assert(umi_studio_services_watcher(services) != NULL);
     assert(umi_studio_services_process_supervisor(services) != NULL);
+    assert(umi_studio_services_developer_platform(services) != NULL);
+    assert(umi_studio_services_build(services) != NULL);
+    assert(umi_studio_services_tests(services) != NULL);
+    assert(umi_studio_services_terminal(services) != NULL);
+    assert(umi_studio_services_language(services) != NULL);
+    assert(umi_studio_services_debugger(services) != NULL);
+    assert(umi_studio_services_source_control(services) != NULL);
 
     assert(umi_studio_services_add_diagnostic_sink(services,
                                                    count_sink,

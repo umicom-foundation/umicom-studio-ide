@@ -55,6 +55,13 @@ add_library(umicom_studio_core STATIC
     src/app/view_models.c
     src/app/workbench_commands.c
     src/app/ui_catalogue.c
+    src/app/build.c
+    src/app/tests.c
+    src/app/terminal.c
+    src/app/language.c
+    src/app/debugger.c
+    src/app/source_control.c
+    src/app/developer_platform.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -188,6 +195,26 @@ add_executable(umicom-studio-ui-catalogue src/tools/ui_catalogue_main.c)
 target_link_libraries(umicom-studio-ui-catalogue PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-ui-catalogue)
 umicom_apply_sanitizers(umicom-studio-ui-catalogue)
+
+# Native developer-platform commands for build, test, terminal, language,
+# debugging, source control and the combined platform report.
+foreach(UMICOM_STUDIO_DEVELOPER_TOOL
+        build
+        tests
+        terminal
+        language
+        debugger
+        source-control
+        developer)
+    string(REPLACE "-" "_" UMICOM_STUDIO_DEVELOPER_SOURCE
+        "${UMICOM_STUDIO_DEVELOPER_TOOL}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL}
+        src/tools/${UMICOM_STUDIO_DEVELOPER_SOURCE}_main.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL}
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL})
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL})
+endforeach()
 
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
@@ -583,6 +610,26 @@ if(BUILD_TESTING)
             COMMAND umicom-studio-${UMICOM_STUDIO_UI_TEST}-test)
     endforeach()
 
+    foreach(UMICOM_STUDIO_DEVELOPER_TEST
+            build_service
+            test_service
+            terminal_service
+            language_service
+            debugger_service
+            source_control_service
+            developer_platform)
+        string(REPLACE "_" "-" UMICOM_STUDIO_DEVELOPER_TEST_TARGET
+            "${UMICOM_STUDIO_DEVELOPER_TEST}")
+        add_executable(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TEST_TARGET}-test
+            tests/test_${UMICOM_STUDIO_DEVELOPER_TEST}.c)
+        target_link_libraries(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TEST_TARGET}-test
+            PRIVATE Umicom::StudioCore)
+        umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TEST_TARGET}-test)
+        umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TEST_TARGET}-test)
+        add_test(NAME studio.${UMICOM_STUDIO_DEVELOPER_TEST}
+            COMMAND umicom-studio-${UMICOM_STUDIO_DEVELOPER_TEST_TARGET}-test)
+    endforeach()
+
     # Studio integration tests share the default .umicom session/recovery
     # directory.  A named CTest resource lock preserves parallel Framework
     # testing while preventing Studio tests from deleting one another's state.
@@ -626,6 +673,13 @@ if(BUILD_TESTING)
         studio.ui_services
         studio.ui_session
         studio.ui_actions
+        studio.build_service
+        studio.test_service
+        studio.terminal_service
+        studio.language_service
+        studio.debugger_service
+        studio.source_control_service
+        studio.developer_platform
         PROPERTIES RESOURCE_LOCK umicom_studio_runtime_state
     )
 endif()
@@ -650,5 +704,12 @@ install(TARGETS
     umicom-studio-operations
     umicom-studio-workbench
     umicom-studio-ui-catalogue
+    umicom-studio-build
+    umicom-studio-tests
+    umicom-studio-terminal
+    umicom-studio-language
+    umicom-studio-debugger
+    umicom-studio-source-control
+    umicom-studio-developer
     RUNTIME DESTINATION bin
 )

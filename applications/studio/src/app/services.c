@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "umicom/studio/developer_platform.h"
 #include "umicom/studio/fabric.h"
 #include "umicom/studio/operations.h"
 #include "umicom/studio/session.h"
@@ -46,6 +47,7 @@ struct UmiStudioServices {
     UmiJournalStore journal;
     UmiMessageMetricsCounter *message_metrics;
     UmiStudioOperations *operations;
+    UmiStudioDeveloperPlatform *developer_platform;
     UmiClock clock;
     int published;
 };
@@ -82,6 +84,8 @@ static void destroy_partial(UmiStudioServices *services)
     if (services->task_queue != NULL) {
         (void)umi_task_queue_shutdown(services->task_queue, 1);
     }
+    umi_studio_developer_platform_destroy(services->developer_platform);
+    services->developer_platform = NULL;
     umi_studio_operations_destroy(services->operations);
     services->operations = NULL;
     umi_watcher_destroy(services->watcher);
@@ -357,6 +361,16 @@ UmiStatus umi_studio_services_create(
         return status;
     }
 
+    status = umi_studio_developer_platform_create(
+        current_directory,
+        &services->clock,
+        &services->developer_platform
+    );
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+
     *out_services = services;
     return UMI_STATUS_OK;
 }
@@ -485,6 +499,28 @@ UmiStatus umi_studio_services_publish(
     PUBLISH("umicom.studio.resilience",
             umi_studio_operations_resilience(services->operations),
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.developer-platform",
+            services->developer_platform,
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.build",
+            umi_studio_developer_platform_build(services->developer_platform),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.tests",
+            umi_studio_developer_platform_tests(services->developer_platform),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.terminal",
+            umi_studio_developer_platform_terminal(services->developer_platform),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.language",
+            umi_studio_developer_platform_language(services->developer_platform),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.debugger",
+            umi_studio_developer_platform_debugger(services->developer_platform),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.source-control",
+            umi_studio_developer_platform_source_control(
+                services->developer_platform),
+            UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.clock",
             &services->clock,
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
@@ -655,6 +691,59 @@ UmiMessageMetricsCounter *umi_studio_services_message_metrics(UmiStudioServices 
 UmiStudioOperations *umi_studio_services_operations(UmiStudioServices *services)
 {
     return services != NULL ? services->operations : NULL;
+}
+
+UmiStudioDeveloperPlatform *umi_studio_services_developer_platform(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->developer_platform : NULL;
+}
+
+UmiStudioBuildService *umi_studio_services_build(UmiStudioServices *services)
+{
+    return services != NULL && services->developer_platform != NULL
+        ? umi_studio_developer_platform_build(services->developer_platform)
+        : NULL;
+}
+
+UmiStudioTestService *umi_studio_services_tests(UmiStudioServices *services)
+{
+    return services != NULL && services->developer_platform != NULL
+        ? umi_studio_developer_platform_tests(services->developer_platform)
+        : NULL;
+}
+
+UmiStudioTerminalService *umi_studio_services_terminal(
+    UmiStudioServices *services)
+{
+    return services != NULL && services->developer_platform != NULL
+        ? umi_studio_developer_platform_terminal(services->developer_platform)
+        : NULL;
+}
+
+UmiStudioLanguageService *umi_studio_services_language(
+    UmiStudioServices *services)
+{
+    return services != NULL && services->developer_platform != NULL
+        ? umi_studio_developer_platform_language(services->developer_platform)
+        : NULL;
+}
+
+UmiStudioDebuggerService *umi_studio_services_debugger(
+    UmiStudioServices *services)
+{
+    return services != NULL && services->developer_platform != NULL
+        ? umi_studio_developer_platform_debugger(services->developer_platform)
+        : NULL;
+}
+
+UmiStudioSourceControlService *umi_studio_services_source_control(
+    UmiStudioServices *services)
+{
+    return services != NULL && services->developer_platform != NULL
+        ? umi_studio_developer_platform_source_control(
+              services->developer_platform)
+        : NULL;
 }
 
 UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,

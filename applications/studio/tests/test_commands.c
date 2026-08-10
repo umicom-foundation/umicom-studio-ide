@@ -30,7 +30,7 @@ int main(void)
 
     registry = umi_studio_bootstrap_command_registry(bootstrap);
     assert(registry != NULL);
-    assert(umi_command_registry_count(registry) == 19U);
+    assert(umi_command_registry_count(registry) == 29U);
     assert(umi_command_registry_snapshot(
         registry,
         UMI_STUDIO_COMMAND_SESSION_SAVE,
@@ -101,6 +101,33 @@ int main(void)
         sizeof(message)
     ) == UMI_STATUS_OK);
     assert(strstr(message, "published") != NULL);
+
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_DEVELOPER_REPORT,
+        "",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(strstr(message, "Build profile:") != NULL);
+
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE,
+        "0",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(strstr(message, "LSP initialise request") != NULL);
+
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_DEBUG_INITIALIZE,
+        "umicom.test.debug",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(strstr(message, "DAP initialise request") != NULL);
 
     assert(umi_command_registry_execute(
         registry,

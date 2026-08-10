@@ -28,7 +28,7 @@ int main(void)
 
     assert(report.module_count == 1U);
     assert(report.service_count >= 31U);
-    assert(report.command_count == 19U);
+    assert(report.command_count == 29U);
     assert(report.health_count >= 3U);
     assert(report.overall_health == UMI_HEALTH_READY);
     assert(report.tasks.worker_count == 4U);

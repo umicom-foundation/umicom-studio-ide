@@ -19,6 +19,7 @@
 #include <stddef.h>
 
 #include "umicom/umicom.h"
+#include "umicom/studio/developer_platform.h"
 #include "umicom/studio/settings.h"
 
 #ifdef __cplusplus
@@ -82,6 +83,23 @@ UmiMessageStore *umi_studio_services_message_store(UmiStudioServices *services);
 UmiJournalStore *umi_studio_services_journal(UmiStudioServices *services);
 UmiMessageMetricsCounter *umi_studio_services_message_metrics(UmiStudioServices *services);
 UmiStudioOperations *umi_studio_services_operations(UmiStudioServices *services);
+UmiStudioDeveloperPlatform *umi_studio_services_developer_platform(
+    UmiStudioServices *services
+);
+UmiStudioBuildService *umi_studio_services_build(UmiStudioServices *services);
+UmiStudioTestService *umi_studio_services_tests(UmiStudioServices *services);
+UmiStudioTerminalService *umi_studio_services_terminal(
+    UmiStudioServices *services
+);
+UmiStudioLanguageService *umi_studio_services_language(
+    UmiStudioServices *services
+);
+UmiStudioDebuggerService *umi_studio_services_debugger(
+    UmiStudioServices *services
+);
+UmiStudioSourceControlService *umi_studio_services_source_control(
+    UmiStudioServices *services
+);
 UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,
                                              const char *root,
                                              int trusted);

@@ -17,13 +17,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "umicom/studio/build.h"
 #include "umicom/studio/data.h"
+#include "umicom/studio/debugger.h"
+#include "umicom/studio/developer_platform.h"
 #include "umicom/studio/documents.h"
+#include "umicom/studio/language.h"
 #include "umicom/studio/messages.h"
 #include "umicom/studio/observability.h"
 #include "umicom/studio/plugins.h"
 #include "umicom/studio/resilience.h"
 #include "umicom/studio/security.h"
+#include "umicom/studio/source_control.h"
+#include "umicom/studio/terminal.h"
+#include "umicom/studio/tests.h"
 #include "umicom/studio/replay.h"
 #include "umicom/studio/session.h"
 #include "umicom/studio/watcher.h"
@@ -325,6 +332,228 @@ static UmiStatus resilience_report_handler(void *user_data,
     return status;
 }
 
+static UmiStatus build_phase_handler(UmiStudioServices *services,
+                                     UmiBuildPhase phase,
+                                     char *out_message,
+                                     size_t message_capacity)
+{
+    UmiBuildResult result;
+    UmiStatus status = umi_studio_build_service_run(
+        umi_studio_services_build(services), phase, &result);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "%s: %s (exit %d, %zu diagnostic(s))",
+                       umi_build_phase_text(phase),
+                       umi_status_text(status),
+                       result.exit_code,
+                       result.diagnostics.count);
+    }
+    return status;
+}
+
+static UmiStatus build_configure_handler(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t message_capacity)
+{
+    (void)argument;
+    return build_phase_handler((UmiStudioServices *)user_data,
+                               UMI_BUILD_PHASE_CONFIGURE,
+                               out_message,
+                               message_capacity);
+}
+
+static UmiStatus build_compile_handler(void *user_data,
+                                       const char *argument,
+                                       char *out_message,
+                                       size_t message_capacity)
+{
+    (void)argument;
+    return build_phase_handler((UmiStudioServices *)user_data,
+                               UMI_BUILD_PHASE_BUILD,
+                               out_message,
+                               message_capacity);
+}
+
+static UmiStatus build_test_handler(void *user_data,
+                                    const char *argument,
+                                    char *out_message,
+                                    size_t message_capacity)
+{
+    (void)argument;
+    return build_phase_handler((UmiStudioServices *)user_data,
+                               UMI_BUILD_PHASE_TEST,
+                               out_message,
+                               message_capacity);
+}
+
+static UmiStatus build_clean_handler(void *user_data,
+                                     const char *argument,
+                                     char *out_message,
+                                     size_t message_capacity)
+{
+    (void)argument;
+    return build_phase_handler((UmiStudioServices *)user_data,
+                               UMI_BUILD_PHASE_CLEAN,
+                               out_message,
+                               message_capacity);
+}
+
+static UmiStatus tests_discover_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    size_t discovered = 0U;
+    const UmiBuildProfile *profile;
+    UmiStatus status;
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    profile = umi_studio_build_service_profile(
+        umi_studio_services_build(services));
+    status = umi_studio_test_service_discover(
+        umi_studio_services_tests(services),
+        argument != NULL && argument[0] != '\0'
+            ? argument : profile->build_directory,
+        &discovered);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "Discovered %zu test(s): %s",
+                       discovered,
+                       umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus terminal_execute_handler(void *user_data,
+                                          const char *argument,
+                                          char *out_message,
+                                          size_t message_capacity)
+{
+    int exit_code = 0;
+    UmiStatus status;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_studio_terminal_service_execute(
+        umi_studio_services_terminal((UmiStudioServices *)user_data),
+        argument,
+        30000U,
+        NULL,
+        &exit_code);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "Terminal command exited with %d: %s",
+                       exit_code,
+                       umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus language_initialize_handler(void *user_data,
+                                             const char *argument,
+                                             char *out_message,
+                                             size_t message_capacity)
+{
+    int64_t request_id = 0;
+    long process_id = 0L;
+    char *end = NULL;
+    UmiStatus status;
+    if (argument != NULL && argument[0] != '\0') {
+        process_id = strtol(argument, &end, 10);
+        if (end == argument || *end != '\0') return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_studio_language_service_initialize(
+        umi_studio_services_language((UmiStudioServices *)user_data),
+        (int64_t)process_id,
+        &request_id);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "LSP initialise request %lld: %s",
+                       (long long)request_id,
+                       umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus debug_initialize_handler(void *user_data,
+                                          const char *argument,
+                                          char *out_message,
+                                          size_t message_capacity)
+{
+    int64_t request_id = 0;
+    const char *adapter = argument != NULL && argument[0] != '\0'
+        ? argument : "umicom.debug";
+    UmiStatus status = umi_studio_debugger_service_initialize(
+        umi_studio_services_debugger((UmiStudioServices *)user_data),
+        adapter,
+        &request_id);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message,
+                       message_capacity,
+                       "DAP initialise request %lld: %s",
+                       (long long)request_id,
+                       umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus vcs_refresh_handler(void *user_data,
+                                     const char *argument,
+                                     char *out_message,
+                                     size_t message_capacity)
+{
+    UmiStudioSourceControlSnapshot snapshot;
+    UmiStudioSourceControlService *service = umi_studio_services_source_control(
+        (UmiStudioServices *)user_data);
+    size_t limit = 20U;
+    UmiStatus status;
+    if (argument != NULL && argument[0] != '\0') {
+        char *end = NULL;
+        unsigned long parsed = strtoul(argument, &end, 10);
+        if (end == argument || *end != '\0' || parsed == 0UL) {
+            return UMI_STATUS_INVALID_ARGUMENT;
+        }
+        limit = (size_t)parsed;
+    }
+    status = umi_studio_source_control_service_refresh(service, limit);
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_source_control_service_snapshot(service, &snapshot);
+    }
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message,
+                           message_capacity,
+                           "Git %s: %zu change(s), %zu commit(s)",
+                           snapshot.branch,
+                           snapshot.changes,
+                           snapshot.commits);
+        } else {
+            (void)snprintf(out_message,
+                           message_capacity,
+                           "Source control: %s",
+                           umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus developer_report_handler(void *user_data,
+                                          const char *argument,
+                                          char *out_message,
+                                          size_t message_capacity)
+{
+    (void)argument;
+    return umi_studio_developer_platform_report(
+        umi_studio_services_developer_platform(
+            (UmiStudioServices *)user_data),
+        out_message,
+        message_capacity);
+}
+
 static UmiStatus register_command(UmiCommandRegistry *registry,
                                   UmiStudioServices *services,
                                   const char *command_id,
@@ -506,13 +735,91 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               observability_report_handler);
     if (status != UMI_STATUS_OK) return status;
 
-    return register_command(registry,
-                            services,
-                            UMI_STUDIO_COMMAND_RESILIENCE_REPORT,
-                            "Resilience report",
-                            "Operations",
-                            "Inspect supervised components, circuits and rate limits.",
-                            "studio.resilience.read",
-                            UMI_COMMAND_NONE,
-                            resilience_report_handler);
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_RESILIENCE_REPORT,
+                              "Resilience report",
+                              "Operations",
+                              "Inspect supervised components, circuits and rate limits.",
+                              "studio.resilience.read",
+                              UMI_COMMAND_NONE,
+                              resilience_report_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_CONFIGURE,
+                              "Configure", "Build",
+                              "Configure the active Studio build profile.",
+                              "studio.build.execute",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              build_configure_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_COMPILE,
+                              "Build", "Build",
+                              "Compile the active Studio build profile.",
+                              "studio.build.execute",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              build_compile_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_TEST,
+                              "Test", "Build",
+                              "Run CTest for the active build profile.",
+                              "studio.tests.execute",
+                              UMI_COMMAND_AUDITED,
+                              build_test_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_CLEAN,
+                              "Clean", "Build",
+                              "Clean the active build profile.",
+                              "studio.build.execute",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              build_clean_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_DISCOVER,
+                              "Discover Tests", "Testing",
+                              "Discover CTest tests from a build directory.",
+                              "studio.tests.read", UMI_COMMAND_NONE,
+                              tests_discover_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_EXECUTE,
+                              "Execute in Terminal", "Terminal",
+                              "Execute a command in the prepared Studio terminal.",
+                              "process.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              terminal_execute_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE,
+                              "Initialise Language Server", "Language",
+                              "Send the Language Server Protocol initialise request.",
+                              "studio.language.use", UMI_COMMAND_NONE,
+                              language_initialize_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_INITIALIZE,
+                              "Initialise Debug Adapter", "Debug",
+                              "Send the Debug Adapter Protocol initialise request.",
+                              "studio.debug.use", UMI_COMMAND_NONE,
+                              debug_initialize_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_VCS_REFRESH,
+                              "Refresh Source Control", "Source Control",
+                              "Refresh Git branch, change and history state.",
+                              "vcs.read", UMI_COMMAND_NONE,
+                              vcs_refresh_handler);
+    if (status != UMI_STATUS_OK) return status;
+    return register_command(registry, services,
+                            UMI_STUDIO_COMMAND_DEVELOPER_REPORT,
+                            "Developer Platform Report", "Development",
+                            "Report build, tests, terminal, language, debug and Git state.",
+                            "studio.developer.read", UMI_COMMAND_NONE,
+                            developer_report_handler);
 }
