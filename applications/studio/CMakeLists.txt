@@ -93,6 +93,11 @@ add_library(umicom_studio_core STATIC
     src/app/products.c
     src/app/conformance.c
     src/app/architecture_guard.c
+    src/app/architecture_quality.c
+    src/app/quality_gate.c
+    src/app/duplicate_review.c
+    src/app/consolidation.c
+    src/app/codeguard.c
     src/app/delivery_release.c
     src/app/delivery_package.c
     src/app/delivery_update.c
@@ -327,6 +332,25 @@ foreach(UMICOM_STUDIO_DELIVERY_TOOL
     umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DELIVERY_TOOL})
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DELIVERY_TOOL})
 endforeach()
+
+
+# Native CodeGuard and consolidation commands.
+add_executable(umicom-studio-codeguard src/tools/codeguard_main.c)
+target_link_libraries(umicom-studio-codeguard PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-codeguard)
+umicom_apply_sanitizers(umicom-studio-codeguard)
+add_executable(umicom-studio-consolidation src/tools/consolidation_main.c)
+target_link_libraries(umicom-studio-consolidation PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-consolidation)
+umicom_apply_sanitizers(umicom-studio-consolidation)
+add_executable(umicom-studio-duplicates src/tools/duplicates_main.c)
+target_link_libraries(umicom-studio-duplicates PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-duplicates)
+umicom_apply_sanitizers(umicom-studio-duplicates)
+add_executable(umicom-studio-quality src/tools/quality_main.c)
+target_link_libraries(umicom-studio-quality PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-quality)
+umicom_apply_sanitizers(umicom-studio-quality)
 
 if(UMICOM_STUDIO_BUILD_GTK)
     find_package(PkgConfig REQUIRED)
@@ -1060,3 +1084,22 @@ install(TARGETS
     umicom-studio-architecture
     RUNTIME DESTINATION bin
 )
+
+if(BUILD_TESTING)
+add_executable(umicom-studio-codeguard-test tests/test_codeguard.c)
+target_link_libraries(umicom-studio-codeguard-test PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-codeguard-test)
+add_test(NAME studio.codeguard_platform COMMAND umicom-studio-codeguard-test)
+add_executable(umicom-studio-architecture-quality-test tests/test_architecture_quality.c)
+target_link_libraries(umicom-studio-architecture-quality-test PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-architecture-quality-test)
+add_test(NAME studio.architecture_quality COMMAND umicom-studio-architecture-quality-test)
+add_executable(umicom-studio-duplicate-review-test tests/test_duplicate_review.c)
+target_link_libraries(umicom-studio-duplicate-review-test PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-duplicate-review-test)
+add_test(NAME studio.duplicate_review COMMAND umicom-studio-duplicate-review-test)
+add_executable(umicom-studio-quality-gate-test tests/test_quality_gate.c)
+target_link_libraries(umicom-studio-quality-gate-test PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-quality-gate-test)
+add_test(NAME studio.quality_gate COMMAND umicom-studio-quality-gate-test)
+endif()
