@@ -21,6 +21,7 @@
 #include "umicom/studio/ai_tools.h"
 #include "umicom/studio/developer_platform.h"
 #include "umicom/studio/declarative.h"
+#include "umicom/studio/delivery_platform.h"
 #include "umicom/studio/designer.h"
 #include "umicom/studio/fabric.h"
 #include "umicom/studio/operations.h"
@@ -57,6 +58,7 @@ struct UmiStudioServices {
     UmiStudioDeclarative *declarative;
     UmiStudioDesigner *designer;
     UmiStudioWebPlatform *web_platform;
+    UmiStudioDeliveryPlatform *delivery_platform;
     UmiClock clock;
     int published;
 };
@@ -93,6 +95,8 @@ static void destroy_partial(UmiStudioServices *services)
     if (services->task_queue != NULL) {
         (void)umi_task_queue_shutdown(services->task_queue, 1);
     }
+    umi_studio_delivery_platform_destroy(services->delivery_platform);
+    services->delivery_platform = NULL;
     umi_studio_web_platform_destroy(services->web_platform);
     services->web_platform = NULL;
     umi_studio_designer_destroy(services->designer);
@@ -397,6 +401,9 @@ UmiStatus umi_studio_services_create(
         status = umi_studio_web_platform_create(&services->web_platform);
     }
     if (status == UMI_STATUS_OK) {
+        status = umi_studio_delivery_platform_create(&services->delivery_platform);
+    }
+    if (status == UMI_STATUS_OK) {
         status = umi_studio_ai_platform_create(&services->ai_platform);
     }
     if (status == UMI_STATUS_OK) {
@@ -565,6 +572,9 @@ UmiStatus umi_studio_services_publish(
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.web-platform",
             services->web_platform,
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.delivery-platform",
+            services->delivery_platform,
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.ai-platform",
             services->ai_platform,
@@ -872,4 +882,10 @@ UmiStudioWebPlatform *umi_studio_services_web_platform(
     UmiStudioServices *services)
 {
     return services != NULL ? services->web_platform : NULL;
+}
+
+UmiStudioDeliveryPlatform *umi_studio_services_delivery_platform(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->delivery_platform : NULL;
 }

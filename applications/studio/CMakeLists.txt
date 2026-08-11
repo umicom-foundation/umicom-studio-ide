@@ -87,6 +87,13 @@ add_library(umicom_studio_core STATIC
     src/app/helix_evidence.c
     src/app/helix_fitness.c
     src/app/helix_generation.c
+    src/app/delivery_platform.c
+    src/app/delivery_release.c
+    src/app/delivery_package.c
+    src/app/delivery_update.c
+    src/app/delivery_report.c
+    src/app/delivery_distribution.c
+    src/app/delivery_evidence.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -297,6 +304,25 @@ endforeach()
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
 # -----------------------------------------------------------------------------
+
+# Native application-delivery, packaging, update and release-engineering commands.
+foreach(UMICOM_STUDIO_DELIVERY_TOOL
+        delivery
+        package
+        release
+        update
+        distribution
+        evidence
+        rollback
+        pipeline)
+    add_executable(umicom-studio-${UMICOM_STUDIO_DELIVERY_TOOL}
+        src/tools/${UMICOM_STUDIO_DELIVERY_TOOL}_main.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_DELIVERY_TOOL}
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DELIVERY_TOOL})
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DELIVERY_TOOL})
+endforeach()
+
 if(UMICOM_STUDIO_BUILD_GTK)
     find_package(PkgConfig REQUIRED)
 
@@ -879,6 +905,56 @@ if(BUILD_TESTING)
         studio.helix_agents
         PROPERTIES RESOURCE_LOCK umicom_studio_runtime_state
     )
+
+    # Application delivery and release-engineering integration tests.
+    add_executable(umicom-studio-delivery-platform-test tests/test_delivery_platform.c)
+    target_link_libraries(umicom-studio-delivery-platform-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-delivery-platform-test)
+    umicom_apply_sanitizers(umicom-studio-delivery-platform-test)
+    add_test(NAME studio.delivery_platform COMMAND umicom-studio-delivery-platform-test)
+
+    add_executable(umicom-studio-delivery-release-test tests/test_delivery_release.c)
+    target_link_libraries(umicom-studio-delivery-release-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-delivery-release-test)
+    umicom_apply_sanitizers(umicom-studio-delivery-release-test)
+    add_test(NAME studio.delivery_release COMMAND umicom-studio-delivery-release-test)
+
+    add_executable(umicom-studio-delivery-package-test tests/test_delivery_package.c)
+    target_link_libraries(umicom-studio-delivery-package-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-delivery-package-test)
+    umicom_apply_sanitizers(umicom-studio-delivery-package-test)
+    add_test(NAME studio.delivery_package COMMAND umicom-studio-delivery-package-test)
+
+    add_executable(umicom-studio-delivery-update-test tests/test_delivery_update.c)
+    target_link_libraries(umicom-studio-delivery-update-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-delivery-update-test)
+    umicom_apply_sanitizers(umicom-studio-delivery-update-test)
+    add_test(NAME studio.delivery_update COMMAND umicom-studio-delivery-update-test)
+
+    add_executable(umicom-studio-delivery-report-test tests/test_delivery_report.c)
+    target_link_libraries(umicom-studio-delivery-report-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-delivery-report-test)
+    umicom_apply_sanitizers(umicom-studio-delivery-report-test)
+    add_test(NAME studio.delivery_report COMMAND umicom-studio-delivery-report-test)
+
+    add_executable(umicom-studio-delivery-distribution-test tests/test_delivery_distribution.c)
+    target_link_libraries(umicom-studio-delivery-distribution-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-delivery-distribution-test)
+    umicom_apply_sanitizers(umicom-studio-delivery-distribution-test)
+    add_test(NAME studio.delivery_distribution COMMAND umicom-studio-delivery-distribution-test)
+
+    add_executable(umicom-studio-delivery-evidence-test tests/test_delivery_evidence.c)
+    target_link_libraries(umicom-studio-delivery-evidence-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-delivery-evidence-test)
+    umicom_apply_sanitizers(umicom-studio-delivery-evidence-test)
+    add_test(NAME studio.delivery_evidence COMMAND umicom-studio-delivery-evidence-test)
+
+    add_executable(umicom-studio-delivery-services-test tests/test_delivery_services.c)
+    target_link_libraries(umicom-studio-delivery-services-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-delivery-services-test)
+    umicom_apply_sanitizers(umicom-studio-delivery-services-test)
+    add_test(NAME studio.delivery_services COMMAND umicom-studio-delivery-services-test)
+
 endif()
 
 install(TARGETS
@@ -914,5 +990,13 @@ install(TARGETS
     umicom-studio-helix
     umicom-studio-helix-evidence
     umicom-studio-helix-generation
+    umicom-studio-delivery
+    umicom-studio-package
+    umicom-studio-release
+    umicom-studio-update
+    umicom-studio-distribution
+    umicom-studio-evidence
+    umicom-studio-rollback
+    umicom-studio-pipeline
     RUNTIME DESTINATION bin
 )
