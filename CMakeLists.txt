@@ -104,6 +104,14 @@ endif()
 
 add_subdirectory(applications/studio)
 
+# Studio Application Hub / Runtime Manager.
+#
+# This is deliberately a separate bounded Studio feature target.  It consumes
+# the public Framework integration runtime introduced in Batch 18 without
+# changing Framework or reaching into another Umicom application's private
+# source tree.
+add_subdirectory(applications/studio/runtime-manager)
+
 # Trader is a separate application composition over the same public Framework
 # SDK.  Keeping it in its own application directory makes later extraction to
 # a dedicated repository mechanical rather than architectural.
