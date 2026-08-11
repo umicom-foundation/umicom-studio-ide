@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "umicom/studio/ai_platform.h"
+#include "umicom/studio/ai_tools.h"
 #include "umicom/studio/developer_platform.h"
 #include "umicom/studio/declarative.h"
 #include "umicom/studio/designer.h"
@@ -50,6 +52,7 @@ struct UmiStudioServices {
     UmiJournalStore journal;
     UmiMessageMetricsCounter *message_metrics;
     UmiStudioOperations *operations;
+    UmiStudioAiPlatform *ai_platform;
     UmiStudioDeveloperPlatform *developer_platform;
     UmiStudioDeclarative *declarative;
     UmiStudioDesigner *designer;
@@ -96,6 +99,8 @@ static void destroy_partial(UmiStudioServices *services)
     services->designer = NULL;
     umi_studio_declarative_destroy(services->declarative);
     services->declarative = NULL;
+    umi_studio_ai_platform_destroy(services->ai_platform);
+    services->ai_platform = NULL;
     umi_studio_developer_platform_destroy(services->developer_platform);
     services->developer_platform = NULL;
     umi_studio_operations_destroy(services->operations);
@@ -391,6 +396,12 @@ UmiStatus umi_studio_services_create(
     if (status == UMI_STATUS_OK) {
         status = umi_studio_web_platform_create(&services->web_platform);
     }
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_ai_platform_create(&services->ai_platform);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_ai_tools_register_defaults(services->ai_platform);
+    }
     if (status != UMI_STATUS_OK) {
         destroy_partial(services);
         return status;
@@ -554,6 +565,15 @@ UmiStatus umi_studio_services_publish(
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.web-platform",
             services->web_platform,
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.ai-platform",
+            services->ai_platform,
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.ai-runtime",
+            umi_studio_ai_platform_runtime(services->ai_platform),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.helix",
+            umi_studio_ai_platform_helix(services->ai_platform),
             UMI_SERVICE_SINGLETON);
     status = umi_studio_designer_bind_commands(
         services->designer,
@@ -729,6 +749,12 @@ UmiMessageMetricsCounter *umi_studio_services_message_metrics(UmiStudioServices 
 UmiStudioOperations *umi_studio_services_operations(UmiStudioServices *services)
 {
     return services != NULL ? services->operations : NULL;
+}
+
+UmiStudioAiPlatform *umi_studio_services_ai_platform(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->ai_platform : NULL;
 }
 
 UmiStudioDeveloperPlatform *umi_studio_services_developer_platform(

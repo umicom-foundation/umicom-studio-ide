@@ -19,6 +19,7 @@
 #include <stddef.h>
 
 #include "umicom/umicom.h"
+#include "umicom/studio/ai_platform.h"
 #include "umicom/studio/developer_platform.h"
 #include "umicom/studio/declarative.h"
 #include "umicom/studio/designer.h"
@@ -86,6 +87,9 @@ UmiMessageStore *umi_studio_services_message_store(UmiStudioServices *services);
 UmiJournalStore *umi_studio_services_journal(UmiStudioServices *services);
 UmiMessageMetricsCounter *umi_studio_services_message_metrics(UmiStudioServices *services);
 UmiStudioOperations *umi_studio_services_operations(UmiStudioServices *services);
+UmiStudioAiPlatform *umi_studio_services_ai_platform(
+    UmiStudioServices *services
+);
 UmiStudioDeveloperPlatform *umi_studio_services_developer_platform(
     UmiStudioServices *services
 );

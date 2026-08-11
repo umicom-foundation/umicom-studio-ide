@@ -74,6 +74,19 @@ add_library(umicom_studio_core STATIC
     src/app/browser.c
     src/app/charting.c
     src/app/frontend.c
+    src/app/ai_chat.c
+    src/app/ai_evaluation.c
+    src/app/ai_platform.c
+    src/app/ai_retrieval.c
+    src/app/ai_sources.c
+    src/app/ai_tools.c
+    src/app/authorengine.c
+    src/app/helix.c
+    src/app/helix_agents.c
+    src/app/helix_candidate.c
+    src/app/helix_evidence.c
+    src/app/helix_fitness.c
+    src/app/helix_generation.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -260,6 +273,25 @@ foreach(UMICOM_STUDIO_WEB_TOOL
         PRIVATE Umicom::StudioCore)
     umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_WEB_TOOL})
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_WEB_TOOL})
+endforeach()
+
+
+# Native AI, AuthorEngine and Helix commands.
+foreach(UMICOM_STUDIO_AI_TOOL
+        ai
+        retrieval
+        authorengine
+        helix
+        helix-evidence
+        helix-generation)
+    string(REPLACE "-" "_" UMICOM_STUDIO_AI_SOURCE
+        "${UMICOM_STUDIO_AI_TOOL}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_AI_TOOL}
+        src/tools/${UMICOM_STUDIO_AI_SOURCE}_main.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_AI_TOOL}
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_AI_TOOL})
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_AI_TOOL})
 endforeach()
 
 # -----------------------------------------------------------------------------
@@ -761,6 +793,30 @@ if(BUILD_TESTING)
             COMMAND umicom-studio-${UMICOM_STUDIO_WEB_TEST_TARGET}-test)
     endforeach()
 
+
+    foreach(UMICOM_STUDIO_AI_TEST
+            ai_platform
+            ai_chat
+            ai_retrieval
+            ai_tools
+            authorengine
+            helix
+            helix_evidence
+            helix_fitness
+            helix_generation
+            helix_agents)
+        string(REPLACE "_" "-" UMICOM_STUDIO_AI_TEST_TARGET
+            "${UMICOM_STUDIO_AI_TEST}")
+        add_executable(umicom-studio-${UMICOM_STUDIO_AI_TEST_TARGET}-test
+            tests/test_${UMICOM_STUDIO_AI_TEST}.c)
+        target_link_libraries(umicom-studio-${UMICOM_STUDIO_AI_TEST_TARGET}-test
+            PRIVATE Umicom::StudioCore)
+        umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_AI_TEST_TARGET}-test)
+        umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_AI_TEST_TARGET}-test)
+        add_test(NAME studio.${UMICOM_STUDIO_AI_TEST}
+            COMMAND umicom-studio-${UMICOM_STUDIO_AI_TEST_TARGET}-test)
+    endforeach()
+
     # Studio integration tests share the default .umicom session/recovery
     # directory.  A named CTest resource lock preserves parallel Framework
     # testing while preventing Studio tests from deleting one another's state.
@@ -811,6 +867,16 @@ if(BUILD_TESTING)
         studio.debugger_service
         studio.source_control_service
         studio.developer_platform
+        studio.ai_platform
+        studio.ai_chat
+        studio.ai_retrieval
+        studio.ai_tools
+        studio.authorengine
+        studio.helix
+        studio.helix_evidence
+        studio.helix_fitness
+        studio.helix_generation
+        studio.helix_agents
         PROPERTIES RESOURCE_LOCK umicom_studio_runtime_state
     )
 endif()
@@ -842,5 +908,11 @@ install(TARGETS
     umicom-studio-debugger
     umicom-studio-source-control
     umicom-studio-developer
+    umicom-studio-ai
+    umicom-studio-retrieval
+    umicom-studio-authorengine
+    umicom-studio-helix
+    umicom-studio-helix-evidence
+    umicom-studio-helix-generation
     RUNTIME DESTINATION bin
 )
