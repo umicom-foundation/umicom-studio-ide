@@ -24,6 +24,7 @@
 #include "umicom/studio/operations.h"
 #include "umicom/studio/session.h"
 #include "umicom/studio/version.h"
+#include "umicom/studio/web_platform.h"
 
 struct UmiStudioServices {
     UmiDiagnosticHub diagnostic_hub;
@@ -52,6 +53,7 @@ struct UmiStudioServices {
     UmiStudioDeveloperPlatform *developer_platform;
     UmiStudioDeclarative *declarative;
     UmiStudioDesigner *designer;
+    UmiStudioWebPlatform *web_platform;
     UmiClock clock;
     int published;
 };
@@ -88,6 +90,8 @@ static void destroy_partial(UmiStudioServices *services)
     if (services->task_queue != NULL) {
         (void)umi_task_queue_shutdown(services->task_queue, 1);
     }
+    umi_studio_web_platform_destroy(services->web_platform);
+    services->web_platform = NULL;
     umi_studio_designer_destroy(services->designer);
     services->designer = NULL;
     umi_studio_declarative_destroy(services->declarative);
@@ -384,6 +388,9 @@ UmiStatus umi_studio_services_create(
         status = umi_studio_designer_create(services->declarative,
                                             &services->designer);
     }
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_web_platform_create(&services->web_platform);
+    }
     if (status != UMI_STATUS_OK) {
         destroy_partial(services);
         return status;
@@ -544,6 +551,9 @@ UmiStatus umi_studio_services_publish(
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.designer",
             services->designer,
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.web-platform",
+            services->web_platform,
             UMI_SERVICE_SINGLETON);
     status = umi_studio_designer_bind_commands(
         services->designer,
@@ -830,4 +840,10 @@ UmiStudioDeclarative *umi_studio_services_declarative(UmiStudioServices *service
 UmiStudioDesigner *umi_studio_services_designer(UmiStudioServices *services)
 {
     return services != NULL ? services->designer : NULL;
+}
+
+UmiStudioWebPlatform *umi_studio_services_web_platform(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->web_platform : NULL;
 }

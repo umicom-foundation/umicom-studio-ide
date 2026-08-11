@@ -69,6 +69,11 @@ add_library(umicom_studio_core STATIC
     src/app/designer_project.c
     src/app/new_project.c
     src/app/designer_state.c
+    src/app/web_platform.c
+    src/app/web.c
+    src/app/browser.c
+    src/app/charting.c
+    src/app/frontend.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -239,6 +244,24 @@ foreach(UMICOM_STUDIO_DESIGNER_TOOL
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DESIGNER_TOOL})
 endforeach()
 
+
+# Native Web Server and multi-frontend platform commands.
+foreach(UMICOM_STUDIO_WEB_TOOL
+        web
+        browser
+        chart
+        frontend
+        web-platform)
+    string(REPLACE "-" "_" UMICOM_STUDIO_WEB_SOURCE
+        "${UMICOM_STUDIO_WEB_TOOL}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_WEB_TOOL}
+        src/tools/${UMICOM_STUDIO_WEB_SOURCE}_main.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_WEB_TOOL}
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_WEB_TOOL})
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_WEB_TOOL})
+endforeach()
+
 # -----------------------------------------------------------------------------
 # GTK4 Studio product implementation
 # -----------------------------------------------------------------------------
@@ -390,6 +413,25 @@ if(UMICOM_STUDIO_BUILD_GTK)
     )
     umicom_apply_warnings(umicom-studio-designer-demo)
     umicom_apply_sanitizers(umicom-studio-designer-demo)
+
+
+    add_executable(umicom-studio-web-platform-demo
+        src/gui/web/web_platform_demo.c
+        src/gui/web/web_preview.c
+        src/gui/web/chart_preview.c
+        src/gui/web/frontend_preview.c
+    )
+    target_include_directories(umicom-studio-web-platform-demo PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/web/include"
+    )
+    target_link_libraries(umicom-studio-web-platform-demo PRIVATE
+        Umicom::StudioCore
+        PkgConfig::GTK4
+        PkgConfig::GLIB
+        PkgConfig::GIO
+    )
+    umicom_apply_warnings(umicom-studio-web-platform-demo)
+    umicom_apply_sanitizers(umicom-studio-web-platform-demo)
 
     add_executable(umicom-studio-ide
         src/gtk/main.c
@@ -693,6 +735,30 @@ if(BUILD_TESTING)
         umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DESIGNER_TEST_TARGET}-test)
         add_test(NAME studio.${UMICOM_STUDIO_DESIGNER_TEST}
             COMMAND umicom-studio-${UMICOM_STUDIO_DESIGNER_TEST_TARGET}-test)
+    endforeach()
+
+
+    foreach(UMICOM_STUDIO_WEB_TEST
+            web_platform
+            web
+            browser
+            charting
+            charting_indicator
+            frontend
+            frontend_manifest
+            web_metrics
+            web_not_found
+            web_service_accessor)
+        string(REPLACE "_" "-" UMICOM_STUDIO_WEB_TEST_TARGET
+            "${UMICOM_STUDIO_WEB_TEST}")
+        add_executable(umicom-studio-${UMICOM_STUDIO_WEB_TEST_TARGET}-test
+            tests/test_${UMICOM_STUDIO_WEB_TEST}.c)
+        target_link_libraries(umicom-studio-${UMICOM_STUDIO_WEB_TEST_TARGET}-test
+            PRIVATE Umicom::StudioCore)
+        umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_WEB_TEST_TARGET}-test)
+        umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_WEB_TEST_TARGET}-test)
+        add_test(NAME studio.${UMICOM_STUDIO_WEB_TEST}
+            COMMAND umicom-studio-${UMICOM_STUDIO_WEB_TEST_TARGET}-test)
     endforeach()
 
     # Studio integration tests share the default .umicom session/recovery
