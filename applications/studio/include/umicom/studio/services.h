@@ -20,6 +20,7 @@
 
 #include "umicom/umicom.h"
 #include "umicom/studio/ai_platform.h"
+#include "umicom/studio/compatibility_platform.h"
 #include "umicom/studio/developer_platform.h"
 #include "umicom/studio/declarative.h"
 #include "umicom/studio/delivery_platform.h"
@@ -99,6 +100,9 @@ UmiStudioDesigner *umi_studio_services_designer(UmiStudioServices *services);
 UmiStudioWebPlatform *umi_studio_services_web_platform(UmiStudioServices *services);
 UmiStudioDeliveryPlatform *umi_studio_services_delivery_platform(
     UmiStudioServices *services);
+UmiStudioCompatibilityPlatform *umi_studio_services_compatibility_platform(
+    UmiStudioServices *services
+);
 UmiStudioBuildService *umi_studio_services_build(UmiStudioServices *services);
 UmiStudioTestService *umi_studio_services_tests(UmiStudioServices *services);
 UmiStudioTerminalService *umi_studio_services_terminal(

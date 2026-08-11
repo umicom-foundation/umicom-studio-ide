@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "umicom/studio/ai_platform.h"
+#include "umicom/studio/compatibility_platform.h"
 #include "umicom/studio/ai_tools.h"
 #include "umicom/studio/developer_platform.h"
 #include "umicom/studio/declarative.h"
@@ -59,6 +60,7 @@ struct UmiStudioServices {
     UmiStudioDesigner *designer;
     UmiStudioWebPlatform *web_platform;
     UmiStudioDeliveryPlatform *delivery_platform;
+    UmiStudioCompatibilityPlatform *compatibility_platform;
     UmiClock clock;
     int published;
 };
@@ -95,6 +97,8 @@ static void destroy_partial(UmiStudioServices *services)
     if (services->task_queue != NULL) {
         (void)umi_task_queue_shutdown(services->task_queue, 1);
     }
+    umi_studio_compatibility_platform_destroy(services->compatibility_platform);
+    services->compatibility_platform = NULL;
     umi_studio_delivery_platform_destroy(services->delivery_platform);
     services->delivery_platform = NULL;
     umi_studio_web_platform_destroy(services->web_platform);
@@ -402,6 +406,12 @@ UmiStatus umi_studio_services_create(
     }
     if (status == UMI_STATUS_OK) {
         status = umi_studio_delivery_platform_create(&services->delivery_platform);
+    }
+
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_compatibility_platform_create(
+            &services->compatibility_platform
+        );
     }
     if (status == UMI_STATUS_OK) {
         status = umi_studio_ai_platform_create(&services->ai_platform);
@@ -888,4 +898,10 @@ UmiStudioDeliveryPlatform *umi_studio_services_delivery_platform(
     UmiStudioServices *services)
 {
     return services != NULL ? services->delivery_platform : NULL;
+}
+
+UmiStudioCompatibilityPlatform *umi_studio_services_compatibility_platform(
+    UmiStudioServices *services)
+{
+    return services == NULL ? NULL : services->compatibility_platform;
 }

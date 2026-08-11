@@ -88,6 +88,11 @@ add_library(umicom_studio_core STATIC
     src/app/helix_fitness.c
     src/app/helix_generation.c
     src/app/delivery_platform.c
+    src/app/compatibility_platform.c
+    src/app/sdk.c
+    src/app/products.c
+    src/app/conformance.c
+    src/app/architecture_guard.c
     src/app/delivery_release.c
     src/app/delivery_package.c
     src/app/delivery_update.c
@@ -541,6 +546,23 @@ endif()
 # -----------------------------------------------------------------------------
 # Framework integration tests
 # -----------------------------------------------------------------------------
+
+# Native ABI, SDK, reference-product and architecture-conformance commands.
+foreach(UMICOM_STUDIO_CONFORMANCE_TOOL
+        abi
+        sdk
+        products
+        compatibility
+        conformance
+        architecture)
+    add_executable(umicom-studio-${UMICOM_STUDIO_CONFORMANCE_TOOL}
+        src/tools/${UMICOM_STUDIO_CONFORMANCE_TOOL}_main.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_CONFORMANCE_TOOL}
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_CONFORMANCE_TOOL})
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_CONFORMANCE_TOOL})
+endforeach()
+
 if(BUILD_TESTING)
     add_executable(umicom-studio-framework-bootstrap-test
         tests/test_framework_bootstrap.c
@@ -955,6 +977,38 @@ if(BUILD_TESTING)
     umicom_apply_sanitizers(umicom-studio-delivery-services-test)
     add_test(NAME studio.delivery_services COMMAND umicom-studio-delivery-services-test)
 
+
+    # ABI, SDK and reference-product conformance tests.
+    add_executable(umicom-studio-compatibility-platform-test tests/test_compatibility_platform.c)
+    target_link_libraries(umicom-studio-compatibility-platform-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-compatibility-platform-test)
+    add_test(NAME studio.compatibility_platform COMMAND umicom-studio-compatibility-platform-test)
+
+    add_executable(umicom-studio-sdk-platform-test tests/test_sdk_platform.c)
+    target_link_libraries(umicom-studio-sdk-platform-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-sdk-platform-test)
+    add_test(NAME studio.sdk_platform COMMAND umicom-studio-sdk-platform-test)
+
+    add_executable(umicom-studio-products-platform-test tests/test_products_platform.c)
+    target_link_libraries(umicom-studio-products-platform-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-products-platform-test)
+    add_test(NAME studio.products_platform COMMAND umicom-studio-products-platform-test)
+
+    add_executable(umicom-studio-conformance-platform-test tests/test_conformance_platform.c)
+    target_link_libraries(umicom-studio-conformance-platform-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-conformance-platform-test)
+    add_test(NAME studio.conformance_platform COMMAND umicom-studio-conformance-platform-test)
+
+    add_executable(umicom-studio-architecture-guard-test tests/test_architecture_guard.c)
+    target_link_libraries(umicom-studio-architecture-guard-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-architecture-guard-test)
+    add_test(NAME studio.architecture_guard COMMAND umicom-studio-architecture-guard-test)
+
+    add_executable(umicom-studio-reference-products-test tests/test_reference_products.c)
+    target_link_libraries(umicom-studio-reference-products-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-reference-products-test)
+    add_test(NAME studio.reference_products COMMAND umicom-studio-reference-products-test)
+
 endif()
 
 install(TARGETS
@@ -998,5 +1052,11 @@ install(TARGETS
     umicom-studio-evidence
     umicom-studio-rollback
     umicom-studio-pipeline
+    umicom-studio-abi
+    umicom-studio-sdk
+    umicom-studio-products
+    umicom-studio-compatibility
+    umicom-studio-conformance
+    umicom-studio-architecture
     RUNTIME DESTINATION bin
 )
