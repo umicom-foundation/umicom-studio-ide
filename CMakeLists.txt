@@ -48,6 +48,9 @@ option(UMICOM_STUDIO_BUILD_GTK
 option(UMICOM_STUDIO_GUI
        "Build the Windows GUI-subsystem Studio executable"
        ON)
+option(UMICOM_BUILD_TRADER_FOUNDATION
+       "Build the independent Umicom Trader headless foundation application"
+       ON)
 
 include(CTest)
 
@@ -100,6 +103,13 @@ if(NOT TARGET Umicom::Framework)
 endif()
 
 add_subdirectory(applications/studio)
+
+# Trader is a separate application composition over the same public Framework
+# SDK.  Keeping it in its own application directory makes later extraction to
+# a dedicated repository mechanical rather than architectural.
+if(UMICOM_BUILD_TRADER_FOUNDATION)
+    add_subdirectory(applications/trader)
+endif()
 
 message(STATUS "Umicom Studio IDE version: ${PROJECT_VERSION}")
 message(STATUS "GTK application build: ${UMICOM_STUDIO_BUILD_GTK}")
