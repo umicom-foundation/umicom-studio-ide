@@ -112,6 +112,13 @@ add_subdirectory(applications/studio)
 # source tree.
 add_subdirectory(applications/studio/runtime-manager)
 
+# Studio workspace/editor productivity.
+#
+# This bounded feature owns document/session/navigation/search models and a
+# GtkSourceView workbench without replacing the mature Studio product editor
+# until the new behaviour has been exercised independently.
+add_subdirectory(applications/studio/workspace-productivity)
+
 # Trader is a separate application composition over the same public Framework
 # SDK.  Keeping it in its own application directory makes later extraction to
 # a dedicated repository mechanical rather than architectural.
