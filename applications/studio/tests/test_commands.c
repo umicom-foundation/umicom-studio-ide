@@ -12,6 +12,7 @@
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/commands.h"
 #include "umicom/studio/bootstrap.h"
+#include "umicom/studio/platform_contract.h"
 #include "umicom/studio/workbench_commands.h"
 
 #include <assert.h>
@@ -22,6 +23,7 @@ int main(void)
     UmiStudioBootstrap *bootstrap = NULL;
     UmiCommandRegistry *registry;
     UmiCommandSnapshot snapshot;
+    UmiStudioPlatformContractSnapshot contract;
     char message[512];
 
     (void)umi_fs_remove_tree(".umicom");
@@ -30,8 +32,20 @@ int main(void)
 
     registry = umi_studio_bootstrap_command_registry(bootstrap);
     assert(registry != NULL);
+    /*
+     * The old assertion is retained for builds that intentionally enforce an
+     * exclusive Studio-only command registry.  Normal Studio composition also
+     * receives reusable designer commands, so the default contract validates
+     * required identities while allowing additive registry contributions.
+     */
+#if defined(UMI_STUDIO_ENFORCE_EXCLUSIVE_COMMAND_REGISTRY)
     assert(umi_command_registry_count(registry) ==
            UMI_STUDIO_CORE_COMMAND_COUNT + UMI_STUDIO_WORKBENCH_COMMAND_COUNT);
+#endif
+    assert(umi_studio_platform_contract_capture_bootstrap(
+        bootstrap, &contract) == UMI_STATUS_OK);
+    assert(umi_studio_platform_contract_validate(&contract) == UMI_STATUS_OK);
+    assert(umi_command_registry_count(registry) == contract.runtime.command_count);
     assert(umi_command_registry_snapshot(
         registry,
         UMI_STUDIO_COMMAND_SESSION_SAVE,

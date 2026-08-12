@@ -1,0 +1,273 @@
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE
+ * File: applications/studio/src/app/platform_contract.c
+ *
+ * PURPOSE:
+ *   Implement a semantic Studio composition contract over Framework runtime
+ *   inventories.  Required commands and services are checked by identity while
+ *   unrelated/optional registry contributions remain free to extend the total.
+ *
+ * Created by: Sammy Hegab
+ * Organisation: Umicom Foundation
+ * Licence: MIT
+ *---------------------------------------------------------------------------*/
+#include "umicom/studio/platform_contract.h"
+
+#include <string.h>
+
+#include "umicom/studio/commands.h"
+#include "umicom/studio/workbench_commands.h"
+
+static const char *const CORE_COMMAND_IDS[] = {
+    UMI_STUDIO_COMMAND_SESSION_SAVE,
+    UMI_STUDIO_COMMAND_DOCUMENTS_SAVE_ALL,
+    UMI_STUDIO_COMMAND_TASKS_WAIT_IDLE,
+    UMI_STUDIO_COMMAND_RECOVERY_PURGE,
+    UMI_STUDIO_COMMAND_WORKSPACE_REFRESH,
+    UMI_STUDIO_COMMAND_WORKSPACE_CLOSE,
+    UMI_STUDIO_COMMAND_WATCHER_SCAN,
+    UMI_STUDIO_COMMAND_DATA_INTEGRITY,
+    UMI_STUDIO_COMMAND_MESSAGES_FLUSH,
+    UMI_STUDIO_COMMAND_MESSAGES_REPLAY,
+    UMI_STUDIO_COMMAND_SECURITY_REPORT,
+    UMI_STUDIO_COMMAND_PLUGINS_REPORT,
+    UMI_STUDIO_COMMAND_OBSERVABILITY_REPORT,
+    UMI_STUDIO_COMMAND_RESILIENCE_REPORT,
+    UMI_STUDIO_COMMAND_BUILD_CONFIGURE,
+    UMI_STUDIO_COMMAND_BUILD_COMPILE,
+    UMI_STUDIO_COMMAND_BUILD_TEST,
+    UMI_STUDIO_COMMAND_BUILD_CLEAN,
+    UMI_STUDIO_COMMAND_TESTS_DISCOVER,
+    UMI_STUDIO_COMMAND_TERMINAL_EXECUTE,
+    UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE,
+    UMI_STUDIO_COMMAND_DEBUG_INITIALIZE,
+    UMI_STUDIO_COMMAND_VCS_REFRESH,
+    UMI_STUDIO_COMMAND_DEVELOPER_REPORT
+};
+
+static const char *const WORKBENCH_COMMAND_IDS[] = {
+    UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE,
+    UMI_STUDIO_COMMAND_ACTIVITY_ACTIVATE,
+    UMI_STUDIO_COMMAND_PANE_TOGGLE,
+    UMI_STUDIO_COMMAND_SIDEBAR_TOGGLE,
+    UMI_STUDIO_COMMAND_BOTTOM_PANEL_TOGGLE,
+    UMI_STUDIO_COMMAND_AUXILIARY_TOGGLE,
+    UMI_STUDIO_COMMAND_STATUS_SET,
+    UMI_STUDIO_COMMAND_LAYOUT_RESET,
+    UMI_STUDIO_COMMAND_NOTIFICATION_INFO
+};
+
+/*
+ * Studio deliberately binds these reusable Framework designer commands during
+ * service publication.  They are required contributions, but they are not
+ * counted as Studio core/workbench commands because Framework owns the IDs.
+ */
+static const char *const CONTRIBUTED_COMMAND_IDS[] = {
+    "designer.undo",
+    "designer.redo"
+};
+
+/*
+ * This list deliberately names the stable services that define the minimum
+ * Studio product composition.  Additional Framework and Studio services are
+ * allowed and are reported through the inventory snapshot.
+ */
+static const char *const REQUIRED_SERVICE_IDS[] = {
+    "umicom.studio.settings",
+    "umicom.studio.diagnostics.store",
+    "umicom.studio.tasks",
+    "umicom.studio.documents",
+    "umicom.studio.session",
+    "umicom.studio.recovery",
+    "umicom.studio.workspace",
+    "umicom.studio.file-index",
+    "umicom.studio.watcher",
+    "umicom.studio.process-supervisor",
+    "umicom.studio.data-server",
+    "umicom.studio.developer-platform",
+    "umicom.studio.build",
+    "umicom.studio.tests",
+    "umicom.studio.terminal",
+    "umicom.studio.language",
+    "umicom.studio.debugger",
+    "umicom.studio.source-control",
+    "umicom.studio.designer",
+    "umicom.studio.ai-platform",
+    "umicom.studio.delivery-platform",
+    "umicom.studio.clock"
+};
+
+#define ARRAY_COUNT(values) (sizeof(values) / sizeof((values)[0]))
+
+size_t umi_studio_platform_contract_core_command_count(void)
+{
+    return ARRAY_COUNT(CORE_COMMAND_IDS);
+}
+
+const char *umi_studio_platform_contract_core_command_id(size_t index)
+{
+    return index < ARRAY_COUNT(CORE_COMMAND_IDS) ? CORE_COMMAND_IDS[index] : NULL;
+}
+
+size_t umi_studio_platform_contract_workbench_command_count(void)
+{
+    return ARRAY_COUNT(WORKBENCH_COMMAND_IDS);
+}
+
+const char *umi_studio_platform_contract_workbench_command_id(size_t index)
+{
+    return index < ARRAY_COUNT(WORKBENCH_COMMAND_IDS)
+        ? WORKBENCH_COMMAND_IDS[index]
+        : NULL;
+}
+
+size_t umi_studio_platform_contract_contributed_command_count(void)
+{
+    return ARRAY_COUNT(CONTRIBUTED_COMMAND_IDS);
+}
+
+const char *umi_studio_platform_contract_contributed_command_id(size_t index)
+{
+    return index < ARRAY_COUNT(CONTRIBUTED_COMMAND_IDS)
+        ? CONTRIBUTED_COMMAND_IDS[index]
+        : NULL;
+}
+
+size_t umi_studio_platform_contract_required_service_count(void)
+{
+    return ARRAY_COUNT(REQUIRED_SERVICE_IDS);
+}
+
+const char *umi_studio_platform_contract_required_service_id(size_t index)
+{
+    return index < ARRAY_COUNT(REQUIRED_SERVICE_IDS)
+        ? REQUIRED_SERVICE_IDS[index]
+        : NULL;
+}
+
+static size_t count_missing_commands(const UmiCommandRegistry *commands,
+                                     const char *const *ids,
+                                     size_t count)
+{
+    size_t index;
+    size_t missing = 0U;
+
+    for (index = 0U; index < count; ++index) {
+        if (!umi_runtime_inventory_has_command(commands, ids[index])) {
+            ++missing;
+        }
+    }
+    return missing;
+}
+
+static size_t count_missing_services(const UmiServiceRegistry *services)
+{
+    size_t index;
+    size_t missing = 0U;
+
+    for (index = 0U; index < ARRAY_COUNT(REQUIRED_SERVICE_IDS); ++index) {
+        if (!umi_runtime_inventory_has_service(services,
+                                               REQUIRED_SERVICE_IDS[index])) {
+            ++missing;
+        }
+    }
+    return missing;
+}
+
+UmiStatus umi_studio_platform_contract_capture(
+    const UmiCommandRegistry *commands,
+    const UmiServiceRegistry *services,
+    UmiStudioPlatformContractSnapshot *out_snapshot)
+{
+    UmiStatus status;
+
+    if (commands == NULL || services == NULL || out_snapshot == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+
+    (void)memset(out_snapshot, 0, sizeof(*out_snapshot));
+    out_snapshot->structure_size = (uint32_t)sizeof(*out_snapshot);
+    out_snapshot->api_version = UMI_STUDIO_PLATFORM_CONTRACT_API_VERSION;
+
+    status = umi_runtime_inventory_snapshot(commands,
+                                            services,
+                                            NULL,
+                                            &out_snapshot->runtime);
+    if (status != UMI_STATUS_OK) {
+        return status;
+    }
+
+    out_snapshot->expected_core_command_count = ARRAY_COUNT(CORE_COMMAND_IDS);
+    out_snapshot->expected_workbench_command_count =
+        ARRAY_COUNT(WORKBENCH_COMMAND_IDS);
+    out_snapshot->expected_studio_command_count =
+        out_snapshot->expected_core_command_count +
+        out_snapshot->expected_workbench_command_count;
+    out_snapshot->required_contributed_command_count =
+        ARRAY_COUNT(CONTRIBUTED_COMMAND_IDS);
+    out_snapshot->expected_minimum_command_count =
+        out_snapshot->expected_studio_command_count +
+        out_snapshot->required_contributed_command_count;
+    out_snapshot->required_service_count = ARRAY_COUNT(REQUIRED_SERVICE_IDS);
+
+    out_snapshot->missing_core_command_count = count_missing_commands(
+        commands, CORE_COMMAND_IDS, ARRAY_COUNT(CORE_COMMAND_IDS));
+    out_snapshot->missing_workbench_command_count = count_missing_commands(
+        commands, WORKBENCH_COMMAND_IDS, ARRAY_COUNT(WORKBENCH_COMMAND_IDS));
+    out_snapshot->missing_contributed_command_count = count_missing_commands(
+        commands, CONTRIBUTED_COMMAND_IDS, ARRAY_COUNT(CONTRIBUTED_COMMAND_IDS));
+    out_snapshot->missing_required_service_count = count_missing_services(services);
+
+    status = umi_runtime_inventory_count_command_prefix(
+        commands, "studio.", &out_snapshot->studio_namespace_command_count);
+    if (status != UMI_STATUS_OK) {
+        return status;
+    }
+    status = umi_runtime_inventory_count_service_prefix(
+        services, "umicom.studio.", &out_snapshot->studio_namespace_service_count);
+    if (status != UMI_STATUS_OK) {
+        return status;
+    }
+
+    out_snapshot->core_commands_complete =
+        out_snapshot->missing_core_command_count == 0U;
+    out_snapshot->workbench_commands_complete =
+        out_snapshot->missing_workbench_command_count == 0U;
+    out_snapshot->contributed_commands_complete =
+        out_snapshot->missing_contributed_command_count == 0U;
+    out_snapshot->required_services_complete =
+        out_snapshot->missing_required_service_count == 0U;
+    out_snapshot->valid =
+        out_snapshot->core_commands_complete &&
+        out_snapshot->workbench_commands_complete &&
+        out_snapshot->contributed_commands_complete &&
+        out_snapshot->required_services_complete &&
+        out_snapshot->runtime.command_count >=
+            out_snapshot->expected_minimum_command_count;
+
+    return UMI_STATUS_OK;
+}
+
+UmiStatus umi_studio_platform_contract_capture_bootstrap(
+    UmiStudioBootstrap *bootstrap,
+    UmiStudioPlatformContractSnapshot *out_snapshot)
+{
+    if (bootstrap == NULL || out_snapshot == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    return umi_studio_platform_contract_capture(
+        umi_studio_bootstrap_command_registry(bootstrap),
+        umi_studio_bootstrap_service_registry(bootstrap),
+        out_snapshot);
+}
+
+UmiStatus umi_studio_platform_contract_validate(
+    const UmiStudioPlatformContractSnapshot *snapshot)
+{
+    if (snapshot == NULL ||
+        snapshot->structure_size < sizeof(*snapshot) ||
+        snapshot->api_version != UMI_STUDIO_PLATFORM_CONTRACT_API_VERSION) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    return snapshot->valid ? UMI_STATUS_OK : UMI_STATUS_INVALID_STATE;
+}

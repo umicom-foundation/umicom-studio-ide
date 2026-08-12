@@ -54,6 +54,7 @@ add_library(umicom_studio_core STATIC
     src/app/contributions.c
     src/app/view_models.c
     src/app/workbench_commands.c
+    src/app/platform_contract.c
     src/app/workbench_shell_catalogue.c
     src/app/workbench_views.c
     src/app/platform_shell.c
@@ -787,6 +788,93 @@ if(BUILD_TESTING)
     umicom_apply_warnings(umicom-studio-state-test)
     umicom_apply_sanitizers(umicom-studio-state-test)
     add_test(NAME studio.state COMMAND umicom-studio-state-test)
+
+    # Runtime composition contract and regression shield.  These tests validate
+    # identities and authoritative registry inventories while preserving the
+    # extensibility needed by designer, plug-in and future Studio commands.
+    add_executable(umicom-studio-platform-contract-test tests/test_platform_contract.c)
+    target_link_libraries(umicom-studio-platform-contract-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-platform-contract-test)
+    umicom_apply_sanitizers(umicom-studio-platform-contract-test)
+    add_test(NAME studio.platform_contract COMMAND umicom-studio-platform-contract-test)
+
+    add_executable(umicom-studio-command-inventory-test tests/test_command_inventory.c)
+    target_link_libraries(umicom-studio-command-inventory-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-command-inventory-test)
+    umicom_apply_sanitizers(umicom-studio-command-inventory-test)
+    add_test(NAME studio.command_inventory COMMAND umicom-studio-command-inventory-test)
+
+    add_executable(umicom-studio-command-inventory-partition-test tests/test_command_inventory_partition.c)
+    target_link_libraries(umicom-studio-command-inventory-partition-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-command-inventory-partition-test)
+    umicom_apply_sanitizers(umicom-studio-command-inventory-partition-test)
+    add_test(NAME studio.command_inventory_partition COMMAND umicom-studio-command-inventory-partition-test)
+
+    add_executable(umicom-studio-service-inventory-test tests/test_service_inventory.c)
+    target_link_libraries(umicom-studio-service-inventory-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-service-inventory-test)
+    umicom_apply_sanitizers(umicom-studio-service-inventory-test)
+    add_test(NAME studio.service_inventory COMMAND umicom-studio-service-inventory-test)
+
+    add_executable(umicom-studio-platform-contract-missing-test tests/test_platform_contract_missing.c)
+    target_link_libraries(umicom-studio-platform-contract-missing-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-platform-contract-missing-test)
+    umicom_apply_sanitizers(umicom-studio-platform-contract-missing-test)
+    add_test(NAME studio.platform_contract_missing COMMAND umicom-studio-platform-contract-missing-test)
+
+    add_executable(umicom-studio-version-contract-test tests/test_version_contract.c)
+    target_link_libraries(umicom-studio-version-contract-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-version-contract-test)
+    umicom_apply_sanitizers(umicom-studio-version-contract-test)
+    add_test(NAME studio.version_contract COMMAND umicom-studio-version-contract-test)
+
+    add_executable(umicom-studio-framework-runtime-contract-test tests/test_framework_runtime_contract.c)
+    target_link_libraries(umicom-studio-framework-runtime-contract-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-framework-runtime-contract-test)
+    umicom_apply_sanitizers(umicom-studio-framework-runtime-contract-test)
+    add_test(NAME studio.framework_runtime_contract COMMAND umicom-studio-framework-runtime-contract-test)
+
+    add_executable(umicom-studio-bootstrap-inventory-test tests/test_bootstrap_inventory.c)
+    target_link_libraries(umicom-studio-bootstrap-inventory-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-bootstrap-inventory-test)
+    umicom_apply_sanitizers(umicom-studio-bootstrap-inventory-test)
+    add_test(NAME studio.bootstrap_inventory COMMAND umicom-studio-bootstrap-inventory-test)
+
+    add_executable(umicom-studio-composition-lifecycle-test tests/test_composition_lifecycle.c)
+    target_link_libraries(umicom-studio-composition-lifecycle-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-composition-lifecycle-test)
+    umicom_apply_sanitizers(umicom-studio-composition-lifecycle-test)
+    add_test(NAME studio.composition_lifecycle COMMAND umicom-studio-composition-lifecycle-test)
+
+    add_executable(umicom-studio-registry-extension-compatibility-test tests/test_registry_extension_compatibility.c)
+    target_link_libraries(umicom-studio-registry-extension-compatibility-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-registry-extension-compatibility-test)
+    umicom_apply_sanitizers(umicom-studio-registry-extension-compatibility-test)
+    add_test(NAME studio.registry_extension_compatibility COMMAND umicom-studio-registry-extension-compatibility-test)
+
+    add_executable(umicom-studio-state-inventory-consistency-test tests/test_state_inventory_consistency.c)
+    target_link_libraries(umicom-studio-state-inventory-consistency-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-state-inventory-consistency-test)
+    umicom_apply_sanitizers(umicom-studio-state-inventory-consistency-test)
+    add_test(NAME studio.state_inventory_consistency COMMAND umicom-studio-state-inventory-consistency-test)
+
+    add_executable(umicom-studio-designer-command-contribution-test tests/test_designer_command_contribution.c)
+    target_link_libraries(umicom-studio-designer-command-contribution-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-designer-command-contribution-test)
+    umicom_apply_sanitizers(umicom-studio-designer-command-contribution-test)
+    add_test(NAME studio.designer_command_contribution COMMAND umicom-studio-designer-command-contribution-test)
+
+    add_executable(umicom-studio-platform-contract-api-bounds-test tests/test_platform_contract_api_bounds.c)
+    target_link_libraries(umicom-studio-platform-contract-api-bounds-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-platform-contract-api-bounds-test)
+    umicom_apply_sanitizers(umicom-studio-platform-contract-api-bounds-test)
+    add_test(NAME studio.platform_contract_api_bounds COMMAND umicom-studio-platform-contract-api-bounds-test)
+
+    add_executable(umicom-studio-service-namespace-inventory-test tests/test_service_namespace_inventory.c)
+    target_link_libraries(umicom-studio-service-namespace-inventory-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-service-namespace-inventory-test)
+    umicom_apply_sanitizers(umicom-studio-service-namespace-inventory-test)
+    add_test(NAME studio.service_namespace_inventory COMMAND umicom-studio-service-namespace-inventory-test)
 
     add_executable(umicom-studio-workspace-test
         tests/test_workspace.c
