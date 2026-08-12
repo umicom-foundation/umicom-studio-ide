@@ -30,7 +30,8 @@ int main(void)
 
     registry = umi_studio_bootstrap_command_registry(bootstrap);
     assert(registry != NULL);
-    assert(umi_command_registry_count(registry) == 31U);
+    assert(umi_command_registry_count(registry) ==
+           UMI_STUDIO_CORE_COMMAND_COUNT + UMI_STUDIO_WORKBENCH_COMMAND_COUNT);
     assert(umi_command_registry_snapshot(
         registry,
         UMI_STUDIO_COMMAND_SESSION_SAVE,

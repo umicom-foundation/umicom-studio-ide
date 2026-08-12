@@ -44,6 +44,8 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_VCS_REFRESH "studio.vcs.refresh"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
+#define UMI_STUDIO_CORE_COMMAND_COUNT 24U
+
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);
 

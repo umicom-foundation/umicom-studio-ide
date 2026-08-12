@@ -32,6 +32,8 @@ typedef struct UmiStudioUi UmiStudioUi;
 #define UMI_STUDIO_COMMAND_LAYOUT_RESET "studio.ui.layout.reset"
 #define UMI_STUDIO_COMMAND_NOTIFICATION_INFO "studio.ui.notification.info"
 
+#define UMI_STUDIO_WORKBENCH_COMMAND_COUNT 9U
+
 UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
                                                   UmiStudioUi *ui);
 

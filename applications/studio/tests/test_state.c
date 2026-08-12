@@ -11,6 +11,8 @@
  * Licence: MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/state.h"
+#include "umicom/studio/commands.h"
+#include "umicom/studio/workbench_commands.h"
 
 #include <assert.h>
 #include <string.h>
@@ -28,7 +30,8 @@ int main(void)
 
     assert(report.module_count == 1U);
     assert(report.service_count >= 31U);
-    assert(report.command_count == 31U);
+    assert(report.command_count ==
+           UMI_STUDIO_CORE_COMMAND_COUNT + UMI_STUDIO_WORKBENCH_COMMAND_COUNT);
     assert(report.health_count >= 3U);
     assert(report.overall_health == UMI_HEALTH_READY);
     assert(report.tasks.worker_count == 4U);

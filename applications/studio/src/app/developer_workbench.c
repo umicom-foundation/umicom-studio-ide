@@ -7,6 +7,7 @@
  * Licence: MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/developer_workbench.h"
+#include "umicom/developer/context.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -223,6 +224,31 @@ UmiStatus umi_studio_developer_workbench_import_project(
             workbench->pipeline, &workflow_request, &snapshot.workflow);
         if (status != UMI_STATUS_OK) return status;
         snapshot.workflow_prepared = 1;
+    }
+
+
+    /*
+     * Preparing a project workflow refreshes the reusable Developer Context.
+     * Reapply the repository identity discovered during import so source
+     * control, workspace-state capture and the returned bootstrap snapshot all
+     * observe one coherent project/repository session.
+     */
+    if (snapshot.project.has_git) {
+        UmiDeveloperContextPatch patch = {0};
+        char repository_id[128];
+        int written = snprintf(repository_id, sizeof(repository_id),
+                               "%s.git", snapshot.project.project_id);
+
+        if (written < 0 || (size_t)written >= sizeof(repository_id))
+            return UMI_STATUS_CAPACITY_EXCEEDED;
+
+        patch.struct_size = (uint32_t)sizeof(patch);
+        patch.api_version = UMI_DEVELOPER_CONTEXT_PATCH_API_VERSION;
+        patch.field_mask = UMI_DEVELOPER_CONTEXT_PATCH_REPOSITORY;
+        patch.repository_id = repository_id;
+        status = umi_developer_context_patch(
+            umi_developer_runtime_context(workbench->runtime), &patch, NULL);
+        if (status != UMI_STATUS_OK) return status;
     }
 
     status = umi_studio_developer_workspace_state_centre_capture_context(
