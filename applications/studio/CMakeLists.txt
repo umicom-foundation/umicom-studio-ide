@@ -15,11 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.14.0")
-
-# -----------------------------------------------------------------------------
-# Studio composition root
-# -----------------------------------------------------------------------------
+set(UMICOM_STUDIO_VERSION "0.16.0")
 add_library(umicom_studio_core STATIC
     src/app/bootstrap.c
     src/app/services.c
@@ -54,6 +50,8 @@ add_library(umicom_studio_core STATIC
     src/app/contributions.c
     src/app/view_models.c
     src/app/workbench_commands.c
+    src/app/workbench_shell_catalogue.c
+    src/app/workbench_views.c
     src/app/ui_catalogue.c
     src/app/build.c
     src/app/tests.c
@@ -104,192 +102,59 @@ add_library(umicom_studio_core STATIC
     src/app/delivery_report.c
     src/app/delivery_distribution.c
     src/app/delivery_evidence.c
+    src/app/developer_dashboard.c
+    src/app/platform_shell.c
+    src/app/extension_centre.c
+    src/app/designer_workspace.c
+    src/app/command_centre.c
+    src/app/settings_centre.c
+    src/app/ai_workspace.c
+    src/app/editor_workspace.c
+    src/app/welcome_centre.c
+    src/app/global_search.c
+    src/app/application_centre.c
+    src/app/chart_workspace.c
+    src/app/resource_explorer.c
+    src/app/project_centre.c
+    src/app/language_intelligence_centre.c
+    src/app/debug_centre.c
+    src/app/source_control_centre.c
+    src/app/test_explorer_centre.c
+    src/app/problems_centre.c
+    src/app/output_centre.c
+    src/app/progress_centre.c
+    src/app/developer_workbench.c
+    src/app/developer_session.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
-
-target_include_directories(umicom_studio_core PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
-
-target_link_libraries(umicom_studio_core PUBLIC
-    Umicom::Framework
-    Umicom::ui
-    Umicom::ui_headless
-)
-
+target_include_directories(umicom_studio_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(umicom_studio_core PUBLIC Umicom::Framework Umicom::ui Umicom::ui_headless)
 umicom_apply_warnings(umicom_studio_core)
 umicom_apply_sanitizers(umicom_studio_core)
-
-# A small console frontend verifies Framework lifecycle without GTK4.
-add_executable(umicom-studio-console
-    src/console/main.c
-)
-target_link_libraries(umicom-studio-console PRIVATE
-    Umicom::StudioCore
-)
+add_executable(umicom-studio-console src/console/main.c)
+target_link_libraries(umicom-studio-console PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-console)
 umicom_apply_sanitizers(umicom-studio-console)
 
-# Native project-health command.  This is intentionally implemented in C23 so
-# normal repository validation does not depend on Python.
-add_executable(umicom-studio-doctor
-    src/tools/doctor_main.c
-)
-target_link_libraries(umicom-studio-doctor PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-doctor)
-umicom_apply_sanitizers(umicom-studio-doctor)
-
-# Native retained-diagnostics inspection command.
-add_executable(umicom-studio-diagnostics
-    src/tools/diagnostics_main.c
-)
-target_link_libraries(umicom-studio-diagnostics PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-diagnostics)
-umicom_apply_sanitizers(umicom-studio-diagnostics)
-
-
-# Native typed-settings inspection and editing command.
-add_executable(umicom-studio-settings
-    src/tools/settings_main.c
-)
-target_link_libraries(umicom-studio-settings PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-settings)
-umicom_apply_sanitizers(umicom-studio-settings)
-
-# Native Framework platform and toolchain inspection command.
-add_executable(umicom-studio-platform
-    src/tools/platform_main.c
-)
-target_link_libraries(umicom-studio-platform PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-platform)
-umicom_apply_sanitizers(umicom-studio-platform)
-
-# Native Framework and Studio operational-state command.
-add_executable(umicom-studio-state
-    src/tools/state_main.c
-)
-target_link_libraries(umicom-studio-state PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-state)
-umicom_apply_sanitizers(umicom-studio-state)
-
-# Native workspace, index and search inspection command.
-add_executable(umicom-studio-workspace
-    src/tools/workspace_main.c
-)
-target_link_libraries(umicom-studio-workspace PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-workspace)
-umicom_apply_sanitizers(umicom-studio-workspace)
-
-# Native supervised process execution command.
-add_executable(umicom-studio-process
-    src/tools/process_main.c
-)
-target_link_libraries(umicom-studio-process PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-process)
-umicom_apply_sanitizers(umicom-studio-process)
-
-# Native Data Server inspection command.
-add_executable(umicom-studio-data src/tools/data_main.c)
-target_link_libraries(umicom-studio-data PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-data)
-umicom_apply_sanitizers(umicom-studio-data)
-
-# Native Integration Fabric inspection and publication command.
-add_executable(umicom-studio-messages src/tools/messages_main.c)
-target_link_libraries(umicom-studio-messages PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-messages)
-umicom_apply_sanitizers(umicom-studio-messages)
-
-# Native durable replay command.
-add_executable(umicom-studio-replay src/tools/replay_main.c)
-target_link_libraries(umicom-studio-replay PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-replay)
-umicom_apply_sanitizers(umicom-studio-replay)
-
-# Native Studio operational-history command.
-add_executable(umicom-studio-history src/tools/history_main.c)
-target_link_libraries(umicom-studio-history PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-history)
-umicom_apply_sanitizers(umicom-studio-history)
-
-# Native security, plug-in, observability and resilience commands.
-foreach(UMICOM_STUDIO_OPERATION_TOOL
-        security
-        plugins
-        observability
-        resilience
-        operations)
-    add_executable(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL}
-        src/tools/${UMICOM_STUDIO_OPERATION_TOOL}_main.c)
-    target_link_libraries(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL}
-        PRIVATE Umicom::StudioCore)
-    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL})
-    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL})
-endforeach()
-
-# Native toolkit-neutral workbench and UI catalogue commands.
-add_executable(umicom-studio-workbench src/tools/workbench_main.c)
-target_link_libraries(umicom-studio-workbench PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-workbench)
-umicom_apply_sanitizers(umicom-studio-workbench)
-
-add_executable(umicom-studio-ui-catalogue src/tools/ui_catalogue_main.c)
-target_link_libraries(umicom-studio-ui-catalogue PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-ui-catalogue)
-umicom_apply_sanitizers(umicom-studio-ui-catalogue)
-
-# Native developer-platform commands for build, test, terminal, language,
-# debugging, source control and the combined platform report.
-foreach(UMICOM_STUDIO_DEVELOPER_TOOL
-        build
-        tests
-        terminal
-        language
-        debugger
-        source-control
-        developer)
-    string(REPLACE "-" "_" UMICOM_STUDIO_DEVELOPER_SOURCE
-        "${UMICOM_STUDIO_DEVELOPER_TOOL}")
-    add_executable(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL}
-        src/tools/${UMICOM_STUDIO_DEVELOPER_SOURCE}_main.c)
-    target_link_libraries(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL}
-        PRIVATE Umicom::StudioCore)
-    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL})
-    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL})
-endforeach()
-
-# Native declarative-template and visual-designer commands.
-foreach(UMICOM_STUDIO_DESIGNER_TOOL
-        template
-        designer
-        designer-catalogue
-        new-project)
-    string(REPLACE "-" "_" UMICOM_STUDIO_DESIGNER_SOURCE
-        "${UMICOM_STUDIO_DESIGNER_TOOL}")
-    add_executable(umicom-studio-${UMICOM_STUDIO_DESIGNER_TOOL}
-        src/tools/${UMICOM_STUDIO_DESIGNER_SOURCE}_main.c)
-    target_link_libraries(umicom-studio-${UMICOM_STUDIO_DESIGNER_TOOL}
-        PRIVATE Umicom::StudioCore)
-    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DESIGNER_TOOL})
-    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DESIGNER_TOOL})
-endforeach()
-
-
-# Native Web Server and multi-frontend platform commands.
-foreach(UMICOM_STUDIO_WEB_TOOL
-        web
-        browser
-        chart
-        frontend
-        web-platform)
-    string(REPLACE "-" "_" UMICOM_STUDIO_WEB_SOURCE
-        "${UMICOM_STUDIO_WEB_TOOL}")
-    add_executable(umicom-studio-${UMICOM_STUDIO_WEB_TOOL}
-        src/tools/${UMICOM_STUDIO_WEB_SOURCE}_main.c)
-    target_link_libraries(umicom-studio-${UMICOM_STUDIO_WEB_TOOL}
-        PRIVATE Umicom::StudioCore)
-    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_WEB_TOOL})
-    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_WEB_TOOL})
+# Keep the install set explicit and append native tools only when their source
+# exists in this checkout. This preserves the existing Studio command suite.
+set(UMICOM_STUDIO_INSTALL_TARGETS umicom-studio-console)
+set(UMICOM_STUDIO_SIMPLE_TOOLS
+ doctor diagnostics settings platform state workspace process data messages replay history
+ security plugins observability resilience operations workbench ui_catalogue
+ build tests terminal language debugger source_control developer template designer designer_catalogue new_project
+ web browser chart frontend web_platform ai retrieval authorengine helix helix_evidence helix_generation
+ delivery package release update distribution evidence rollback pipeline abi sdk products compatibility conformance architecture
+ codeguard consolidation duplicates quality)
+foreach(tool IN LISTS UMICOM_STUDIO_SIMPLE_TOOLS)
+ string(REPLACE "_" "-" exe "${tool}")
+ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/${tool}_main.c")
+  add_executable(umicom-studio-${exe} src/tools/${tool}_main.c)
+  target_link_libraries(umicom-studio-${exe} PRIVATE Umicom::StudioCore)
+  umicom_apply_warnings(umicom-studio-${exe})
+  umicom_apply_sanitizers(umicom-studio-${exe})
+  list(APPEND UMICOM_STUDIO_INSTALL_TARGETS umicom-studio-${exe})
+ endif()
 endforeach()
 
 
@@ -353,218 +218,49 @@ umicom_apply_warnings(umicom-studio-quality)
 umicom_apply_sanitizers(umicom-studio-quality)
 
 if(UMICOM_STUDIO_BUILD_GTK)
-    find_package(PkgConfig REQUIRED)
-
-    pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
-    pkg_check_modules(GOBJECT REQUIRED IMPORTED_TARGET gobject-2.0)
-    pkg_check_modules(GIO REQUIRED IMPORTED_TARGET gio-2.0)
-    pkg_check_modules(JSON_GLIB REQUIRED IMPORTED_TARGET json-glib-1.0)
-    pkg_check_modules(SOUP3 REQUIRED IMPORTED_TARGET libsoup-3.0)
-    pkg_check_modules(CURL REQUIRED IMPORTED_TARGET libcurl)
-    pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
-    pkg_check_modules(PIXBUF REQUIRED IMPORTED_TARGET gdk-pixbuf-2.0)
-    pkg_check_modules(CAIRO REQUIRED IMPORTED_TARGET cairo)
-    pkg_check_modules(PANGO REQUIRED IMPORTED_TARGET pango)
-    pkg_check_modules(HARFBUZZ REQUIRED IMPORTED_TARGET harfbuzz)
-    pkg_check_modules(GRAPHENE REQUIRED IMPORTED_TARGET graphene-1.0)
-    pkg_check_modules(SOURCEVIEW5 QUIET IMPORTED_TARGET gtksourceview-5)
-
-    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/StudioSources.cmake")
-
-    add_library(umicom_studio_product STATIC
-        ${UMICOM_STUDIO_PRODUCT_SOURCES}
-    )
-    add_library(Umicom::StudioProduct ALIAS umicom_studio_product)
-
-    # These paths preserve the current product's include relationships.  Later
-    # extraction commits will reduce this list as each bounded module receives
-    # a public contract and its own CMake target.
-    target_include_directories(umicom_studio_product PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/build/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/core/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/editor/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/app/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/chrome/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/dialogs/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/llm_lab/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/menu/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/prefs/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/theme"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/llm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/llm/includes"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/llm/providers"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/panes/chat/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/panes/output/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/panes/problems/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/transpile"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/transpile/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/search"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/search/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/util/fs/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/util/git/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/util/log/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/util/sys/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/util/watchers/include"
-    )
-
-    target_compile_definitions(umicom_studio_product PRIVATE
-        NOMINMAX
-        _CRT_SECURE_NO_WARNINGS
-        UMICOM_VERSION_MAJOR=0
-        UMICOM_VERSION_MINOR=14
-        UMICOM_VERSION_PATCH=0
-        gtk_widget_destroy=g_object_unref
-    )
-
-    target_link_libraries(umicom_studio_product
-        PUBLIC
-            Umicom::Framework
-        PRIVATE
-            PkgConfig::GLIB
-            PkgConfig::GOBJECT
-            PkgConfig::GIO
-            PkgConfig::JSON_GLIB
-            PkgConfig::SOUP3
-            PkgConfig::CURL
-            PkgConfig::GTK4
-            PkgConfig::PIXBUF
-            PkgConfig::CAIRO
-            PkgConfig::PANGO
-            PkgConfig::HARFBUZZ
-            PkgConfig::GRAPHENE
-    )
-
-    if(TARGET PkgConfig::SOURCEVIEW5)
-        target_link_libraries(umicom_studio_product PRIVATE
-            PkgConfig::SOURCEVIEW5
-        )
-    endif()
-
-    # The product implementation is not warning-clean yet.  Keep a practical
-    # warning set here while new Framework and StudioCore code remains strict.
-    if(MSVC)
-        target_compile_options(umicom_studio_product PRIVATE /W4)
-    else()
-        target_compile_options(umicom_studio_product PRIVATE
-            -Wall
-            -Wextra
-            -Wpedantic
-            -Wno-unused-parameter
-        )
-    endif()
-
-    add_executable(umicom-studio-workbench-demo
-        src/gtk/workbench_main.c
-        src/gui/workbench/workbench_window.c
-        src/gui/workbench/perspective_switcher.c
-        src/gui/workbench/status_strip.c
-        src/gui/explorer/project_explorer_view.c
-        src/gui/editor/editor_host_view.c
-    )
-    target_include_directories(umicom-studio-workbench-demo PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/workbench/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/explorer/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/editor/include"
-    )
-    target_link_libraries(umicom-studio-workbench-demo PRIVATE
-        Umicom::StudioCore
-        Umicom::ui_gtk4
-        PkgConfig::GTK4
-        PkgConfig::GLIB
-        PkgConfig::GIO
-    )
-    umicom_apply_warnings(umicom-studio-workbench-demo)
-    umicom_apply_sanitizers(umicom-studio-workbench-demo)
-
-    add_executable(umicom-studio-designer-demo
-        src/gtk/designer_main.c
-        src/gui/designer/designer_window.c
-        src/gui/designer/palette_view.c
-        src/gui/designer/tree_view.c
-        src/gui/designer/inspector_view.c
-        src/gui/designer/surface_view.c
-        src/gui/designer/preview_view.c
-    )
-    target_include_directories(umicom-studio-designer-demo PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/designer/include"
-    )
-    target_link_libraries(umicom-studio-designer-demo PRIVATE
-        Umicom::StudioCore
-        Umicom::ui_gtk4
-        PkgConfig::GTK4
-        PkgConfig::GLIB
-    )
-    umicom_apply_warnings(umicom-studio-designer-demo)
-    umicom_apply_sanitizers(umicom-studio-designer-demo)
-
-
-    add_executable(umicom-studio-web-platform-demo
-        src/gui/web/web_platform_demo.c
-        src/gui/web/web_preview.c
-        src/gui/web/chart_preview.c
-        src/gui/web/frontend_preview.c
-    )
-    target_include_directories(umicom-studio-web-platform-demo PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/web/include"
-    )
-    target_link_libraries(umicom-studio-web-platform-demo PRIVATE
-        Umicom::StudioCore
-        PkgConfig::GTK4
-        PkgConfig::GLIB
-        PkgConfig::GIO
-    )
-    umicom_apply_warnings(umicom-studio-web-platform-demo)
-    umicom_apply_sanitizers(umicom-studio-web-platform-demo)
-
-    add_executable(umicom-studio-ide
-        src/gtk/main.c
-    )
-
-    set(UMICOM_STUDIO_WINDOWS_RESOURCE
-        "${CMAKE_SOURCE_DIR}/win/umicom.rc"
-    )
-
-    if(WIN32 AND EXISTS "${UMICOM_STUDIO_WINDOWS_RESOURCE}")
-        target_sources(umicom-studio-ide PRIVATE
-            "${UMICOM_STUDIO_WINDOWS_RESOURCE}"
-        )
-    endif()
-
-    target_include_directories(umicom-studio-ide PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/app/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/include"
-        "${CMAKE_SOURCE_DIR}/win"
-    )
-
-    target_link_libraries(umicom-studio-ide PRIVATE
-        Umicom::StudioCore
-        Umicom::StudioProduct
-        PkgConfig::GTK4
-        PkgConfig::GLIB
-        PkgConfig::GIO
-    )
-
-    target_compile_definitions(umicom-studio-ide PRIVATE
-        USIDE_GUI=$<IF:$<BOOL:${UMICOM_STUDIO_GUI}>,1,0>
-        NOMINMAX
-        _CRT_SECURE_NO_WARNINGS
-        UMICOM_VERSION_MAJOR=0
-        UMICOM_VERSION_MINOR=14
-        UMICOM_VERSION_PATCH=0
-    )
-
-    if(WIN32 AND UMICOM_STUDIO_GUI)
-        set_property(TARGET umicom-studio-ide PROPERTY WIN32_EXECUTABLE TRUE)
-    endif()
-
-    install(TARGETS
-        umicom-studio-ide
-        umicom-studio-workbench-demo
-        RUNTIME DESTINATION bin)
+ find_package(PkgConfig REQUIRED)
+ pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
+ pkg_check_modules(GOBJECT REQUIRED IMPORTED_TARGET gobject-2.0)
+ pkg_check_modules(GIO REQUIRED IMPORTED_TARGET gio-2.0)
+ pkg_check_modules(JSON_GLIB REQUIRED IMPORTED_TARGET json-glib-1.0)
+ pkg_check_modules(SOUP3 REQUIRED IMPORTED_TARGET libsoup-3.0)
+ pkg_check_modules(CURL REQUIRED IMPORTED_TARGET libcurl)
+ pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
+ pkg_check_modules(PIXBUF REQUIRED IMPORTED_TARGET gdk-pixbuf-2.0)
+ pkg_check_modules(CAIRO REQUIRED IMPORTED_TARGET cairo)
+ pkg_check_modules(PANGO REQUIRED IMPORTED_TARGET pango)
+ pkg_check_modules(HARFBUZZ REQUIRED IMPORTED_TARGET harfbuzz)
+ pkg_check_modules(GRAPHENE REQUIRED IMPORTED_TARGET graphene-1.0)
+ pkg_check_modules(SOURCEVIEW5 QUIET IMPORTED_TARGET gtksourceview-5)
+ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/StudioSources.cmake")
+ add_library(umicom_studio_product STATIC ${UMICOM_STUDIO_PRODUCT_SOURCES})
+ add_library(Umicom::StudioProduct ALIAS umicom_studio_product)
+ target_include_directories(umicom_studio_product PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src" "${CMAKE_CURRENT_SOURCE_DIR}/src/build/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/core/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/editor/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/app/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/chrome/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/dialogs/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/llm_lab/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/menu/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/prefs/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/theme" "${CMAKE_CURRENT_SOURCE_DIR}/src/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/llm" "${CMAKE_CURRENT_SOURCE_DIR}/src/llm/includes" "${CMAKE_CURRENT_SOURCE_DIR}/src/llm/providers" "${CMAKE_CURRENT_SOURCE_DIR}/src/panes/chat/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/panes/output/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/panes/problems/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/transpile" "${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/transpile/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/search" "${CMAKE_CURRENT_SOURCE_DIR}/src/search/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/resources" "${CMAKE_CURRENT_SOURCE_DIR}/src/util/fs/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/util/git/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/util/log/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/util/sys/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/util/watchers/include")
+ target_compile_definitions(umicom_studio_product PRIVATE NOMINMAX _CRT_SECURE_NO_WARNINGS UMICOM_VERSION_MAJOR=0 UMICOM_VERSION_MINOR=16 UMICOM_VERSION_PATCH=0 gtk_widget_destroy=g_object_unref)
+ target_link_libraries(umicom_studio_product PUBLIC Umicom::Framework PRIVATE PkgConfig::GLIB PkgConfig::GOBJECT PkgConfig::GIO PkgConfig::JSON_GLIB PkgConfig::SOUP3 PkgConfig::CURL PkgConfig::GTK4 PkgConfig::PIXBUF PkgConfig::CAIRO PkgConfig::PANGO PkgConfig::HARFBUZZ PkgConfig::GRAPHENE)
+ if(TARGET PkgConfig::SOURCEVIEW5)
+  target_link_libraries(umicom_studio_product PRIVATE PkgConfig::SOURCEVIEW5)
+ endif()
+ add_executable(umicom-studio-workbench-demo src/gtk/workbench_main.c src/gui/workbench/workbench_window.c src/gui/workbench/perspective_switcher.c src/gui/workbench/status_strip.c src/gui/explorer/project_explorer_view.c src/gui/editor/editor_host_view.c)
+ target_include_directories(umicom-studio-workbench-demo PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/workbench/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/explorer/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/editor/include")
+ target_link_libraries(umicom-studio-workbench-demo PRIVATE Umicom::StudioCore Umicom::ui_gtk4 PkgConfig::GTK4 PkgConfig::GLIB PkgConfig::GIO)
+ add_executable(umicom-studio-designer-demo src/gtk/designer_main.c src/gui/designer/designer_window.c src/gui/designer/palette_view.c src/gui/designer/tree_view.c src/gui/designer/inspector_view.c src/gui/designer/surface_view.c src/gui/designer/preview_view.c)
+ target_include_directories(umicom-studio-designer-demo PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/designer/include")
+ target_link_libraries(umicom-studio-designer-demo PRIVATE Umicom::StudioCore Umicom::ui_gtk4 PkgConfig::GTK4 PkgConfig::GLIB)
+ add_executable(umicom-studio-web-platform-demo src/gui/web/web_platform_demo.c src/gui/web/web_preview.c src/gui/web/chart_preview.c src/gui/web/frontend_preview.c)
+ target_include_directories(umicom-studio-web-platform-demo PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/web/include")
+ target_link_libraries(umicom-studio-web-platform-demo PRIVATE Umicom::StudioCore PkgConfig::GTK4 PkgConfig::GLIB PkgConfig::GIO)
+ add_executable(umicom-studio-ide src/gtk/main.c src/gui/workbench/workbench_window.c)
+ if(WIN32 AND EXISTS "${CMAKE_SOURCE_DIR}/win/umicom.rc")
+  target_sources(umicom-studio-ide PRIVATE "${CMAKE_SOURCE_DIR}/win/umicom.rc")
+ endif()
+ target_include_directories(umicom-studio-ide PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/app/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/workbench/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/include" "${CMAKE_SOURCE_DIR}/win")
+ target_link_libraries(umicom-studio-ide PRIVATE Umicom::StudioCore Umicom::StudioProduct Umicom::ui_gtk4 PkgConfig::GTK4 PkgConfig::GLIB PkgConfig::GIO)
+ target_compile_definitions(umicom-studio-ide PRIVATE USIDE_GUI=$<IF:$<BOOL:${UMICOM_STUDIO_GUI}>,1,0> NOMINMAX _CRT_SECURE_NO_WARNINGS UMICOM_VERSION_MAJOR=0 UMICOM_VERSION_MINOR=16 UMICOM_VERSION_PATCH=0)
+ if(WIN32 AND UMICOM_STUDIO_GUI)
+  set_property(TARGET umicom-studio-ide PROPERTY WIN32_EXECUTABLE TRUE)
+ endif()
+ install(TARGETS umicom-studio-ide umicom-studio-workbench-demo RUNTIME DESTINATION bin)
 endif()
 
 # -----------------------------------------------------------------------------
