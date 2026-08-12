@@ -43,6 +43,8 @@ typedef struct UmiStudioDeveloperPipelineCentreSnapshot {
     uint64_t revision;
     size_t item_count;
     int available;
+    UmiDeveloperProjectWorkflowSnapshot last_project_workflow;
+    int has_project_workflow;
 } UmiStudioDeveloperPipelineCentreSnapshot;
 
 UmiStatus umi_studio_developer_pipeline_centre_create(
@@ -86,6 +88,11 @@ UmiStatus umi_studio_developer_pipeline_centre_submit_workflow(
     UmiStudioDeveloperPipelineCentre *centre,
     const UmiDeveloperWorkflowRequest *request,
     UmiDeveloperWorkflowSnapshot *out_workflow);
+
+UmiStatus umi_studio_developer_pipeline_centre_prepare_project_workflow(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperProjectWorkflowRequest *request,
+    UmiDeveloperProjectWorkflowSnapshot *out_workflow);
 
 UmiStatus umi_studio_developer_pipeline_centre_execute_batch(
     UmiStudioDeveloperPipelineCentre *centre,

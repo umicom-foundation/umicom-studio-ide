@@ -16,3 +16,111 @@ UmiStatus umi_studio_developer_workbench_snapshot(UmiStudioDeveloperWorkbench*p,
 #define A(fn,type,field) type *fn(UmiStudioDeveloperWorkbench*p){return p!=NULL?p->field:NULL;}
 A(umi_studio_developer_workbench_projects,UmiStudioProjectCentre,projects) A(umi_studio_developer_workbench_language,UmiStudioLanguageIntelligenceCentre,language) A(umi_studio_developer_workbench_debug,UmiStudioDebugCentre,debug) A(umi_studio_developer_workbench_source_control,UmiStudioSourceControlCentre,source_control) A(umi_studio_developer_workbench_tests,UmiStudioTestExplorerCentre,tests) A(umi_studio_developer_workbench_services,UmiUiWorkbenchServices,services) A(umi_studio_developer_workbench_runtime,UmiDeveloperRuntime,runtime) A(umi_studio_developer_workbench_pipeline,UmiStudioDeveloperPipelineCentre,pipeline) A(umi_studio_developer_workbench_task_centre,UmiStudioDeveloperTaskCentre,task_centre) A(umi_studio_developer_workbench_run_centre,UmiStudioDeveloperRunCentre,run_centre) A(umi_studio_developer_workbench_workspace_state,UmiStudioDeveloperWorkspaceStateCentre,workspace_state) A(umi_studio_developer_workbench_session,UmiStudioDeveloperSession,session)
 #undef A
+
+static void copy_selection_text(char *destination,size_t capacity,const char *source)
+{
+    size_t length;
+    if(destination==NULL||capacity==0U)return;
+    if(source==NULL)source="";
+    length=strlen(source);
+    if(length>=capacity)length=capacity-1U;
+    if(length>0U)memcpy(destination,source,length);
+    destination[length]='\0';
+}
+
+UmiStatus umi_studio_developer_workbench_activate_project(
+    UmiStudioDeveloperWorkbench *workbench,
+    const UmiProjectWorkspaceSelectionRequest *request,
+    UmiProjectWorkspaceSelectionSnapshot *out_selection)
+{
+    UmiProjectWorkspaceSelectionSnapshot selection;
+    UmiDeveloperContextSnapshot context;
+    UmiStudioDeveloperSessionSnapshot session;
+    UmiStatus status;
+
+    if(workbench==NULL)return UMI_STATUS_INVALID_ARGUMENT;
+
+    status=umi_studio_project_centre_select(
+        workbench->projects,request,&selection);
+    if(status!=UMI_STATUS_OK)return status;
+
+    memset(&context,0,sizeof(context));
+    context.struct_size=(uint32_t)sizeof(context);
+    context.api_version=UMI_DEVELOPER_CONTEXT_API_VERSION;
+    copy_selection_text(context.project_id,sizeof(context.project_id),selection.project.id);
+    if(selection.has_configuration)
+        copy_selection_text(context.configuration_id,sizeof(context.configuration_id),selection.configuration.id);
+    if(selection.has_target)
+        copy_selection_text(context.target_id,sizeof(context.target_id),selection.target.id);
+    if(selection.has_launch_profile)
+        copy_selection_text(context.launch_profile_id,sizeof(context.launch_profile_id),selection.launch_profile.id);
+    copy_selection_text(context.workspace_directory,sizeof(context.workspace_directory),selection.project.root_uri);
+
+    status=umi_developer_runtime_set_context(workbench->runtime,&context);
+    if(status!=UMI_STATUS_OK)return status;
+
+    status=umi_studio_developer_session_snapshot(workbench->session,&session);
+    if(status!=UMI_STATUS_OK)return status;
+    copy_selection_text(session.project_id,sizeof(session.project_id),selection.project.id);
+    copy_selection_text(session.configuration_id,sizeof(session.configuration_id),
+                        selection.has_configuration?selection.configuration.id:"");
+    copy_selection_text(session.launch_profile_id,sizeof(session.launch_profile_id),
+                        selection.has_launch_profile?selection.launch_profile.id:"");
+    status=umi_studio_developer_session_set_context(workbench->session,&session);
+    if(status!=UMI_STATUS_OK)return status;
+
+    workbench->revision+=1U;
+    if(out_selection!=NULL)*out_selection=selection;
+    return UMI_STATUS_OK;
+}
+
+UmiStatus umi_studio_developer_workbench_prepare_project_workflow(
+    UmiStudioDeveloperWorkbench *workbench,
+    const UmiDeveloperProjectWorkflowRequest *request,
+    UmiDeveloperProjectWorkflowSnapshot *out_workflow)
+{
+    UmiProjectWorkspaceSelectionRequest selection_request;
+    UmiDeveloperProjectWorkflowRequest resolved_request;
+    UmiProjectWorkspaceSelectionSnapshot selection;
+    UmiStatus status;
+
+    if(workbench==NULL||request==NULL)return UMI_STATUS_INVALID_ARGUMENT;
+
+    memset(&selection_request,0,sizeof(selection_request));
+    selection_request.struct_size=(uint32_t)sizeof(selection_request);
+    selection_request.api_version=UMI_PROJECT_WORKSPACE_QUERY_API_VERSION;
+    selection_request.project_id=request->project_id;
+    selection_request.configuration_id=request->configuration_id;
+    selection_request.target_id=request->target_id;
+    selection_request.task_id=request->task_id;
+    selection_request.launch_profile_id=request->launch_profile_id;
+    selection_request.environment_id=request->environment_id;
+
+    status=umi_studio_developer_workbench_activate_project(
+        workbench,&selection_request,&selection);
+    if(status!=UMI_STATUS_OK)return status;
+
+    resolved_request=*request;
+    resolved_request.project_id=selection.project.id;
+    if(resolved_request.configuration_id==NULL&&selection.has_configuration)
+        resolved_request.configuration_id=selection.configuration.id;
+    if(resolved_request.target_id==NULL&&selection.has_target)
+        resolved_request.target_id=selection.target.id;
+    if(resolved_request.launch_profile_id==NULL&&selection.has_launch_profile)
+        resolved_request.launch_profile_id=selection.launch_profile.id;
+    if(resolved_request.environment_id==NULL&&selection.has_environment)
+        resolved_request.environment_id=selection.environment.id;
+
+    status=umi_studio_developer_pipeline_centre_prepare_project_workflow(
+        workbench->pipeline,&resolved_request,out_workflow);
+    if(status==UMI_STATUS_OK)workbench->revision+=1U;
+    return status;
+}
+
+UmiStatus umi_studio_developer_workbench_validate_project(
+    UmiStudioDeveloperWorkbench *workbench,
+    UmiProjectWorkspaceValidationReport *out_report)
+{
+    if(workbench==NULL||out_report==NULL)return UMI_STATUS_INVALID_ARGUMENT;
+    return umi_studio_project_centre_validate(workbench->projects,out_report);
+}

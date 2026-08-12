@@ -18,7 +18,9 @@
 
 struct UmiStudioDeveloperPipelineCentre {
     UmiDeveloperRuntime *runtime;
+    UmiDeveloperProjectWorkflowSnapshot last_project_workflow;
     uint64_t revision;
+    int has_project_workflow;
 };
 
 static void copy_text(char *destination, size_t capacity, const char *source)
@@ -107,6 +109,10 @@ UmiStatus umi_studio_developer_pipeline_centre_snapshot(
         runtime_snapshot.pipeline.operation_count +
         runtime_snapshot.journal.entry_count;
     out_snapshot->available = 1;
+    if (centre->has_project_workflow) {
+        out_snapshot->last_project_workflow = centre->last_project_workflow;
+        out_snapshot->has_project_workflow = 1;
+    }
     return UMI_STATUS_OK;
 }
 
@@ -213,6 +219,33 @@ UmiStatus umi_studio_developer_pipeline_centre_submit_workflow(
         centre->revision += 1U;
     }
     return status;
+}
+
+UmiStatus umi_studio_developer_pipeline_centre_prepare_project_workflow(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperProjectWorkflowRequest *request,
+    UmiDeveloperProjectWorkflowSnapshot *out_workflow)
+{
+    UmiDeveloperProjectWorkflowSnapshot workflow;
+    UmiStatus status;
+
+    if (centre == NULL || request == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+
+    status = umi_developer_project_workflow_submit(
+        centre->runtime, request, &workflow);
+    if (status != UMI_STATUS_OK) {
+        return status;
+    }
+
+    centre->last_project_workflow = workflow;
+    centre->has_project_workflow = 1;
+    centre->revision += 1U;
+    if (out_workflow != NULL) {
+        *out_workflow = workflow;
+    }
+    return UMI_STATUS_OK;
 }
 
 UmiStatus umi_studio_developer_pipeline_centre_execute_batch(

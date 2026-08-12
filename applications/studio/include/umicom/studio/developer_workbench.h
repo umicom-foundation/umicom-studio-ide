@@ -43,6 +43,21 @@ UmiStudioDeveloperTaskCentre *umi_studio_developer_workbench_task_centre(UmiStud
 UmiStudioDeveloperRunCentre *umi_studio_developer_workbench_run_centre(UmiStudioDeveloperWorkbench *workbench);
 UmiStudioDeveloperWorkspaceStateCentre *umi_studio_developer_workbench_workspace_state(UmiStudioDeveloperWorkbench *workbench);
 UmiStudioDeveloperSession *umi_studio_developer_workbench_session(UmiStudioDeveloperWorkbench *workbench);
+
+UmiStatus umi_studio_developer_workbench_activate_project(
+    UmiStudioDeveloperWorkbench *workbench,
+    const UmiProjectWorkspaceSelectionRequest *request,
+    UmiProjectWorkspaceSelectionSnapshot *out_selection);
+
+UmiStatus umi_studio_developer_workbench_prepare_project_workflow(
+    UmiStudioDeveloperWorkbench *workbench,
+    const UmiDeveloperProjectWorkflowRequest *request,
+    UmiDeveloperProjectWorkflowSnapshot *out_workflow);
+
+UmiStatus umi_studio_developer_workbench_validate_project(
+    UmiStudioDeveloperWorkbench *workbench,
+    UmiProjectWorkspaceValidationReport *out_report);
+
 #ifdef __cplusplus
 }
 #endif
