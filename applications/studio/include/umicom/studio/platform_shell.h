@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include "umicom/umicom.h"
 #include "umicom/studio/services.h"
+#include "umicom/studio/developer_workbench.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,6 +32,7 @@ typedef struct UmiStudioPlatformShellSnapshot {
     uint64_t revision; size_t item_count; int available;
     UmiUiWorkbenchPlatformSnapshot workbench; UmiResourceCentreSnapshot resources; UmiProductCentreSnapshot products;
     UmiChartWorkspaceSnapshot charts; UmiDesignerAuthoringSessionSnapshot designer; UmiFrontendApplicationSnapshot frontend;
+    UmiStudioDeveloperWorkbenchSnapshot developer;
 } UmiStudioPlatformShellSnapshot;
 UmiStatus umi_studio_platform_shell_create(UmiStudioServices *services,UmiStudioPlatformShell **out_shell);
 void umi_studio_platform_shell_destroy(UmiStudioPlatformShell *shell);
@@ -41,6 +43,7 @@ UmiProductCentre *umi_studio_platform_shell_products(UmiStudioPlatformShell *she
 UmiChartWorkspace *umi_studio_platform_shell_charts(UmiStudioPlatformShell *shell);
 UmiDesignerAuthoringSession *umi_studio_platform_shell_designer(UmiStudioPlatformShell *shell);
 UmiFrontendApplication *umi_studio_platform_shell_frontend(UmiStudioPlatformShell *shell);
+UmiStudioDeveloperWorkbench *umi_studio_platform_shell_developer(UmiStudioPlatformShell *shell);
 #ifdef __cplusplus
 }
 #endif
