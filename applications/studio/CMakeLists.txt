@@ -79,6 +79,7 @@ add_library(umicom_studio_core STATIC
     src/app/progress_centre.c
     src/app/developer_workbench.c
     src/app/developer_session.c
+    src/app/developer_pipeline_centre.c
     src/app/ui_catalogue.c
     src/app/build.c
     src/app/tests.c
@@ -272,7 +273,8 @@ foreach(UMICOM_STUDIO_DEVELOPER_TOOL
         language
         debugger
         source-control
-        developer)
+        developer
+        developer-pipeline)
     string(REPLACE "-" "_" UMICOM_STUDIO_DEVELOPER_SOURCE
         "${UMICOM_STUDIO_DEVELOPER_TOOL}")
     add_executable(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL}
@@ -674,7 +676,10 @@ if(BUILD_TESTING)
             developer_source_control_centre
             developer_test_explorer_centre
             developer_developer_workbench
-            developer_developer_session)
+            developer_developer_session
+            developer_pipeline_centre
+            developer_runtime_binding
+            developer_runtime_execution)
         add_executable(umicom-studio-${UMICOM_STUDIO_PLATFORM_TEST}-test
             tests/test_${UMICOM_STUDIO_PLATFORM_TEST}.c)
         target_link_libraries(umicom-studio-${UMICOM_STUDIO_PLATFORM_TEST}-test PRIVATE Umicom::StudioCore)
@@ -1144,6 +1149,7 @@ install(TARGETS
     umicom-studio-debugger
     umicom-studio-source-control
     umicom-studio-developer
+    umicom-studio-developer-pipeline
     umicom-studio-ai
     umicom-studio-retrieval
     umicom-studio-authorengine
