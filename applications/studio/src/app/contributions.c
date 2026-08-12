@@ -4,12 +4,18 @@
  *
  * PURPOSE:
  *   Populate Studio pane, action, menu, toolbar, status, contribution and
- *   layout models using toolkit-neutral Framework records.
+ *   layout models using toolkit-neutral Framework records. Batch 23 also
+ *   exposes one primary-sidebar pane for every unified Activity Bar area.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
  * Licence: MIT
  *---------------------------------------------------------------------------*/
+
+/* BEGINNER NOTE:
+ * These records name Studio-specific surfaces. Framework owns how panes are
+ * stored, activated, laid out and rendered by headless or GTK4 adapters.
+ */
 
 #include "umicom/studio/contributions.h"
 
@@ -26,7 +32,20 @@ static const UmiUiPaneSnapshot STUDIO_PANES[] = {
     { UMI_STUDIO_PANE_SEARCH, "Search", "studio.search", "system-search-symbolic", UMI_UI_PLACEMENT_LEFT, 50, 0, 1, 1, { 320, 500 } },
     { UMI_STUDIO_PANE_TERMINAL, "Terminal", "studio.terminal", "utilities-terminal-symbolic", UMI_UI_PLACEMENT_BOTTOM, 60, 0, 1, 1, { 760, 240 } },
     { UMI_STUDIO_PANE_CHAT, "AI Chat", "studio.ai-chat", "mail-message-new-symbolic", UMI_UI_PLACEMENT_RIGHT, 70, 1, 1, 1, { 360, 500 } },
-    { UMI_STUDIO_PANE_ARCHITECTURE, "Architecture", "studio.architecture", "view-grid-symbolic", UMI_UI_PLACEMENT_RIGHT, 80, 0, 1, 1, { 360, 500 } }
+    { UMI_STUDIO_PANE_ARCHITECTURE, "Architecture", "studio.architecture", "view-grid-symbolic", UMI_UI_PLACEMENT_RIGHT, 80, 0, 1, 1, { 360, 500 } },
+
+    /*
+     * Unified primary-sidebar destinations. These are product-facing hosts;
+     * later batches can register richer view-model factories behind the same
+     * stable pane/view IDs without changing Activity Bar or layout code.
+     */
+    { UMI_STUDIO_PANE_SOURCE_CONTROL, "Source Control", "studio.source-control", "org.gnome.Builder-vcs-symbolic", UMI_UI_PLACEMENT_LEFT, 90, 0, 1, 1, { 320, 500 } },
+    { UMI_STUDIO_PANE_RUN_DEBUG, "Run and Debug", "studio.run-debug", "system-run-symbolic", UMI_UI_PLACEMENT_LEFT, 100, 0, 1, 1, { 320, 500 } },
+    { UMI_STUDIO_PANE_TESTING, "Testing", "studio.testing", "emblem-ok-symbolic", UMI_UI_PLACEMENT_LEFT, 110, 0, 1, 1, { 320, 500 } },
+    { UMI_STUDIO_PANE_DESIGNER, "Designer", "studio.designer", "applications-graphics-symbolic", UMI_UI_PLACEMENT_LEFT, 120, 0, 1, 1, { 320, 500 } },
+    { UMI_STUDIO_PANE_APPLICATIONS, "Applications", "studio.application-hub", "view-app-grid-symbolic", UMI_UI_PLACEMENT_LEFT, 130, 0, 1, 1, { 320, 500 } },
+    { UMI_STUDIO_PANE_FRAMEWORK, "Framework", "studio.framework", "view-grid-symbolic", UMI_UI_PLACEMENT_LEFT, 140, 0, 1, 1, { 320, 500 } },
+    { UMI_STUDIO_PANE_AI, "AI / AuthorEngine", "studio.authorengine", "mail-message-new-symbolic", UMI_UI_PLACEMENT_LEFT, 150, 0, 1, 1, { 320, 500 } }
 };
 
 static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
@@ -75,7 +94,14 @@ static const UmiUiContributionSnapshot STUDIO_CONTRIBUTIONS[] = {
     { "studio.contribution.search", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_SEARCH, 50, 1 },
     { "studio.contribution.chat", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_CHAT, 60, 1 },
     { "studio.contribution.develop", "org.umicom.studio.shell", "umicom.ui.perspectives", UMI_STUDIO_PERSPECTIVE_DEVELOP, 70, 1 },
-    { "studio.contribution.build", "org.umicom.studio.shell", "umicom.ui.perspectives", UMI_STUDIO_PERSPECTIVE_BUILD, 80, 1 }
+    { "studio.contribution.build", "org.umicom.studio.shell", "umicom.ui.perspectives", UMI_STUDIO_PERSPECTIVE_BUILD, 80, 1 },
+    { "studio.contribution.source-control", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_SOURCE_CONTROL, 90, 1 },
+    { "studio.contribution.run-debug", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_RUN_DEBUG, 100, 1 },
+    { "studio.contribution.testing", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_TESTING, 110, 1 },
+    { "studio.contribution.designer", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_DESIGNER, 120, 1 },
+    { "studio.contribution.applications", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_APPLICATIONS, 130, 1 },
+    { "studio.contribution.framework", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_FRAMEWORK, 140, 1 },
+    { "studio.contribution.ai", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_AI, 150, 1 }
 };
 
 UmiStatus umi_studio_contributions_register_layout(UmiUiWorkbench *workbench)
@@ -96,15 +122,11 @@ UmiStatus umi_studio_contributions_register_layout(UmiUiWorkbench *workbench)
     UmiStatus status;
     UmiUiLayout *layout;
 
-    if (workbench == NULL) {
-        return UMI_STATUS_INVALID_ARGUMENT;
-    }
+    if (workbench == NULL) return UMI_STATUS_INVALID_ARGUMENT;
     layout = umi_ui_workbench_layout(workbench);
     for (index = 0U; index < sizeof(NODES) / sizeof(NODES[0]); ++index) {
         status = umi_ui_layout_upsert(layout, &NODES[index]);
-        if (status != UMI_STATUS_OK) {
-            return status;
-        }
+        if (status != UMI_STATUS_OK) return status;
     }
     {
         char validation_message[256];
@@ -118,9 +140,7 @@ UmiStatus umi_studio_contributions_register(UmiUiWorkbench *workbench)
     size_t index;
     UmiStatus status;
 
-    if (workbench == NULL) {
-        return UMI_STATUS_INVALID_ARGUMENT;
-    }
+    if (workbench == NULL) return UMI_STATUS_INVALID_ARGUMENT;
     for (index = 0U; index < sizeof(STUDIO_PANES) / sizeof(STUDIO_PANES[0]); ++index) {
         status = umi_ui_pane_model_upsert(umi_ui_workbench_panes(workbench), &STUDIO_PANES[index]);
         if (status != UMI_STATUS_OK) return status;
