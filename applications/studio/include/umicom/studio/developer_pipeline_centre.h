@@ -72,6 +72,32 @@ UmiStatus umi_studio_developer_pipeline_centre_execute_next_process(
     UmiDeveloperOperationSnapshot *out_operation,
     UmiDeveloperExecutionResult *out_result);
 
+UmiStatus umi_studio_developer_pipeline_centre_submit_task(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperTaskPlanRequest *request,
+    UmiDeveloperTaskPlanSnapshot *out_plan);
+
+UmiStatus umi_studio_developer_pipeline_centre_submit_launch(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperLaunchPlanRequest *request,
+    UmiDeveloperLaunchPlanSnapshot *out_plan);
+
+UmiStatus umi_studio_developer_pipeline_centre_submit_workflow(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperWorkflowRequest *request,
+    UmiDeveloperWorkflowSnapshot *out_workflow);
+
+UmiStatus umi_studio_developer_pipeline_centre_execute_batch(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperExecutor *executor,
+    const UmiDeveloperBatchExecutionRequest *request,
+    UmiDeveloperBatchExecutionSnapshot *out_snapshot);
+
+UmiStatus umi_studio_developer_pipeline_centre_execute_batch_process(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperBatchExecutionRequest *request,
+    UmiDeveloperBatchExecutionSnapshot *out_snapshot);
+
 UmiDeveloperRuntime *umi_studio_developer_pipeline_centre_runtime(
     UmiStudioDeveloperPipelineCentre *centre);
 

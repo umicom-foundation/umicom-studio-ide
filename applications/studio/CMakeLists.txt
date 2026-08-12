@@ -80,6 +80,9 @@ add_library(umicom_studio_core STATIC
     src/app/developer_workbench.c
     src/app/developer_session.c
     src/app/developer_pipeline_centre.c
+    src/app/developer_task_centre.c
+    src/app/developer_run_centre.c
+    src/app/developer_workspace_state_centre.c
     src/app/ui_catalogue.c
     src/app/build.c
     src/app/tests.c
@@ -274,7 +277,8 @@ foreach(UMICOM_STUDIO_DEVELOPER_TOOL
         debugger
         source-control
         developer
-        developer-pipeline)
+        developer-pipeline
+        developer-state)
     string(REPLACE "-" "_" UMICOM_STUDIO_DEVELOPER_SOURCE
         "${UMICOM_STUDIO_DEVELOPER_TOOL}")
     add_executable(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TOOL}
@@ -679,7 +683,12 @@ if(BUILD_TESTING)
             developer_developer_session
             developer_pipeline_centre
             developer_runtime_binding
-            developer_runtime_execution)
+            developer_runtime_execution
+            developer_task_centre
+            developer_run_centre
+            developer_workspace_state_centre
+            developer_workflow_centre
+            developer_workbench_automation)
         add_executable(umicom-studio-${UMICOM_STUDIO_PLATFORM_TEST}-test
             tests/test_${UMICOM_STUDIO_PLATFORM_TEST}.c)
         target_link_libraries(umicom-studio-${UMICOM_STUDIO_PLATFORM_TEST}-test PRIVATE Umicom::StudioCore)
@@ -1150,6 +1159,7 @@ install(TARGETS
     umicom-studio-source-control
     umicom-studio-developer
     umicom-studio-developer-pipeline
+    umicom-studio-developer-state
     umicom-studio-ai
     umicom-studio-retrieval
     umicom-studio-authorengine

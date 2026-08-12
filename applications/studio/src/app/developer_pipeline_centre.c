@@ -167,6 +167,89 @@ UmiStatus umi_studio_developer_pipeline_centre_execute_next_process(
         centre, &executor, out_operation, out_result);
 }
 
+UmiStatus umi_studio_developer_pipeline_centre_submit_task(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperTaskPlanRequest *request,
+    UmiDeveloperTaskPlanSnapshot *out_plan)
+{
+    UmiStatus status;
+    if (centre == NULL || request == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_developer_task_plan_submit(centre->runtime, request, out_plan);
+    if (status == UMI_STATUS_OK) {
+        centre->revision += 1U;
+    }
+    return status;
+}
+
+UmiStatus umi_studio_developer_pipeline_centre_submit_launch(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperLaunchPlanRequest *request,
+    UmiDeveloperLaunchPlanSnapshot *out_plan)
+{
+    UmiStatus status;
+    if (centre == NULL || request == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_developer_launch_plan_submit(centre->runtime, request, out_plan);
+    if (status == UMI_STATUS_OK) {
+        centre->revision += 1U;
+    }
+    return status;
+}
+
+UmiStatus umi_studio_developer_pipeline_centre_submit_workflow(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperWorkflowRequest *request,
+    UmiDeveloperWorkflowSnapshot *out_workflow)
+{
+    UmiStatus status;
+    if (centre == NULL || request == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_developer_workflow_submit(centre->runtime, request, out_workflow);
+    if (status == UMI_STATUS_OK) {
+        centre->revision += 1U;
+    }
+    return status;
+}
+
+UmiStatus umi_studio_developer_pipeline_centre_execute_batch(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperExecutor *executor,
+    const UmiDeveloperBatchExecutionRequest *request,
+    UmiDeveloperBatchExecutionSnapshot *out_snapshot)
+{
+    UmiStatus status;
+    if (centre == NULL || executor == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_developer_batch_execute(
+        centre->runtime, executor, request, out_snapshot);
+    if (status == UMI_STATUS_OK) {
+        centre->revision += 1U;
+    }
+    return status;
+}
+
+UmiStatus umi_studio_developer_pipeline_centre_execute_batch_process(
+    UmiStudioDeveloperPipelineCentre *centre,
+    const UmiDeveloperBatchExecutionRequest *request,
+    UmiDeveloperBatchExecutionSnapshot *out_snapshot)
+{
+    UmiStatus status;
+    if (centre == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_developer_batch_execute_process(
+        centre->runtime, request, out_snapshot);
+    if (status == UMI_STATUS_OK) {
+        centre->revision += 1U;
+    }
+    return status;
+}
+
 UmiDeveloperRuntime *umi_studio_developer_pipeline_centre_runtime(
     UmiStudioDeveloperPipelineCentre *centre)
 {
