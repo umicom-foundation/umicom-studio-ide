@@ -199,8 +199,8 @@ GtkWidget *umi_studio_editor_workbench_window_new(GtkApplication *application)
 
     ui->quick_open = gtk_search_entry_new();
     gtk_widget_set_hexpand(ui->quick_open, TRUE);
-    gtk_editable_set_placeholder_text(
-        GTK_EDITABLE(ui->quick_open),
+    gtk_search_entry_set_placeholder_text(
+        GTK_SEARCH_ENTRY(ui->quick_open),
         "Quick Open — fuzzy search files, documents and symbols (Ctrl+P)"
     );
     gtk_box_append(GTK_BOX(top), ui->quick_open);
@@ -228,9 +228,15 @@ GtkWidget *umi_studio_editor_workbench_window_new(GtkApplication *application)
     gtk_widget_set_margin_bottom(find_bar, 6);
 
     ui->find_entry = gtk_search_entry_new();
-    gtk_editable_set_placeholder_text(GTK_EDITABLE(ui->find_entry), "Find");
+    gtk_search_entry_set_placeholder_text(
+        GTK_SEARCH_ENTRY(ui->find_entry),
+        "Find"
+    );
     replace_entry = gtk_entry_new();
-    gtk_editable_set_placeholder_text(GTK_EDITABLE(replace_entry), "Replace");
+    gtk_entry_set_placeholder_text(
+        GTK_ENTRY(replace_entry),
+        "Replace"
+    );
     gtk_widget_set_hexpand(ui->find_entry, TRUE);
     gtk_widget_set_hexpand(replace_entry, TRUE);
     gtk_box_append(GTK_BOX(find_bar), ui->find_entry);

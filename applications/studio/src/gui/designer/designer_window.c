@@ -19,6 +19,8 @@
 
 #include "designer_window.h"
 
+#include <inttypes.h>
+
 #include "palette_view.h"
 #include "tree_view.h"
 #include "inspector_view.h"
@@ -49,7 +51,7 @@ static void update_status(UmiStudioDesignerWindowState *state,
 
     g_snprintf(text,
                sizeof(text),
-               "%s  •  Revision %u  •  Selection %zu  •  Undo %zu  •  Redo %zu",
+               "%s  •  Revision %" PRIu64 "  •  Selection %zu  •  Undo %zu  •  Redo %zu",
                message != NULL ? message : "Framework Designer",
                snapshot.document.revision,
                snapshot.selected_items,

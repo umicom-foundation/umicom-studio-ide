@@ -431,8 +431,10 @@ GtkWidget *umi_studio_app_hub_window_new(GtkApplication *application)
 
     hub->search = gtk_search_entry_new();
     gtk_widget_set_hexpand(hub->search, TRUE);
-    gtk_editable_set_placeholder_text(GTK_EDITABLE(hub->search),
-                                      "Search applications, capabilities or categories");
+    gtk_search_entry_set_placeholder_text(
+        GTK_SEARCH_ENTRY(hub->search),
+        "Search applications, capabilities or categories"
+    );
 
     categories = gtk_string_list_new(category_names);
     hub->category_dropdown =
