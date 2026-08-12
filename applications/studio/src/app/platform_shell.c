@@ -1,11 +1,19 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: applications/studio/src/app/platform_shell.c
- * PURPOSE: Implement Studio platform composition over reusable Framework aggregates.
+ *
+ * PURPOSE:
+ *   Implement the Studio platform shell as a product-composition owner over reusable Framework platform aggregates.
+ *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
  * Licence: MIT
  *---------------------------------------------------------------------------*/
+
+/* BEGINNER NOTE:
+ * Studio composes reusable Framework capabilities here. Generic models and
+ * engines stay in Framework so the same mechanisms can serve future products.
+ */
 #include "umicom/studio/platform_shell.h"
 #include <stdlib.h>
 #include <string.h>
@@ -50,5 +58,18 @@ UmiStatus umi_studio_platform_shell_prepare_project_workflow(
     status=umi_studio_developer_workbench_prepare_project_workflow(
         shell->developer,request,out_workflow);
     if(status==UMI_STATUS_OK)shell->revision+=1U;
+    return status;
+}
+
+UmiStatus umi_studio_platform_shell_import_project(
+    UmiStudioPlatformShell *shell,
+    const UmiDeveloperProjectBootstrapRequest *request,
+    UmiDeveloperProjectBootstrapSnapshot *out_snapshot)
+{
+    UmiStatus status;
+    if (shell == NULL || request == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_studio_developer_workbench_import_project(
+        shell->developer, request, out_snapshot);
+    if (status == UMI_STATUS_OK) shell->revision += 1U;
     return status;
 }

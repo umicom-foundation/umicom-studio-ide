@@ -698,6 +698,15 @@ if(BUILD_TESTING)
             COMMAND umicom-studio-${UMICOM_STUDIO_PLATFORM_TEST}-test)
     endforeach()
 
+    # Filesystem project-import coverage extends the existing platform tests.
+    add_executable(umicom-studio-developer-project-import-test
+        tests/test_developer_project_import.c)
+    target_link_libraries(umicom-studio-developer-project-import-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-developer-project-import-test)
+    umicom_apply_sanitizers(umicom-studio-developer-project-import-test)
+    add_test(NAME studio.platform.developer_project_import
+        COMMAND umicom-studio-developer-project-import-test)
+
     add_executable(umicom-studio-version-test
         tests/test_version.c
     )

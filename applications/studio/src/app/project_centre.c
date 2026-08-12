@@ -95,3 +95,31 @@ UmiStatus umi_studio_project_centre_validate(
     *out_report = centre->validation;
     return UMI_STATUS_OK;
 }
+
+UmiStatus umi_studio_project_centre_import_directory(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceImportRequest *request,
+    UmiProjectWorkspaceImportSnapshot *out_snapshot)
+{
+    UmiProjectWorkspaceImportSnapshot imported;
+    UmiStatus status;
+
+    if (centre == NULL || request == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+
+    status = umi_project_workspace_import_directory(
+        centre->service, request, &imported);
+    if (status != UMI_STATUS_OK) {
+        return status;
+    }
+
+    centre->selection = imported.selection;
+    centre->validation = imported.validation;
+    centre->has_selection = 1;
+    centre->revision += 1U;
+    if (out_snapshot != NULL) {
+        *out_snapshot = imported;
+    }
+    return UMI_STATUS_OK;
+}

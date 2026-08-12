@@ -7,6 +7,7 @@
  * Licence: MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/developer_workbench.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 struct UmiStudioDeveloperWorkbench{UmiStudioProjectCentre*projects;UmiStudioLanguageIntelligenceCentre*language;UmiStudioDebugCentre*debug;UmiStudioSourceControlCentre*source_control;UmiStudioTestExplorerCentre*tests;UmiUiWorkbenchServices*services;UmiDeveloperRuntime*runtime;UmiStudioDeveloperPipelineCentre*pipeline;UmiStudioDeveloperTaskCentre*task_centre;UmiStudioDeveloperRunCentre*run_centre;UmiStudioDeveloperWorkspaceStateCentre*workspace_state;UmiStudioProblemsCentre*problems;UmiStudioOutputCentre*output;UmiStudioProgressCentre*progress;UmiStudioDeveloperSession*session;uint64_t revision;};
@@ -123,4 +124,117 @@ UmiStatus umi_studio_developer_workbench_validate_project(
 {
     if(workbench==NULL||out_report==NULL)return UMI_STATUS_INVALID_ARGUMENT;
     return umi_studio_project_centre_validate(workbench->projects,out_report);
+}
+
+UmiStatus umi_studio_developer_workbench_import_project(
+    UmiStudioDeveloperWorkbench *workbench,
+    const UmiDeveloperProjectBootstrapRequest *request,
+    UmiDeveloperProjectBootstrapSnapshot *out_snapshot)
+{
+    UmiDeveloperProjectBootstrapSnapshot snapshot;
+    UmiProjectWorkspaceSelectionRequest selection_request;
+    UmiDeveloperProjectWorkflowRequest workflow_request;
+    UmiStatus status;
+
+    if (workbench == NULL || request == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+
+    memset(&snapshot, 0, sizeof(snapshot));
+    snapshot.struct_size = (uint32_t)sizeof(snapshot);
+    snapshot.api_version = UMI_DEVELOPER_PROJECT_BOOTSTRAP_API_VERSION;
+
+    status = umi_studio_project_centre_import_directory(
+        workbench->projects, &request->project, &snapshot.project);
+    if (status != UMI_STATUS_OK) return status;
+
+    memset(&selection_request, 0, sizeof(selection_request));
+    selection_request.struct_size = (uint32_t)sizeof(selection_request);
+    selection_request.api_version = UMI_PROJECT_WORKSPACE_QUERY_API_VERSION;
+    selection_request.project_id = snapshot.project.project_id;
+    selection_request.configuration_id = snapshot.project.configuration_id;
+    selection_request.target_id = snapshot.project.target_id;
+    selection_request.environment_id = snapshot.project.environment_id;
+    if (snapshot.project.build_task_id[0] != '\0')
+        selection_request.task_id = snapshot.project.build_task_id;
+    if (snapshot.project.has_launch_profile)
+        selection_request.launch_profile_id = snapshot.project.launch_profile_id;
+
+    status = umi_studio_developer_workbench_activate_project(
+        workbench, &selection_request, &snapshot.project.selection);
+    if (status != UMI_STATUS_OK) return status;
+
+    if (snapshot.project.has_git) {
+        UmiSourceControlRepositorySnapshot repository;
+        UmiDeveloperContextSnapshot context;
+        UmiStudioDeveloperSessionSnapshot session;
+        char repository_id[128];
+        int written = snprintf(repository_id, sizeof(repository_id),
+                               "%s.git", snapshot.project.project_id);
+        if (written < 0 || (size_t)written >= sizeof(repository_id))
+            return UMI_STATUS_CAPACITY_EXCEEDED;
+
+        memset(&repository, 0, sizeof(repository));
+        repository.struct_size = (uint32_t)sizeof(repository);
+        repository.api_version = UMI_SOURCE_CONTROL_REPOSITORY_API_VERSION;
+        copy_selection_text(repository.id, sizeof(repository.id), repository_id);
+        copy_selection_text(repository.root_uri, sizeof(repository.root_uri),
+                            snapshot.project.root_directory);
+        copy_selection_text(repository.provider, sizeof(repository.provider), "git");
+        status = umi_source_control_repository_registry_upsert(
+            umi_source_control_service_repository(
+                umi_developer_runtime_source_control(workbench->runtime)),
+            &repository);
+        if (status != UMI_STATUS_OK) return status;
+
+        status = umi_developer_context_snapshot(
+            umi_developer_runtime_context(workbench->runtime), &context);
+        if (status != UMI_STATUS_OK) return status;
+        copy_selection_text(context.repository_id, sizeof(context.repository_id),
+                            repository_id);
+        status = umi_developer_runtime_set_context(workbench->runtime, &context);
+        if (status != UMI_STATUS_OK) return status;
+
+        status = umi_studio_developer_session_snapshot(workbench->session, &session);
+        if (status != UMI_STATUS_OK) return status;
+        copy_selection_text(session.repository_id, sizeof(session.repository_id),
+                            repository_id);
+        status = umi_studio_developer_session_set_context(workbench->session, &session);
+        if (status != UMI_STATUS_OK) return status;
+    }
+
+    if (request->prepare_workflow != 0) {
+        memset(&workflow_request, 0, sizeof(workflow_request));
+        workflow_request.struct_size = (uint32_t)sizeof(workflow_request);
+        workflow_request.api_version = UMI_DEVELOPER_PROJECT_WORKFLOW_API_VERSION;
+        workflow_request.preset = request->preset;
+        workflow_request.workflow_id = request->workflow_id;
+        workflow_request.project_id = snapshot.project.project_id;
+        workflow_request.configuration_id = snapshot.project.configuration_id;
+        workflow_request.target_id = snapshot.project.target_id;
+        workflow_request.environment_id = snapshot.project.environment_id;
+        workflow_request.timeout_ms = request->timeout_ms;
+        workflow_request.max_attempts = request->max_attempts;
+        workflow_request.include_configure = request->include_configure;
+        if (snapshot.project.has_launch_profile)
+            workflow_request.launch_profile_id = snapshot.project.launch_profile_id;
+
+        status = umi_studio_developer_pipeline_centre_prepare_project_workflow(
+            workbench->pipeline, &workflow_request, &snapshot.workflow);
+        if (status != UMI_STATUS_OK) return status;
+        snapshot.workflow_prepared = 1;
+    }
+
+    status = umi_studio_developer_workspace_state_centre_capture_context(
+        workbench->workspace_state);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_developer_context_snapshot(
+        umi_developer_runtime_context(workbench->runtime), &snapshot.context);
+    if (status != UMI_STATUS_OK) return status;
+
+    workbench->revision += 1U;
+    if (out_snapshot != NULL) {
+        *out_snapshot = snapshot;
+    }
+    return UMI_STATUS_OK;
 }

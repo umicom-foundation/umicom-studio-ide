@@ -58,6 +58,11 @@ UmiStatus umi_studio_developer_workbench_validate_project(
     UmiStudioDeveloperWorkbench *workbench,
     UmiProjectWorkspaceValidationReport *out_report);
 
+UmiStatus umi_studio_developer_workbench_import_project(
+    UmiStudioDeveloperWorkbench *workbench,
+    const UmiDeveloperProjectBootstrapRequest *request,
+    UmiDeveloperProjectBootstrapSnapshot *out_snapshot);
+
 #ifdef __cplusplus
 }
 #endif

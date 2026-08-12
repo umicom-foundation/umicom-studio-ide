@@ -16,6 +16,8 @@
  */
 #include <stdint.h>
 #include <string.h>
+#include "umicom/platform/filesystem.h"
+#include "umicom/platform/path.h"
 #include "umicom/studio/platform_shell.h"
 #include "umicom/studio/command_centre.h"
 #include "umicom/studio/resource_explorer.h"
@@ -72,6 +74,42 @@ static int populate_project(UmiStudioPlatformShell *shell)
     return 0;
 }
 
+static int import_project(UmiStudioPlatformShell *shell, char *root, size_t capacity)
+{
+    UmiDeveloperProjectBootstrapRequest request={0};
+    UmiDeveloperProjectBootstrapSnapshot bootstrap;
+    char temp_directory[UMI_PATH_CAPACITY];
+    char cmake_file[UMI_PATH_CAPACITY];
+    char source_file[UMI_PATH_CAPACITY];
+
+    if(umi_fs_temp_directory(temp_directory,sizeof(temp_directory))!=UMI_STATUS_OK)return 1;
+    if(umi_path_join(temp_directory,"umicom-b31-platform-shell",root,capacity)!=UMI_STATUS_OK)return 2;
+    (void)umi_fs_remove_tree(root);
+    if(umi_fs_make_directories(root)!=UMI_STATUS_OK)return 3;
+    if(umi_path_join(root,"CMakeLists.txt",cmake_file,sizeof(cmake_file))!=UMI_STATUS_OK)return 4;
+    if(umi_path_join(root,"main.c",source_file,sizeof(source_file))!=UMI_STATUS_OK)return 5;
+    if(umi_fs_write_text(cmake_file,
+        "cmake_minimum_required(VERSION 3.24)\nproject(shell_import C)\n")!=UMI_STATUS_OK)return 6;
+    if(umi_fs_write_text(source_file,"int main(void) { return 0; }\n")!=UMI_STATUS_OK)return 7;
+
+    request.struct_size=(uint32_t)sizeof(request);
+    request.api_version=UMI_DEVELOPER_PROJECT_BOOTSTRAP_API_VERSION;
+    request.project.struct_size=(uint32_t)sizeof(request.project);
+    request.project.api_version=UMI_PROJECT_WORKSPACE_IMPORT_API_VERSION;
+    request.project.root_directory=root;
+    request.project.project_id="shell-import";
+    request.project.create_test_task=1;
+    request.preset=UMI_DEVELOPER_PROJECT_WORKFLOW_TEST;
+    request.workflow_id="shell.import.test";
+    request.prepare_workflow=1;
+    request.include_configure=1;
+    if(umi_studio_platform_shell_import_project(
+        shell,&request,&bootstrap)!=UMI_STATUS_OK)return 8;
+    if(!bootstrap.workflow_prepared||bootstrap.workflow.workflow.operation_count!=3U||
+       strcmp(bootstrap.context.project_id,"shell-import")!=0)return 9;
+    return 0;
+}
+
 int main(void)
 {
     UmiStudioPlatformShell *p=NULL;
@@ -93,6 +131,7 @@ int main(void)
     UmiProjectWorkspaceValidationReport validation;
     UmiDeveloperProjectWorkflowRequest workflow_request={0};
     UmiDeveloperProjectWorkflowSnapshot workflow;
+    char imported_root[UMI_PATH_CAPACITY];
     int result;
 
     if(umi_studio_platform_shell_create(NULL,&p)!=UMI_STATUS_OK)return 1;
@@ -121,10 +160,14 @@ int main(void)
         p,&workflow_request,&workflow)!=UMI_STATUS_OK)return 33;
     if(workflow.workflow.operation_count!=1U)return 34;
 
+    result=import_project(p,imported_root,sizeof(imported_root));
+    if(result!=0)return 40+result;
+
     if(umi_studio_platform_shell_snapshot(p,&a)!=UMI_STATUS_OK||
        a.workbench.list_items!=1U||!a.developer.available||
        !a.developer.projects.has_selection||
-       !a.developer.pipeline.has_project_workflow)return 35;
+       strcmp(a.developer.projects.selection.project.id,"shell-import")!=0||
+       !a.developer.pipeline.has_project_workflow)return 50;
 
     /*
      * Existing platform-centre smoke coverage remains intact.
@@ -142,5 +185,6 @@ int main(void)
     if(umi_studio_ai_workspace_snapshot(NULL,&l)!=UMI_STATUS_OK)return 14;
 
     umi_studio_platform_shell_destroy(p);
+    if(umi_fs_remove_tree(imported_root)!=UMI_STATUS_OK)return 51;
     return 0;
 }

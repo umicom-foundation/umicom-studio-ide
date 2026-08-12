@@ -1,11 +1,19 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: applications/studio/include/umicom/studio/platform_shell.h
- * PURPOSE: Define Studio composition over reusable Framework platform services.
+ *
+ * PURPOSE:
+ *   Define the Studio composition surface over reusable Framework workbench, resource, product, chart, designer and frontend platform services.
+ *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
  * Licence: MIT
  *---------------------------------------------------------------------------*/
+
+/* BEGINNER NOTE:
+ * Studio composes reusable Framework capabilities here. Generic models and
+ * engines stay in Framework so the same mechanisms can serve future products.
+ */
 #ifndef APPLICATIONS_STUDIO_INCLUDE_UMICOM_STUDIO_PLATFORM_SHELL_H
 #define APPLICATIONS_STUDIO_INCLUDE_UMICOM_STUDIO_PLATFORM_SHELL_H
 #include <stddef.h>
@@ -42,6 +50,11 @@ UmiStatus umi_studio_platform_shell_prepare_project_workflow(
     UmiStudioPlatformShell *shell,
     const UmiDeveloperProjectWorkflowRequest *request,
     UmiDeveloperProjectWorkflowSnapshot *out_workflow);
+
+UmiStatus umi_studio_platform_shell_import_project(
+    UmiStudioPlatformShell *shell,
+    const UmiDeveloperProjectBootstrapRequest *request,
+    UmiDeveloperProjectBootstrapSnapshot *out_snapshot);
 #ifdef __cplusplus
 }
 #endif

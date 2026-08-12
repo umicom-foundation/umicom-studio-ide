@@ -20,6 +20,7 @@
 #include "umicom/project/workspace.h"
 #include "umicom/project/workspace_query.h"
 #include "umicom/project/workspace_validation.h"
+#include "umicom/project/workspace_import.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -54,6 +55,11 @@ UmiStatus umi_studio_project_centre_current_selection(
 UmiStatus umi_studio_project_centre_validate(
     UmiStudioProjectCentre *centre,
     UmiProjectWorkspaceValidationReport *out_report);
+
+UmiStatus umi_studio_project_centre_import_directory(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceImportRequest *request,
+    UmiProjectWorkspaceImportSnapshot *out_snapshot);
 
 #ifdef __cplusplus
 }

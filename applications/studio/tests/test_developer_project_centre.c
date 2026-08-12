@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "umicom/platform/filesystem.h"
+#include "umicom/platform/path.h"
 #include "umicom/studio/project_centre.h"
 
 static int populate_project(UmiProjectWorkspace *workspace)
@@ -68,6 +70,54 @@ static int populate_project(UmiProjectWorkspace *workspace)
     return 0;
 }
 
+static int test_filesystem_import(void)
+{
+    UmiStudioProjectCentre *centre = NULL;
+    UmiProjectWorkspaceImportRequest request = {0};
+    UmiProjectWorkspaceImportSnapshot imported;
+    UmiStudioProjectCentreSnapshot snapshot;
+    char temp_directory[UMI_PATH_CAPACITY];
+    char root[UMI_PATH_CAPACITY];
+    char cmake_file[UMI_PATH_CAPACITY];
+    char source_file[UMI_PATH_CAPACITY];
+
+    if (umi_fs_temp_directory(temp_directory, sizeof(temp_directory)) != UMI_STATUS_OK)
+        return 1;
+    if (umi_path_join(temp_directory, "umicom-b31-studio-project-centre",
+                      root, sizeof(root)) != UMI_STATUS_OK) return 2;
+    (void)umi_fs_remove_tree(root);
+    if (umi_fs_make_directories(root) != UMI_STATUS_OK) return 3;
+    if (umi_path_join(root, "CMakeLists.txt", cmake_file,
+                      sizeof(cmake_file)) != UMI_STATUS_OK) return 4;
+    if (umi_path_join(root, "main.c", source_file,
+                      sizeof(source_file)) != UMI_STATUS_OK) return 5;
+    if (umi_fs_write_text(cmake_file,
+        "cmake_minimum_required(VERSION 3.24)\nproject(studio_import C)\n") !=
+        UMI_STATUS_OK) return 6;
+    if (umi_fs_write_text(source_file,
+        "int main(void) { return 0; }\n") != UMI_STATUS_OK) return 7;
+
+    if (umi_studio_project_centre_create(&centre) != UMI_STATUS_OK) return 8;
+    request.struct_size = (uint32_t)sizeof(request);
+    request.api_version = UMI_PROJECT_WORKSPACE_IMPORT_API_VERSION;
+    request.root_directory = root;
+    request.project_id = "studio-import";
+    request.create_test_task = 1;
+    request.launch_program = "studio-import-app";
+    if (umi_studio_project_centre_import_directory(
+            centre, &request, &imported) != UMI_STATUS_OK) return 9;
+    if (!imported.has_cmake || !imported.validation.valid ||
+        strcmp(imported.selection.project.id, "studio-import") != 0)
+        return 10;
+    if (umi_studio_project_centre_snapshot(centre, &snapshot) != UMI_STATUS_OK ||
+        !snapshot.has_selection || snapshot.service.task_count != 3U ||
+        snapshot.service.launch_profile_count != 1U) return 11;
+
+    umi_studio_project_centre_destroy(centre);
+    if (umi_fs_remove_tree(root) != UMI_STATUS_OK) return 12;
+    return 0;
+}
+
 int main(void)
 {
     UmiStudioProjectCentre *centre=NULL;
@@ -95,5 +145,8 @@ int main(void)
        snapshot.validation.valid==0)return 23;
 
     umi_studio_project_centre_destroy(centre);
+
+    result = test_filesystem_import();
+    if (result != 0) return 100 + result;
     return 0;
 }
