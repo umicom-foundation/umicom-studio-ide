@@ -25,6 +25,7 @@
 #include "umicom/studio/contributions.h"
 #include "umicom/studio/perspectives.h"
 #include "umicom/studio/workbench_shell_catalogue.h"
+#include "umicom/studio/workbench_views.h"
 
 #define UMI_STUDIO_WORKBENCH_STATE_SESSION_KEY "studio.ui.workbench-state.v1"
 #define UMI_STUDIO_LEGACY_PERSPECTIVE_SESSION_KEY "studio.ui.active-perspective"
@@ -45,6 +46,15 @@ UmiStatus umi_studio_workbench_populate(UmiUiWorkbench *workbench,
     if (status != UMI_STATUS_OK) return status;
     status = umi_studio_contributions_register(workbench);
     if (status != UMI_STATUS_OK) return status;
+
+    /*
+     * Register product view factories before the Activity Bar is activated.
+     * GTK4 and future adapters can then materialise real Studio data when the
+     * selected view container becomes visible.
+     */
+    status = umi_studio_workbench_views_register(workbench, services);
+    if (status != UMI_STATUS_OK) return status;
+
     status = umi_studio_workbench_shell_catalogue_register(workbench, services);
     if (status != UMI_STATUS_OK) return status;
     return umi_ui_workbench_activate_perspective(

@@ -1,0 +1,91 @@
+MANUAL MERGE GUIDE — compare these diff-style sections with the existing CMakeLists.txt.
+This is intentionally not an apply script.
+
+diff --git a/applications/studio/CMakeLists.txt b/applications/studio/CMakeLists.txt
+--- a/applications/studio/CMakeLists.txt
++++ b/applications/studio/CMakeLists.txt
+@@
+-set(UMICOM_STUDIO_VERSION "0.14.0")
++set(UMICOM_STUDIO_VERSION "0.15.0")
+@@
+     src/app/contributions.c
+     src/app/view_models.c
+     src/app/workbench_commands.c
++    src/app/workbench_shell_catalogue.c
++    src/app/workbench_views.c
+     src/app/ui_catalogue.c
+@@
+     target_compile_definitions(umicom_studio_product PRIVATE
+         NOMINMAX
+         _CRT_SECURE_NO_WARNINGS
+         UMICOM_VERSION_MAJOR=0
+-        UMICOM_VERSION_MINOR=14
++        UMICOM_VERSION_MINOR=15
+         UMICOM_VERSION_PATCH=0
+         gtk_widget_destroy=g_object_unref
+     )
+@@
+     add_executable(umicom-studio-ide
+         src/gtk/main.c
++        src/gui/workbench/workbench_window.c
+     )
+@@
+     target_include_directories(umicom-studio-ide PRIVATE
+         "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/app/include"
++        "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/workbench/include"
+         "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/include"
+         "${CMAKE_SOURCE_DIR}/win"
+     )
+@@
+     target_link_libraries(umicom-studio-ide PRIVATE
+         Umicom::StudioCore
+         Umicom::StudioProduct
++        Umicom::ui_gtk4
+         PkgConfig::GTK4
+         PkgConfig::GLIB
+         PkgConfig::GIO
+     )
+@@
+     target_compile_definitions(umicom-studio-ide PRIVATE
+         USIDE_GUI=$<IF:$<BOOL:${UMICOM_STUDIO_GUI}>,1,0>
+         NOMINMAX
+         _CRT_SECURE_NO_WARNINGS
+         UMICOM_VERSION_MAJOR=0
+-        UMICOM_VERSION_MINOR=14
++        UMICOM_VERSION_MINOR=15
+         UMICOM_VERSION_PATCH=0
+     )
+@@
+ if(BUILD_TESTING)
+     add_executable(umicom-studio-framework-bootstrap-test
+         tests/test_framework_bootstrap.c
+     )
+@@
+     add_test(
+         NAME studio.framework_bootstrap
+         COMMAND umicom-studio-framework-bootstrap-test
+     )
++
++    foreach(UMICOM_STUDIO_UNIFIED_WORKBENCH_TEST
++            workbench_shell_catalogue
++            workbench_activity
++            workbench_keybinding
++            workbench_session_state
++            workbench_views)
++        add_executable(umicom-studio-${UMICOM_STUDIO_UNIFIED_WORKBENCH_TEST}-test
++            tests/test_${UMICOM_STUDIO_UNIFIED_WORKBENCH_TEST}.c)
++        target_link_libraries(
++            umicom-studio-${UMICOM_STUDIO_UNIFIED_WORKBENCH_TEST}-test
++            PRIVATE Umicom::StudioCore)
++        umicom_apply_warnings(
++            umicom-studio-${UMICOM_STUDIO_UNIFIED_WORKBENCH_TEST}-test)
++        umicom_apply_sanitizers(
++            umicom-studio-${UMICOM_STUDIO_UNIFIED_WORKBENCH_TEST}-test)
++        add_test(
++            NAME studio.unified_workbench.${UMICOM_STUDIO_UNIFIED_WORKBENCH_TEST}
++            COMMAND umicom-studio-${UMICOM_STUDIO_UNIFIED_WORKBENCH_TEST}-test)
++    endforeach()
+
+     add_executable(umicom-studio-version-test
+         tests/test_version.c
+     )

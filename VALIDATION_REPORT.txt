@@ -1,0 +1,37 @@
+Umicom Batch 24 Validation Report
+Created by: Sammy Hegab
+Organisation: Umicom Foundation
+Licence: MIT
+
+REMOTE BASELINE
+Framework: ab02d0109d1792df3df3d33e89e8a3f50c16fc13
+Studio:    8caaa6d6931a57b84b465f78fad35505cc227d89
+
+REMOTE FINDING
+The current Studio headless GitHub Actions build fails at the link stage because
+the Batch 23 Framework UI source files are committed but are not listed in the
+current Framework CMakeLists.txt. The current CMake project/version files also
+still report Framework 0.5.0 and Studio 0.14.0.
+
+BATCH 24 REPAIR
+The CMake manual-merge guides inside the accepted source tree add all Batch 23
+workbench sources, GTK4 adapter files and tests, plus the Batch 24 view-
+presentation sources and tests.
+
+BATCH 24 FEATURE VALIDATION
+- 69 package files before generated inventory/checksum files.
+- 63 C/H source/header files audited.
+- Required Sammy Hegab / Umicom Foundation / MIT headers: PASS.
+- Header File: path versus packaged repository path: PASS.
+- Unknown UMI_STATUS_* values: none.
+- Public Framework headers exposing GTK object types: none.
+- view_presentation.c strict C23 syntax: PASS with Clang and GCC.
+- workbench_views.c strict C23 syntax against API-compatible stubs: PASS with
+  Clang and GCC.
+- The GTK4 adapter code was API-reviewed against the current Framework adapter
+  boundary; this environment does not have GTK4 development packages installed.
+
+ACCEPTANCE
+The real authority remains the user's Windows MSYS2 UCRT64 full Framework and
+Studio build after the CMake merge. Do not claim complete acceptance until that
+build and CTest run pass.

@@ -20,9 +20,9 @@ extern "C" {
 #endif
 
 #define UMICOM_STUDIO_VERSION_MAJOR 0
-#define UMICOM_STUDIO_VERSION_MINOR 14
+#define UMICOM_STUDIO_VERSION_MINOR 15
 #define UMICOM_STUDIO_VERSION_PATCH 0
-#define UMICOM_STUDIO_VERSION_STRING "0.14.0"
+#define UMICOM_STUDIO_VERSION_STRING "0.15.0"
 
 UmiVersion umi_studio_version(void);
 const char *umi_studio_version_string(void);
