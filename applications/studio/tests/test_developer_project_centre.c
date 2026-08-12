@@ -111,7 +111,12 @@ static int test_filesystem_import(void)
         return 10;
     if (umi_studio_project_centre_snapshot(centre, &snapshot) != UMI_STATUS_OK ||
         !snapshot.has_selection || snapshot.service.task_count != 3U ||
-        snapshot.service.launch_profile_count != 1U) return 11;
+        snapshot.service.launch_profile_count != 1U ||
+        !snapshot.has_workspace_model ||
+        snapshot.workspace_model.root_count != 1U ||
+        snapshot.workspace_model.member_count != 1U ||
+        strcmp(snapshot.workspace_model.active_project_id,
+               "studio-import") != 0) return 11;
 
     umi_studio_project_centre_destroy(centre);
     if (umi_fs_remove_tree(root) != UMI_STATUS_OK) return 12;

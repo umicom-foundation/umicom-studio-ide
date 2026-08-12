@@ -17,14 +17,21 @@
 #ifndef UMICOM_STUDIO_PROJECT_CENTRE_H
 #define UMICOM_STUDIO_PROJECT_CENTRE_H
 #include <stdint.h>
-#include "umicom/project/workspace.h"
-#include "umicom/project/workspace_query.h"
-#include "umicom/project/workspace_validation.h"
-#include "umicom/project/workspace_import.h"
+#include "umicom/project/project.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 typedef struct UmiStudioProjectCentre UmiStudioProjectCentre;
+#define UMI_STUDIO_PROJECT_CENTRE_API_VERSION 2U
+typedef struct UmiStudioProjectCentreRefreshSummary {
+    uint64_t source_revision;
+    size_t discovered_project_count;
+    size_t existing_project_count;
+    size_t unchanged_project_count;
+    size_t import_candidate_count;
+    size_t missing_project_count;
+    int requires_confirmation;
+} UmiStudioProjectCentreRefreshSummary;
 typedef struct UmiStudioProjectCentreSnapshot {
     uint32_t struct_size; uint32_t api_version;
     char area_id[128]; char title[256]; char summary[512];
@@ -32,11 +39,40 @@ typedef struct UmiStudioProjectCentreSnapshot {
     UmiProjectWorkspaceSelectionSnapshot selection;
     UmiProjectWorkspaceValidationReport validation;
     int has_selection;
+    UmiProjectWorkspaceModelSnapshot workspace_model;
+    UmiProjectWorkspaceOrderSnapshot build_order;
+    UmiStudioProjectCentreRefreshSummary refresh;
+    UmiStatus build_order_status;
+    int has_workspace_model;
+    int has_build_order;
+    int has_refresh_plan;
 } UmiStudioProjectCentreSnapshot;
 UmiStatus umi_studio_project_centre_create(UmiStudioProjectCentre **out_centre);
 void umi_studio_project_centre_destroy(UmiStudioProjectCentre *centre);
 UmiStatus umi_studio_project_centre_snapshot(UmiStudioProjectCentre *centre,UmiStudioProjectCentreSnapshot *out_snapshot);
 UmiProjectWorkspace *umi_studio_project_centre_service(UmiStudioProjectCentre *centre);
+UmiProjectWorkspaceModel *umi_studio_project_centre_workspace_model(
+    UmiStudioProjectCentre *centre);
+
+UmiStatus umi_studio_project_centre_upsert_workspace_root(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceRootSnapshot *root);
+UmiStatus umi_studio_project_centre_upsert_project_group(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceGroupSnapshot *group);
+UmiStatus umi_studio_project_centre_upsert_project_member(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceMemberSnapshot *member);
+UmiStatus umi_studio_project_centre_upsert_workspace_setting(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceSettingSnapshot *setting);
+UmiStatus umi_studio_project_centre_upsert_workspace_exclusion(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceExclusionSnapshot *exclusion);
+UmiStatus umi_studio_project_centre_plan_workspace_refresh(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceDiscoveryOptions *options,
+    UmiProjectWorkspaceRefreshSnapshot *out_refresh);
 
 UmiStatus umi_studio_project_centre_select(
     UmiStudioProjectCentre *centre,

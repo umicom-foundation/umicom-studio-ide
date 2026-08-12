@@ -10,14 +10,209 @@
  * Licence: MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/project_centre.h"
+#include "umicom/platform/path.h"
 #include <stdlib.h>
 #include <string.h>
-struct UmiStudioProjectCentre { UmiProjectWorkspace *service; UmiProjectWorkspaceSelectionSnapshot selection; UmiProjectWorkspaceValidationReport validation; int has_selection; uint64_t revision; };
+
+struct UmiStudioProjectCentre {
+    UmiProjectWorkspace *service;
+    UmiProjectWorkspaceModel *workspace_model;
+    UmiProjectWorkspaceSelectionSnapshot selection;
+    UmiProjectWorkspaceValidationReport validation;
+    UmiProjectWorkspaceRefreshSnapshot refresh_plan;
+    int has_selection;
+    int has_refresh_plan;
+    uint64_t revision;
+};
 static void copy_text(char*d,size_t c,const char*s){size_t n;if(d==NULL||c==0U)return;if(s==NULL)s="";n=strlen(s);if(n>=c)n=c-1U;if(n>0U)memcpy(d,s,n);d[n]='\0';}
-UmiStatus umi_studio_project_centre_create(UmiStudioProjectCentre **out){UmiStudioProjectCentre*p;UmiStatus s;if(out==NULL)return UMI_STATUS_INVALID_ARGUMENT;*out=NULL;p=calloc(1U,sizeof(*p));if(p==NULL)return UMI_STATUS_OUT_OF_MEMORY;s=umi_project_workspace_create(&p->service);if(s!=UMI_STATUS_OK){free(p);return s;}p->revision=1U;*out=p;return UMI_STATUS_OK;}
-void umi_studio_project_centre_destroy(UmiStudioProjectCentre*p){if(p==NULL)return;umi_project_workspace_destroy(p->service);free(p);}
-UmiStatus umi_studio_project_centre_snapshot(UmiStudioProjectCentre*p,UmiStudioProjectCentreSnapshot*o){UmiStatus s;if(p==NULL||o==NULL)return UMI_STATUS_INVALID_ARGUMENT;memset(o,0,sizeof(*o));o->struct_size=(uint32_t)sizeof(*o);o->api_version=1U;copy_text(o->area_id,sizeof(o->area_id),"studio.project-centre");copy_text(o->title,sizeof(o->title),"Project Centre");copy_text(o->summary,sizeof(o->summary),"Projects, targets, configurations, dependencies, tasks, launch profiles and build graph.");s=umi_project_workspace_snapshot(p->service,&o->service);if(s!=UMI_STATUS_OK)return s;s=umi_project_workspace_validate(p->service,&p->validation);if(s!=UMI_STATUS_OK)return s;o->validation=p->validation;if(p->has_selection){o->selection=p->selection;o->has_selection=1;}o->revision=p->revision+o->service.revision;o->available=1;return UMI_STATUS_OK;}
+
+UmiStatus umi_studio_project_centre_create(UmiStudioProjectCentre **out)
+{
+    UmiStudioProjectCentre *centre;
+    UmiStatus status;
+    if (out == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    *out = NULL;
+    centre = (UmiStudioProjectCentre *)calloc(1U, sizeof(*centre));
+    if (centre == NULL) return UMI_STATUS_OUT_OF_MEMORY;
+    status = umi_project_workspace_create(&centre->service);
+    if (status == UMI_STATUS_OK)
+        status = umi_project_workspace_model_create(
+            centre->service, &centre->workspace_model);
+    if (status != UMI_STATUS_OK) {
+        umi_project_workspace_destroy(centre->service);
+        free(centre);
+        return status;
+    }
+    centre->revision = 1U;
+    *out = centre;
+    return UMI_STATUS_OK;
+}
+
+void umi_studio_project_centre_destroy(UmiStudioProjectCentre *centre)
+{
+    if (centre == NULL) return;
+    umi_project_workspace_model_destroy(centre->workspace_model);
+    umi_project_workspace_destroy(centre->service);
+    free(centre);
+}
+
+UmiStatus umi_studio_project_centre_snapshot(
+    UmiStudioProjectCentre *centre,
+    UmiStudioProjectCentreSnapshot *out_snapshot)
+{
+    UmiStatus status;
+    if (centre == NULL || out_snapshot == NULL)
+        return UMI_STATUS_INVALID_ARGUMENT;
+    memset(out_snapshot, 0, sizeof(*out_snapshot));
+    out_snapshot->struct_size = (uint32_t)sizeof(*out_snapshot);
+    out_snapshot->api_version = UMI_STUDIO_PROJECT_CENTRE_API_VERSION;
+    copy_text(out_snapshot->area_id, sizeof(out_snapshot->area_id),
+              "studio.project-centre");
+    copy_text(out_snapshot->title, sizeof(out_snapshot->title),
+              "Project Centre");
+    copy_text(out_snapshot->summary, sizeof(out_snapshot->summary),
+              "Multi-root projects, inherited settings, CMake discovery, "
+              "tasks, launch profiles and deterministic build order.");
+    status = umi_project_workspace_snapshot(
+        centre->service, &out_snapshot->service);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_project_workspace_model_snapshot(
+        centre->workspace_model, &out_snapshot->workspace_model);
+    if (status != UMI_STATUS_OK) return status;
+    out_snapshot->has_workspace_model = 1;
+    out_snapshot->build_order_status =
+        umi_project_workspace_model_resolve_build_order(
+            centre->workspace_model, &out_snapshot->build_order);
+    out_snapshot->has_build_order =
+        out_snapshot->build_order_status == UMI_STATUS_OK;
+    status = umi_project_workspace_validate(
+        centre->service, &centre->validation);
+    if (status != UMI_STATUS_OK) return status;
+    out_snapshot->validation = centre->validation;
+    if (centre->has_selection) {
+        out_snapshot->selection = centre->selection;
+        out_snapshot->has_selection = 1;
+    }
+    if (centre->has_refresh_plan) {
+        out_snapshot->refresh.source_revision =
+            centre->refresh_plan.source_revision;
+        out_snapshot->refresh.discovered_project_count =
+            centre->refresh_plan.discovery.project_count;
+        out_snapshot->refresh.existing_project_count =
+            centre->refresh_plan.existing_project_count;
+        out_snapshot->refresh.unchanged_project_count =
+            centre->refresh_plan.unchanged_project_count;
+        out_snapshot->refresh.import_candidate_count =
+            centre->refresh_plan.import_candidate_count;
+        out_snapshot->refresh.missing_project_count =
+            centre->refresh_plan.missing_project_count;
+        out_snapshot->refresh.requires_confirmation =
+            centre->refresh_plan.requires_confirmation;
+        out_snapshot->has_refresh_plan = 1;
+    }
+    out_snapshot->revision = centre->revision +
+                             out_snapshot->workspace_model.revision;
+    out_snapshot->available = 1;
+    return UMI_STATUS_OK;
+}
 UmiProjectWorkspace *umi_studio_project_centre_service(UmiStudioProjectCentre*p){return p!=NULL?p->service:NULL;}
+
+UmiProjectWorkspaceModel *umi_studio_project_centre_workspace_model(
+    UmiStudioProjectCentre *centre)
+{
+    return centre != NULL ? centre->workspace_model : NULL;
+}
+
+UmiStatus umi_studio_project_centre_upsert_workspace_root(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceRootSnapshot *root)
+{
+    UmiStatus status;
+    if (centre == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_project_workspace_model_upsert_root(
+        centre->workspace_model, root);
+    if (status == UMI_STATUS_OK) {
+        centre->has_refresh_plan = 0;
+        centre->revision += 1U;
+    }
+    return status;
+}
+
+UmiStatus umi_studio_project_centre_upsert_project_group(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceGroupSnapshot *group)
+{
+    UmiStatus status;
+    if (centre == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_project_workspace_model_upsert_group(
+        centre->workspace_model, group);
+    if (status == UMI_STATUS_OK) {
+        centre->has_refresh_plan = 0;
+        centre->revision += 1U;
+    }
+    return status;
+}
+
+UmiStatus umi_studio_project_centre_upsert_project_member(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceMemberSnapshot *member)
+{
+    UmiStatus status;
+    if (centre == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_project_workspace_model_upsert_member(
+        centre->workspace_model, member);
+    if (status == UMI_STATUS_OK) {
+        centre->has_refresh_plan = 0;
+        centre->revision += 1U;
+    }
+    return status;
+}
+
+UmiStatus umi_studio_project_centre_upsert_workspace_setting(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceSettingSnapshot *setting)
+{
+    UmiStatus status;
+    if (centre == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_project_workspace_model_upsert_setting(
+        centre->workspace_model, setting);
+    if (status == UMI_STATUS_OK) {
+        centre->has_refresh_plan = 0;
+        centre->revision += 1U;
+    }
+    return status;
+}
+
+UmiStatus umi_studio_project_centre_upsert_workspace_exclusion(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceExclusionSnapshot *exclusion)
+{
+    UmiStatus status;
+    if (centre == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_project_workspace_model_upsert_exclusion(
+        centre->workspace_model, exclusion);
+    if (status == UMI_STATUS_OK) {
+        centre->has_refresh_plan = 0;
+        centre->revision += 1U;
+    }
+    return status;
+}
+
+UmiStatus umi_studio_project_centre_plan_workspace_refresh(
+    UmiStudioProjectCentre *centre,
+    const UmiProjectWorkspaceDiscoveryOptions *options,
+    UmiProjectWorkspaceRefreshSnapshot *out_refresh)
+{
+    UmiStatus status;
+    if (centre == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_project_workspace_model_plan_refresh(
+        centre->workspace_model, options, &centre->refresh_plan);
+    if (status != UMI_STATUS_OK) return status;
+    centre->has_refresh_plan = 1;
+    centre->revision += 1U;
+    if (out_refresh != NULL) *out_refresh = centre->refresh_plan;
+    return UMI_STATUS_OK;
+}
 
 UmiStatus umi_studio_project_centre_select(
     UmiStudioProjectCentre *centre,
@@ -39,6 +234,14 @@ UmiStatus umi_studio_project_centre_select(
 
     centre->selection = selection;
     centre->has_selection = 1;
+    if (request != NULL && request->project_id != NULL) {
+        UmiProjectWorkspaceMemberSnapshot member;
+        if (umi_project_workspace_model_find_project_member(
+                centre->workspace_model, request->project_id, &member) ==
+            UMI_STATUS_OK)
+            (void)umi_project_workspace_model_set_active_project(
+                centre->workspace_model, request->project_id);
+    }
     centre->revision += 1U;
     if (out_selection != NULL) {
         *out_selection = selection;
@@ -102,7 +305,11 @@ UmiStatus umi_studio_project_centre_import_directory(
     UmiProjectWorkspaceImportSnapshot *out_snapshot)
 {
     UmiProjectWorkspaceImportSnapshot imported;
+    UmiProjectWorkspaceRootSnapshot root;
+    UmiProjectWorkspaceMemberSnapshot member;
     UmiStatus status;
+    size_t root_index;
+    int reused_root = 0;
 
     if (centre == NULL || request == NULL) {
         return UMI_STATUS_INVALID_ARGUMENT;
@@ -114,9 +321,59 @@ UmiStatus umi_studio_project_centre_import_directory(
         return status;
     }
 
+    /*
+     * Import remains non-destructive.  The imported project directory becomes
+     * a model root only when no root with the same stable identifier exists;
+     * upsert then makes repeated imports idempotent.  Root/member identifiers
+     * live in separate registries, so the project identifier is a safe and
+     * deterministic identity for both records without string-prefix overflow.
+     */
+    memset(&root, 0, sizeof(root));
+    for (root_index = 0U;
+         root_index < umi_project_workspace_model_root_count(
+             centre->workspace_model);
+         ++root_index) {
+        if (umi_project_workspace_model_root_at(
+                centre->workspace_model, root_index, &root) == UMI_STATUS_OK &&
+            umi_path_equal(root.path, imported.root_directory)) {
+            reused_root = 1;
+            break;
+        }
+    }
+    if (!reused_root) {
+        memset(&root, 0, sizeof(root));
+        root.struct_size = (uint32_t)sizeof(root);
+        root.api_version = UMI_PROJECT_WORKSPACE_MODEL_API_VERSION;
+        copy_text(root.id, sizeof(root.id), imported.project_id);
+        copy_text(root.path, sizeof(root.path), imported.root_directory);
+        copy_text(root.label, sizeof(root.label), imported.display_name);
+        root.order = (int32_t)umi_project_workspace_model_root_count(
+            centre->workspace_model);
+        root.enabled = 1;
+        status = umi_project_workspace_model_upsert_root(
+            centre->workspace_model, &root);
+        if (status != UMI_STATUS_OK) return status;
+    }
+    memset(&member, 0, sizeof(member));
+    member.struct_size = (uint32_t)sizeof(member);
+    member.api_version = UMI_PROJECT_WORKSPACE_MODEL_API_VERSION;
+    copy_text(member.id, sizeof(member.id), imported.project_id);
+    copy_text(member.root_id, sizeof(member.root_id), imported.project_id);
+    copy_text(member.project_id, sizeof(member.project_id), imported.project_id);
+    member.order = (int32_t)umi_project_workspace_model_member_count(
+        centre->workspace_model);
+    member.enabled = 1;
+    status = umi_project_workspace_model_upsert_member(
+        centre->workspace_model, &member);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_project_workspace_model_set_active_project(
+        centre->workspace_model, imported.project_id);
+    if (status != UMI_STATUS_OK) return status;
+
     centre->selection = imported.selection;
     centre->validation = imported.validation;
     centre->has_selection = 1;
+    centre->has_refresh_plan = 0;
     centre->revision += 1U;
     if (out_snapshot != NULL) {
         *out_snapshot = imported;

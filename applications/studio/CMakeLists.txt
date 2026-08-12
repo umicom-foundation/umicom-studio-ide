@@ -676,6 +676,9 @@ if(BUILD_TESTING)
             platform_shell_expansion
             editor_workspace
             developer_project_centre
+            developer_workspace_model
+            developer_workspace_discovery
+            developer_workspace_inheritance
             developer_language_intelligence_centre
             developer_debug_centre
             developer_source_control_centre
