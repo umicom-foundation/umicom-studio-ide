@@ -40,6 +40,10 @@ extern "C" {
 
 /* Batch 23 primary-sidebar views. */
 #define UMI_STUDIO_PANE_SOURCE_CONTROL "studio.pane.source-control"
+#define UMI_STUDIO_PANE_VCS_HISTORY "studio.pane.vcs-history"
+#define UMI_STUDIO_PANE_VCS_BRANCHES "studio.pane.vcs-branches"
+#define UMI_STUDIO_PANE_VCS_REMOTES "studio.pane.vcs-remotes"
+#define UMI_STUDIO_PANE_VCS_DIFF "studio.pane.vcs-diff"
 #define UMI_STUDIO_PANE_RUN_DEBUG "studio.pane.run-debug"
 #define UMI_STUDIO_PANE_TESTING "studio.pane.testing"
 #define UMI_STUDIO_PANE_DESIGNER "studio.pane.designer"

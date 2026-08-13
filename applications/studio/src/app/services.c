@@ -627,6 +627,11 @@ UmiStatus umi_studio_services_publish(
             umi_studio_developer_platform_source_control(
                 services->developer_platform),
             UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.vcs-workspace",
+            umi_studio_source_control_service_workspace(
+                umi_studio_developer_platform_source_control(
+                    services->developer_platform)),
+            UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.declarative",
             services->declarative,
             UMI_SERVICE_SINGLETON);

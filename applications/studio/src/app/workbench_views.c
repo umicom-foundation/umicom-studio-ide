@@ -37,6 +37,10 @@
 #define VIEW_EXPLORER      "studio.project-explorer"
 #define VIEW_SEARCH        "studio.search"
 #define VIEW_SOURCE_CTRL   "studio.source-control"
+#define VIEW_VCS_HISTORY   "studio.vcs-history"
+#define VIEW_VCS_BRANCHES  "studio.vcs-branches"
+#define VIEW_VCS_REMOTES   "studio.vcs-remotes"
+#define VIEW_VCS_DIFF      "studio.vcs-diff"
 #define VIEW_RUN_DEBUG     "studio.run-debug"
 #define VIEW_TESTING       "studio.testing"
 #define VIEW_DESIGNER      "studio.designer"
@@ -195,50 +199,32 @@ static UmiStatus create_source_control(const char *view_id,
                                        UmiUiViewModel **out_view)
 {
     UmiStudioServices *services = (UmiStudioServices *)user_data;
-    UmiStudioSourceControlSnapshot snapshot;
     UmiStudioSourceControlService *service;
-    UmiStatus status = create_base_view(
-        view_id,
-        VIEW_SOURCE_CTRL,
-        "Source Control",
-        "Provider-neutral repository state exposed by Studio over Framework VCS.",
-        out_view);
-
-    if (status != UMI_STATUS_OK) return status;
     service = umi_studio_services_source_control(services);
-    (void)memset(&snapshot, 0, sizeof(snapshot));
-
-    if (service != NULL &&
-        umi_studio_source_control_service_snapshot(service, &snapshot) ==
-            UMI_STATUS_OK) {
-        status = property_boolean(*out_view, "available", snapshot.available);
-        if (status == UMI_STATUS_OK) {
-            status = property_string(*out_view, "branch", snapshot.branch);
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_string(*out_view, "upstream", snapshot.upstream);
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "changes",
-                                      (int64_t)snapshot.changes);
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "staged",
-                                      (int64_t)snapshot.staged);
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "ahead",
-                                      (int64_t)snapshot.ahead);
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "behind",
-                                      (int64_t)snapshot.behind);
-        }
-        return status;
-    }
-
-    return property_boolean(*out_view, "available", 0);
+    return service != NULL
+        ? umi_vcs_ui_source_control_view_create(
+              view_id,
+              umi_studio_source_control_service_workspace(service),
+              out_view)
+        : UMI_STATUS_UNAVAILABLE;
 }
+
+static UmiVcsWorkspace *source_control_workspace(void *user_data)
+{
+    UmiStudioSourceControlService *service = umi_studio_services_source_control(
+        (UmiStudioServices *)user_data);
+    return service != NULL
+        ? umi_studio_source_control_service_workspace(service) : NULL;
+}
+
+static UmiStatus create_vcs_history(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_history_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
+static UmiStatus create_vcs_branches(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_branches_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
+static UmiStatus create_vcs_remotes(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_remotes_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
+static UmiStatus create_vcs_diff(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_diff_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
 
 static UmiStatus create_run_debug(const char *view_id,
                                   void *user_data,
@@ -619,6 +605,10 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_EXPLORER, create_explorer },
     { VIEW_SEARCH, create_search },
     { VIEW_SOURCE_CTRL, create_source_control },
+    { VIEW_VCS_HISTORY, create_vcs_history },
+    { VIEW_VCS_BRANCHES, create_vcs_branches },
+    { VIEW_VCS_REMOTES, create_vcs_remotes },
+    { VIEW_VCS_DIFF, create_vcs_diff },
     { VIEW_RUN_DEBUG, create_run_debug },
     { VIEW_TESTING, create_testing },
     { VIEW_DESIGNER, create_designer },

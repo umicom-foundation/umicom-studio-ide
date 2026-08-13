@@ -29,6 +29,9 @@ int main(void)
     assert(umi_studio_source_control_service_refresh(service, 10U) == UMI_STATUS_UNAVAILABLE);
     assert(umi_studio_source_control_service_changes(service) != NULL);
     assert(umi_studio_source_control_service_history(service) != NULL);
+    assert(umi_studio_source_control_service_workspace(service) != NULL);
+    assert(umi_studio_source_control_service_stage_all(service) == UMI_STATUS_UNAVAILABLE);
+    assert(snapshot.revision >= 1U);
     umi_studio_source_control_service_destroy(service);
     assert(umi_fs_remove_tree(root) == UMI_STATUS_OK);
     return 0;

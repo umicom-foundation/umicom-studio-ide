@@ -69,6 +69,19 @@ static const char *const CORE_COMMAND_IDS[] = {
     UMI_STUDIO_COMMAND_DEBUG_STOP,
     UMI_STUDIO_COMMAND_DEBUG_ADD_BREAKPOINT,
     UMI_STUDIO_COMMAND_VCS_REFRESH,
+    UMI_STUDIO_COMMAND_VCS_STAGE,
+    UMI_STUDIO_COMMAND_VCS_UNSTAGE,
+    UMI_STUDIO_COMMAND_VCS_STAGE_ALL,
+    UMI_STUDIO_COMMAND_VCS_UNSTAGE_ALL,
+    UMI_STUDIO_COMMAND_VCS_DISCARD,
+    UMI_STUDIO_COMMAND_VCS_COMMIT,
+    UMI_STUDIO_COMMAND_VCS_FETCH,
+    UMI_STUDIO_COMMAND_VCS_PULL,
+    UMI_STUDIO_COMMAND_VCS_PUSH,
+    UMI_STUDIO_COMMAND_VCS_BRANCH_CREATE,
+    UMI_STUDIO_COMMAND_VCS_BRANCH_CHECKOUT,
+    UMI_STUDIO_COMMAND_VCS_BRANCH_DELETE,
+    UMI_STUDIO_COMMAND_VCS_DIFF,
     UMI_STUDIO_COMMAND_DEVELOPER_REPORT
 };
 
@@ -119,6 +132,7 @@ static const char *const REQUIRED_SERVICE_IDS[] = {
     "umicom.studio.language",
     "umicom.studio.debugger",
     "umicom.studio.source-control",
+    "umicom.studio.vcs-workspace",
     "umicom.studio.designer",
     "umicom.studio.ai-platform",
     "umicom.studio.delivery-platform",

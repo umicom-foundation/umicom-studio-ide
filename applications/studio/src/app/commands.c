@@ -1078,6 +1078,82 @@ static UmiStatus vcs_refresh_handler(void *user_data,
     return status;
 }
 
+typedef enum StudioVcsCommandOperation {
+    STUDIO_VCS_STAGE,
+    STUDIO_VCS_UNSTAGE,
+    STUDIO_VCS_STAGE_ALL,
+    STUDIO_VCS_UNSTAGE_ALL,
+    STUDIO_VCS_DISCARD,
+    STUDIO_VCS_COMMIT,
+    STUDIO_VCS_FETCH,
+    STUDIO_VCS_PULL,
+    STUDIO_VCS_PUSH,
+    STUDIO_VCS_BRANCH_CREATE,
+    STUDIO_VCS_BRANCH_CHECKOUT,
+    STUDIO_VCS_BRANCH_DELETE,
+    STUDIO_VCS_DIFF
+} StudioVcsCommandOperation;
+
+static UmiStatus vcs_operation_execute(void *user_data,
+                                       const char *argument,
+                                       char *out_message,
+                                       size_t capacity,
+                                       StudioVcsCommandOperation operation)
+{
+    UmiStudioSourceControlService *service = umi_studio_services_source_control(
+        (UmiStudioServices *)user_data);
+    UmiStatus status;
+    int needs_argument = operation == STUDIO_VCS_STAGE || operation == STUDIO_VCS_UNSTAGE ||
+        operation == STUDIO_VCS_DISCARD || operation == STUDIO_VCS_COMMIT ||
+        operation == STUDIO_VCS_BRANCH_CREATE || operation == STUDIO_VCS_BRANCH_CHECKOUT ||
+        operation == STUDIO_VCS_BRANCH_DELETE || operation == STUDIO_VCS_DIFF;
+    if (service == NULL) return UMI_STATUS_UNAVAILABLE;
+    if (needs_argument && (argument == NULL || argument[0] == '\0')) return UMI_STATUS_INVALID_ARGUMENT;
+    switch (operation) {
+        case STUDIO_VCS_STAGE: status = umi_studio_source_control_service_stage(service, argument); break;
+        case STUDIO_VCS_UNSTAGE: status = umi_studio_source_control_service_unstage(service, argument); break;
+        case STUDIO_VCS_STAGE_ALL: status = umi_studio_source_control_service_stage_all(service); break;
+        case STUDIO_VCS_UNSTAGE_ALL: status = umi_studio_source_control_service_unstage_all(service); break;
+        case STUDIO_VCS_DISCARD: status = umi_studio_source_control_service_discard(service, argument); break;
+        case STUDIO_VCS_COMMIT: status = umi_studio_source_control_service_commit(service, argument, NULL, 0U); break;
+        case STUDIO_VCS_FETCH: status = umi_studio_source_control_service_fetch(service); break;
+        case STUDIO_VCS_PULL: status = umi_studio_source_control_service_pull(service); break;
+        case STUDIO_VCS_PUSH: status = umi_studio_source_control_service_push(service); break;
+        case STUDIO_VCS_BRANCH_CREATE: status = umi_studio_source_control_service_branch_create(service, argument, 1); break;
+        case STUDIO_VCS_BRANCH_CHECKOUT: status = umi_studio_source_control_service_branch_checkout(service, argument); break;
+        case STUDIO_VCS_BRANCH_DELETE: status = umi_studio_source_control_service_branch_delete(service, argument, 0); break;
+        case STUDIO_VCS_DIFF: {
+            int staged = strncmp(argument, "--staged ", 9U) == 0;
+            status = umi_studio_source_control_service_open_diff(service, staged ? argument + 9 : argument, staged);
+            break;
+        }
+        default: status = UMI_STATUS_INVALID_ARGUMENT; break;
+    }
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Source control: %s", umi_status_text(status));
+    }
+    return status;
+}
+
+#define DEFINE_VCS_HANDLER(name_, operation_) \
+    static UmiStatus name_(void *user_data, const char *argument, \
+                           char *out_message, size_t capacity) \
+    { return vcs_operation_execute(user_data, argument, out_message, capacity, operation_); }
+DEFINE_VCS_HANDLER(vcs_stage_handler, STUDIO_VCS_STAGE)
+DEFINE_VCS_HANDLER(vcs_unstage_handler, STUDIO_VCS_UNSTAGE)
+DEFINE_VCS_HANDLER(vcs_stage_all_handler, STUDIO_VCS_STAGE_ALL)
+DEFINE_VCS_HANDLER(vcs_unstage_all_handler, STUDIO_VCS_UNSTAGE_ALL)
+DEFINE_VCS_HANDLER(vcs_discard_handler, STUDIO_VCS_DISCARD)
+DEFINE_VCS_HANDLER(vcs_commit_handler, STUDIO_VCS_COMMIT)
+DEFINE_VCS_HANDLER(vcs_fetch_handler, STUDIO_VCS_FETCH)
+DEFINE_VCS_HANDLER(vcs_pull_handler, STUDIO_VCS_PULL)
+DEFINE_VCS_HANDLER(vcs_push_handler, STUDIO_VCS_PUSH)
+DEFINE_VCS_HANDLER(vcs_branch_create_handler, STUDIO_VCS_BRANCH_CREATE)
+DEFINE_VCS_HANDLER(vcs_branch_checkout_handler, STUDIO_VCS_BRANCH_CHECKOUT)
+DEFINE_VCS_HANDLER(vcs_branch_delete_handler, STUDIO_VCS_BRANCH_DELETE)
+DEFINE_VCS_HANDLER(vcs_diff_handler, STUDIO_VCS_DIFF)
+#undef DEFINE_VCS_HANDLER
+
 static UmiStatus developer_report_handler(void *user_data,
                                           const char *argument,
                                           char *out_message,
@@ -1557,6 +1633,58 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "Refresh Git branch, change and history state.",
                               "vcs.read", UMI_COMMAND_NONE,
                               vcs_refresh_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_STAGE,
+                              "Stage Path", "Source Control", "Stage a repository-relative path.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE, vcs_stage_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_UNSTAGE,
+                              "Unstage Path", "Source Control", "Remove a repository-relative path from the index.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE, vcs_unstage_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_STAGE_ALL,
+                              "Stage All", "Source Control", "Stage all working-tree changes.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE, vcs_stage_all_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_UNSTAGE_ALL,
+                              "Unstage All", "Source Control", "Remove all changes from the index.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE, vcs_unstage_all_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_DISCARD,
+                              "Discard Path", "Source Control", "Discard a working-tree path after confirmation.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED, vcs_discard_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_COMMIT,
+                              "Commit", "Source Control", "Create a commit using the supplied message.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED, vcs_commit_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_FETCH,
+                              "Fetch", "Source Control", "Fetch and prune all configured remotes.",
+                              "vcs.network", UMI_COMMAND_AUDITED, vcs_fetch_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_PULL,
+                              "Pull", "Source Control", "Fast-forward the active branch.",
+                              "vcs.network", UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED, vcs_pull_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_PUSH,
+                              "Push", "Source Control", "Push the active branch.",
+                              "vcs.network", UMI_COMMAND_AUDITED, vcs_push_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_BRANCH_CREATE,
+                              "Create Branch", "Source Control", "Create and check out a validated branch name.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE, vcs_branch_create_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_BRANCH_CHECKOUT,
+                              "Checkout Branch", "Source Control", "Switch to a validated branch name.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE, vcs_branch_checkout_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_BRANCH_DELETE,
+                              "Delete Branch", "Source Control", "Safely delete a merged branch.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED, vcs_branch_delete_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_DIFF,
+                              "Open Diff", "Source Control", "Load a working-tree path diff; prefix with --staged for index diff.",
+                              "vcs.read", UMI_COMMAND_NONE, vcs_diff_handler);
     if (status != UMI_STATUS_OK) return status;
     return register_command(registry, services,
                             UMI_STUDIO_COMMAND_DEVELOPER_REPORT,

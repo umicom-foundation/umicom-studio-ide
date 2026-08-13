@@ -45,6 +45,10 @@ static const UmiUiPaneSnapshot STUDIO_PANES[] = {
      * stable pane/view IDs without changing Activity Bar or layout code.
      */
     { UMI_STUDIO_PANE_SOURCE_CONTROL, "Source Control", "studio.source-control", "org.gnome.Builder-vcs-symbolic", UMI_UI_PLACEMENT_LEFT, 90, 0, 1, 1, { 320, 500 } },
+    { UMI_STUDIO_PANE_VCS_HISTORY, "Repository History", "studio.vcs-history", "document-open-recent-symbolic", UMI_UI_PLACEMENT_LEFT, 91, 0, 1, 1, { 420, 500 } },
+    { UMI_STUDIO_PANE_VCS_BRANCHES, "Branches", "studio.vcs-branches", "view-list-tree-symbolic", UMI_UI_PLACEMENT_LEFT, 92, 0, 1, 1, { 360, 500 } },
+    { UMI_STUDIO_PANE_VCS_REMOTES, "Remotes & Operations", "studio.vcs-remotes", "network-server-symbolic", UMI_UI_PLACEMENT_LEFT, 93, 0, 1, 1, { 440, 500 } },
+    { UMI_STUDIO_PANE_VCS_DIFF, "Diff Viewer", "studio.vcs-diff", "document-properties-symbolic", UMI_UI_PLACEMENT_BOTTOM, 94, 0, 1, 1, { 760, 320 } },
     { UMI_STUDIO_PANE_RUN_DEBUG, "Run and Debug", "studio.run-debug", "system-run-symbolic", UMI_UI_PLACEMENT_LEFT, 100, 0, 1, 1, { 320, 500 } },
     { UMI_STUDIO_PANE_TESTING, "Testing", "studio.testing", "emblem-ok-symbolic", UMI_UI_PLACEMENT_LEFT, 110, 0, 1, 1, { 320, 500 } },
     { UMI_STUDIO_PANE_DESIGNER, "Designer", "studio.designer", "applications-graphics-symbolic", UMI_UI_PLACEMENT_LEFT, 120, 0, 1, 1, { 320, 500 } },
@@ -115,7 +119,25 @@ static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
     { "studio.action.debug.step-in", UMI_STUDIO_COMMAND_DEBUG_STEP_IN, "Step Into", "Step into the next function call", "go-down-symbolic", "F11", 1, 1, 0, 0, 360, "", UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.debug.step-out", UMI_STUDIO_COMMAND_DEBUG_STEP_OUT, "Step Out", "Step out of the current function", "go-up-symbolic", "Shift+F11", 1, 1, 0, 0, 370, "", UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.debug.stop", UMI_STUDIO_COMMAND_DEBUG_STOP, "Stop Debugging", "Terminate the active debug session", "media-playback-stop-symbolic", "Shift+F5", 1, 1, 0, 0, 380, "", UMI_UI_ACTION_ARGUMENT_NONE },
-    { "studio.action.debug.add-breakpoint", UMI_STUDIO_COMMAND_DEBUG_ADD_BREAKPOINT, "Add Breakpoint…", "Add a Framework-owned source breakpoint using path:line", "media-record-symbolic", "F9", 1, 1, 0, 0, 390, "", UMI_UI_ACTION_ARGUMENT_TEXT }
+    { "studio.action.debug.add-breakpoint", UMI_STUDIO_COMMAND_DEBUG_ADD_BREAKPOINT, "Add Breakpoint…", "Add a Framework-owned source breakpoint using path:line", "media-record-symbolic", "F9", 1, 1, 0, 0, 390, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.vcs.refresh", UMI_STUDIO_COMMAND_VCS_REFRESH, "Refresh Source Control", "Refresh working tree, history, branches, remotes and tags", "view-refresh-symbolic", "Ctrl+Shift+G", 1, 1, 0, 0, 400, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.vcs.stage", UMI_STUDIO_COMMAND_VCS_STAGE, "Stage Path…", "Stage a repository-relative path", "list-add-symbolic", "", 1, 1, 0, 0, 410, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.vcs.unstage", UMI_STUDIO_COMMAND_VCS_UNSTAGE, "Unstage Path…", "Remove a path from the index", "list-remove-symbolic", "", 1, 1, 0, 0, 420, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.vcs.stage-all", UMI_STUDIO_COMMAND_VCS_STAGE_ALL, "Stage All", "Stage every working-tree change", "list-add-symbolic", "", 1, 1, 0, 0, 430, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.vcs.unstage-all", UMI_STUDIO_COMMAND_VCS_UNSTAGE_ALL, "Unstage All", "Remove every indexed change", "list-remove-symbolic", "", 1, 1, 0, 0, 440, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.vcs.discard", UMI_STUDIO_COMMAND_VCS_DISCARD, "Discard Path…", "Discard a working-tree path", "edit-delete-symbolic", "", 1, 1, 0, 0, 450, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.vcs.commit", UMI_STUDIO_COMMAND_VCS_COMMIT, "Commit…", "Create a commit from indexed changes", "document-save-symbolic", "Ctrl+Enter", 1, 1, 0, 0, 460, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.vcs.fetch", UMI_STUDIO_COMMAND_VCS_FETCH, "Fetch", "Fetch all remotes and prune stale refs", "folder-download-symbolic", "", 1, 1, 0, 0, 470, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.vcs.pull", UMI_STUDIO_COMMAND_VCS_PULL, "Pull", "Fast-forward the active branch", "go-down-symbolic", "", 1, 1, 0, 0, 480, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.vcs.push", UMI_STUDIO_COMMAND_VCS_PUSH, "Push", "Push the active branch", "go-up-symbolic", "", 1, 1, 0, 0, 490, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.vcs.branch-create", UMI_STUDIO_COMMAND_VCS_BRANCH_CREATE, "New Branch…", "Create and check out a branch", "list-add-symbolic", "", 1, 1, 0, 0, 500, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.vcs.branch-checkout", UMI_STUDIO_COMMAND_VCS_BRANCH_CHECKOUT, "Checkout Branch…", "Switch to an existing branch", "go-jump-symbolic", "", 1, 1, 0, 0, 510, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.vcs.branch-delete", UMI_STUDIO_COMMAND_VCS_BRANCH_DELETE, "Delete Branch…", "Safely delete a merged branch", "edit-delete-symbolic", "", 1, 1, 0, 0, 520, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.vcs.diff", UMI_STUDIO_COMMAND_VCS_DIFF, "Open Diff…", "Open a working-tree or staged path diff", "document-properties-symbolic", "", 1, 1, 0, 0, 530, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.pane.vcs-history", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Repository History", "Show repository history", "document-open-recent-symbolic", "", 1, 1, 1, 1, 540, UMI_STUDIO_PANE_VCS_HISTORY, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.vcs-branches", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Branches", "Show repository branches", "view-list-tree-symbolic", "", 1, 1, 1, 1, 550, UMI_STUDIO_PANE_VCS_BRANCHES, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.vcs-remotes", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Remotes & Operations", "Show remotes and operation journal", "network-server-symbolic", "", 1, 1, 1, 1, 560, UMI_STUDIO_PANE_VCS_REMOTES, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.vcs-diff", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Diff Viewer", "Show source-control diff viewer", "document-properties-symbolic", "", 1, 1, 1, 1, 570, UMI_STUDIO_PANE_VCS_DIFF, UMI_UI_ACTION_ARGUMENT_NONE }
 };
 
 static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
@@ -168,6 +190,17 @@ static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
     { "menu.terminal.split-horizontal", "terminal", "layout", "studio.action.terminal.split-horizontal", "", 0, 90 },
     { "menu.terminal.split-vertical", "terminal", "layout", "studio.action.terminal.split-vertical", "", 0, 100 },
     { "menu.terminal.history-clear", "terminal", "history", "studio.action.terminal.history-clear", "", 0, 110 },
+    { "menu.source-control.refresh", "source-control", "repository", "studio.action.vcs.refresh", "", 0, 10 },
+    { "menu.source-control.stage-all", "source-control", "changes", "studio.action.vcs.stage-all", "", 0, 20 },
+    { "menu.source-control.unstage-all", "source-control", "changes", "studio.action.vcs.unstage-all", "", 0, 30 },
+    { "menu.source-control.commit", "source-control", "changes", "studio.action.vcs.commit", "", 0, 40 },
+    { "menu.source-control.fetch", "source-control", "remote", "studio.action.vcs.fetch", "", 0, 50 },
+    { "menu.source-control.pull", "source-control", "remote", "studio.action.vcs.pull", "", 0, 60 },
+    { "menu.source-control.push", "source-control", "remote", "studio.action.vcs.push", "", 0, 70 },
+    { "menu.source-control.history", "source-control", "views", "studio.action.pane.vcs-history", "", 0, 80 },
+    { "menu.source-control.branches", "source-control", "views", "studio.action.pane.vcs-branches", "", 0, 90 },
+    { "menu.source-control.remotes", "source-control", "views", "studio.action.pane.vcs-remotes", "", 0, 100 },
+    { "menu.source-control.diff", "source-control", "views", "studio.action.pane.vcs-diff", "", 0, 110 },
     { "menu.help.about", "help", "about", "studio.action.notification.info", "", 0, 10 }
 };
 
@@ -204,6 +237,10 @@ static const UmiUiContributionSnapshot STUDIO_CONTRIBUTIONS[] = {
     { "studio.contribution.develop", "org.umicom.studio.shell", "umicom.ui.perspectives", UMI_STUDIO_PERSPECTIVE_DEVELOP, 70, 1 },
     { "studio.contribution.build", "org.umicom.studio.shell", "umicom.ui.perspectives", UMI_STUDIO_PERSPECTIVE_BUILD, 80, 1 },
     { "studio.contribution.source-control", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_SOURCE_CONTROL, 90, 1 },
+    { "studio.contribution.vcs-history", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_VCS_HISTORY, 91, 1 },
+    { "studio.contribution.vcs-branches", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_VCS_BRANCHES, 92, 1 },
+    { "studio.contribution.vcs-remotes", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_VCS_REMOTES, 93, 1 },
+    { "studio.contribution.vcs-diff", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_VCS_DIFF, 94, 1 },
     { "studio.contribution.run-debug", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_RUN_DEBUG, 100, 1 },
     { "studio.contribution.testing", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_TESTING, 110, 1 },
     { "studio.contribution.designer", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_DESIGNER, 120, 1 },

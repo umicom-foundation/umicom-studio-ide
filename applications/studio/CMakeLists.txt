@@ -685,6 +685,7 @@ if(BUILD_TESTING)
             workbench_keybinding
             workbench_session_state
             workbench_views
+            source_control_workbench
             platform_shell_expansion
             editor_workspace
             developer_project_centre

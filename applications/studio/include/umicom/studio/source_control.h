@@ -32,6 +32,13 @@ typedef struct UmiStudioSourceControlSnapshot {
     size_t changes;
     size_t staged;
     size_t commits;
+    size_t conflicts;
+    size_t branches;
+    size_t remotes;
+    size_t tags;
+    size_t operations;
+    uint64_t revision;
+    uint64_t capabilities;
 } UmiStudioSourceControlSnapshot;
 
 UmiStatus umi_studio_source_control_service_create(
@@ -53,12 +60,22 @@ UmiStatus umi_studio_source_control_service_unstage(
     UmiStudioSourceControlService *service,
     const char *path
 );
+UmiStatus umi_studio_source_control_service_stage_all(UmiStudioSourceControlService *service);
+UmiStatus umi_studio_source_control_service_unstage_all(UmiStudioSourceControlService *service);
+UmiStatus umi_studio_source_control_service_discard(UmiStudioSourceControlService *service, const char *path);
 UmiStatus umi_studio_source_control_service_commit(
     UmiStudioSourceControlService *service,
     const char *message,
     char *out_commit_id,
     size_t capacity
 );
+UmiStatus umi_studio_source_control_service_fetch(UmiStudioSourceControlService *service);
+UmiStatus umi_studio_source_control_service_pull(UmiStudioSourceControlService *service);
+UmiStatus umi_studio_source_control_service_push(UmiStudioSourceControlService *service);
+UmiStatus umi_studio_source_control_service_branch_create(UmiStudioSourceControlService *service, const char *name, int checkout);
+UmiStatus umi_studio_source_control_service_branch_checkout(UmiStudioSourceControlService *service, const char *name);
+UmiStatus umi_studio_source_control_service_branch_delete(UmiStudioSourceControlService *service, const char *name, int force);
+UmiStatus umi_studio_source_control_service_open_diff(UmiStudioSourceControlService *service, const char *path, int staged);
 UmiStatus umi_studio_source_control_service_snapshot(
     const UmiStudioSourceControlService *service,
     UmiStudioSourceControlSnapshot *out_snapshot
@@ -69,6 +86,7 @@ const UmiVcsChangeList *umi_studio_source_control_service_changes(
 const UmiVcsHistory *umi_studio_source_control_service_history(
     const UmiStudioSourceControlService *service
 );
+UmiVcsWorkspace *umi_studio_source_control_service_workspace(UmiStudioSourceControlService *service);
 
 #ifdef __cplusplus
 }

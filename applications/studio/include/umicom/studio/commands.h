@@ -69,9 +69,22 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_DEBUG_STOP "studio.debug.stop"
 #define UMI_STUDIO_COMMAND_DEBUG_ADD_BREAKPOINT "studio.debug.add-breakpoint"
 #define UMI_STUDIO_COMMAND_VCS_REFRESH "studio.vcs.refresh"
+#define UMI_STUDIO_COMMAND_VCS_STAGE "studio.vcs.stage"
+#define UMI_STUDIO_COMMAND_VCS_UNSTAGE "studio.vcs.unstage"
+#define UMI_STUDIO_COMMAND_VCS_STAGE_ALL "studio.vcs.stage-all"
+#define UMI_STUDIO_COMMAND_VCS_UNSTAGE_ALL "studio.vcs.unstage-all"
+#define UMI_STUDIO_COMMAND_VCS_DISCARD "studio.vcs.discard"
+#define UMI_STUDIO_COMMAND_VCS_COMMIT "studio.vcs.commit"
+#define UMI_STUDIO_COMMAND_VCS_FETCH "studio.vcs.fetch"
+#define UMI_STUDIO_COMMAND_VCS_PULL "studio.vcs.pull"
+#define UMI_STUDIO_COMMAND_VCS_PUSH "studio.vcs.push"
+#define UMI_STUDIO_COMMAND_VCS_BRANCH_CREATE "studio.vcs.branch-create"
+#define UMI_STUDIO_COMMAND_VCS_BRANCH_CHECKOUT "studio.vcs.branch-checkout"
+#define UMI_STUDIO_COMMAND_VCS_BRANCH_DELETE "studio.vcs.branch-delete"
+#define UMI_STUDIO_COMMAND_VCS_DIFF "studio.vcs.diff"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 51U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 64U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);
