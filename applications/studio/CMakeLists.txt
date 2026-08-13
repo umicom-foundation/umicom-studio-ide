@@ -799,6 +799,14 @@ if(BUILD_TESTING)
     umicom_apply_sanitizers(umicom-studio-documents-test)
     add_test(NAME studio.documents COMMAND umicom-studio-documents-test)
 
+    add_executable(umicom-studio-document-workbench-test
+        tests/test_document_workbench.c
+    )
+    target_link_libraries(umicom-studio-document-workbench-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-document-workbench-test)
+    umicom_apply_sanitizers(umicom-studio-document-workbench-test)
+    add_test(NAME studio.document_workbench COMMAND umicom-studio-document-workbench-test)
+
     add_executable(umicom-studio-tasks-test
         tests/test_tasks.c
     )
@@ -1133,6 +1141,7 @@ if(BUILD_TESTING)
         studio.platform
         studio.settings
         studio.documents
+        studio.document_workbench
         studio.tasks
         studio.commands
         studio.state

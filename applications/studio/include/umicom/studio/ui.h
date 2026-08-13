@@ -60,6 +60,7 @@ UmiUiApplicationShell *umi_studio_ui_shell(UmiStudioUi *ui);
 UmiUiWorkbench *umi_studio_ui_workbench(UmiStudioUi *ui);
 UmiUiHeadlessAdapter *umi_studio_ui_headless(UmiStudioUi *ui);
 UmiStudioViewModels *umi_studio_ui_view_models(UmiStudioUi *ui);
+UmiDocumentCoordinator *umi_studio_ui_documents(UmiStudioUi *ui);
 
 #ifdef __cplusplus
 }

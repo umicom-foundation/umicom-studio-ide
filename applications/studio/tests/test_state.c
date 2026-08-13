@@ -49,7 +49,9 @@ int main(void)
     assert(report.health_count >= 3U);
     assert(report.overall_health == UMI_HEALTH_READY);
     assert(report.tasks.worker_count == 4U);
-    assert(report.document_count == 0U);
+    /* The Framework coordinator imports Studio's editable Welcome.c working
+     * copy, so the authoritative store is no longer disconnected from UI. */
+    assert(report.document_count >= 1U);
     assert(report.workspace.open);
     assert(report.files.capacity > 0U);
     assert(report.processes.capacity > 0U);
