@@ -14,6 +14,7 @@
 #define UMICOM_STUDIO_BUILD_WORKBENCH_H
 
 #include "umicom/build/result.h"
+#include "umicom/diagnostic_ui/diagnostic_ui.h"
 #include "umicom/ui/output_channel.h"
 #include "umicom/ui/problem.h"
 

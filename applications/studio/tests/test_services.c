@@ -45,9 +45,10 @@ int main(void)
                                       &services) == UMI_STATUS_OK);
     assert(services != NULL);
 
-    /* The retained Framework store is always the first registered sink. */
-    assert(umi_studio_services_diagnostic_sink_count(services) == 2U);
+    /* Framework store and unified pipeline are authoritative built-in sinks. */
+    assert(umi_studio_services_diagnostic_sink_count(services) == 3U);
     assert(umi_studio_services_diagnostic_store(services) != NULL);
+    assert(umi_studio_services_diagnostic_pipeline(services) != NULL);
     assert(umi_studio_services_settings(services) != NULL);
     assert(umi_studio_services_clock(services) != NULL);
     assert(umi_studio_services_task_queue(services) != NULL);
@@ -70,7 +71,7 @@ int main(void)
     assert(umi_studio_services_add_diagnostic_sink(services,
                                                    count_sink,
                                                    &second_count) == UMI_STATUS_OK);
-    assert(umi_studio_services_diagnostic_sink_count(services) == 3U);
+    assert(umi_studio_services_diagnostic_sink_count(services) == 4U);
 
     hub_sink = umi_studio_services_diagnostic_sink();
     hub_user_data = umi_studio_services_diagnostic_user_data(services);
@@ -91,7 +92,7 @@ int main(void)
     assert(umi_studio_services_remove_diagnostic_sink(services,
                                                       count_sink,
                                                       &second_count) == UMI_STATUS_OK);
-    assert(umi_studio_services_diagnostic_sink_count(services) == 2U);
+    assert(umi_studio_services_diagnostic_sink_count(services) == 3U);
 
     umi_studio_services_destroy(services);
     assert(umi_fs_remove_tree(".umicom") == UMI_STATUS_OK);

@@ -33,6 +33,7 @@
 struct UmiStudioServices {
     UmiDiagnosticHub diagnostic_hub;
     UmiDiagnosticStore *diagnostic_store;
+    UmiDiagnosticPipeline *diagnostic_pipeline;
     UmiSettings *settings;
     UmiTaskQueue *task_queue;
     UmiDocumentStore *documents;
@@ -148,6 +149,8 @@ static void destroy_partial(UmiStudioServices *services)
     services->documents = NULL;
     umi_task_queue_destroy(services->task_queue);
     services->task_queue = NULL;
+    umi_diagnostic_pipeline_destroy(services->diagnostic_pipeline);
+    services->diagnostic_pipeline = NULL;
     umi_diagnostic_store_destroy(services->diagnostic_store);
     services->diagnostic_store = NULL;
     umi_settings_destroy(services->settings);
@@ -162,6 +165,7 @@ UmiStatus umi_studio_services_create(
     UmiStudioServices **out_services)
 {
     UmiDiagnosticStoreConfig store_config;
+    UmiDiagnosticPipelineConfig pipeline_config;
     UmiTaskQueueConfig task_config;
     UmiStudioServices *services;
     UmiStatus status;
@@ -241,6 +245,21 @@ UmiStatus umi_studio_services_create(
     status = umi_diagnostic_hub_add(&services->diagnostic_hub,
                                     umi_diagnostic_store_sink,
                                     services->diagnostic_store);
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+
+    pipeline_config = umi_diagnostic_pipeline_config_default();
+    pipeline_config.diagnostic_capacity = (size_t)diagnostic_capacity;
+    pipeline_config.output_capacity = (size_t)diagnostic_capacity;
+    status = umi_diagnostic_pipeline_create(&pipeline_config,
+                                            &services->diagnostic_pipeline);
+    if (status == UMI_STATUS_OK) {
+        status = umi_diagnostic_hub_add(&services->diagnostic_hub,
+                                        umi_diagnostic_pipeline_sink,
+                                        services->diagnostic_pipeline);
+    }
     if (status != UMI_STATUS_OK) {
         destroy_partial(services);
         return status;
@@ -483,6 +502,9 @@ UmiStatus umi_studio_services_publish(
     PUBLISH("umicom.studio.diagnostics.store",
             services->diagnostic_store,
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
+    PUBLISH("umicom.studio.diagnostics.pipeline",
+            services->diagnostic_pipeline,
+            UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
     PUBLISH("umicom.studio.tasks",
             services->task_queue,
             UMI_SERVICE_SINGLETON | UMI_SERVICE_THREAD_SAFE);
@@ -668,6 +690,12 @@ UmiDiagnosticStore *umi_studio_services_diagnostic_store(
     UmiStudioServices *services)
 {
     return services != NULL ? services->diagnostic_store : NULL;
+}
+
+UmiDiagnosticPipeline *umi_studio_services_diagnostic_pipeline(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->diagnostic_pipeline : NULL;
 }
 
 UmiTaskQueue *umi_studio_services_task_queue(UmiStudioServices *services)

@@ -24,7 +24,8 @@ int main(void)
 
     assert(umi_studio_services_create(NULL, NULL, &services) == UMI_STATUS_OK);
     assert(services != NULL);
-    assert(umi_studio_services_diagnostic_sink_count(services) == 1U);
+    assert(umi_studio_services_diagnostic_sink_count(services) == 2U);
+    assert(umi_studio_services_diagnostic_pipeline(services) != NULL);
 
     assert(umi_studio_diagnostics_emit(services,
                                        UMI_DIAGNOSTIC_INFO,

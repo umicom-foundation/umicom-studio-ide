@@ -102,5 +102,46 @@ UmiStatus umi_studio_diagnostics_clear(UmiStudioServices *services)
     }
 
     umi_diagnostic_store_clear(store);
+    umi_diagnostic_pipeline_clear(
+        umi_studio_services_diagnostic_pipeline(services));
     return UMI_STATUS_OK;
+}
+
+UmiStatus umi_studio_diagnostics_clear_problems(UmiStudioServices *services)
+{
+    UmiDiagnosticPipeline *pipeline;
+    if (services == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    pipeline = umi_studio_services_diagnostic_pipeline(services);
+    if (pipeline == NULL) return UMI_STATUS_INVALID_STATE;
+    umi_diagnostic_store_clear(umi_studio_services_diagnostic_store(services));
+    umi_diagnostic_model_clear(umi_diagnostic_pipeline_model(pipeline));
+    return UMI_STATUS_OK;
+}
+
+UmiStatus umi_studio_diagnostics_clear_output(UmiStudioServices *services)
+{
+    UmiDiagnosticPipeline *pipeline;
+    if (services == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    pipeline = umi_studio_services_diagnostic_pipeline(services);
+    if (pipeline == NULL) return UMI_STATUS_INVALID_STATE;
+    umi_output_buffer_clear(umi_diagnostic_pipeline_output(pipeline));
+    return UMI_STATUS_OK;
+}
+
+UmiStatus umi_studio_diagnostics_pipeline_snapshot(
+    UmiStudioServices *services,
+    UmiDiagnosticPipelineSnapshot *out_snapshot)
+{
+    if (services == NULL || out_snapshot == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    return umi_diagnostic_pipeline_snapshot(
+        umi_studio_services_diagnostic_pipeline(services), out_snapshot);
+}
+
+UmiStatus umi_studio_diagnostics_ingest_build_result(
+    UmiStudioServices *services,
+    const UmiBuildResult *result)
+{
+    if (services == NULL || result == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    return umi_diagnostic_build_result_ingest(
+        umi_studio_services_diagnostic_pipeline(services), result, "Umicom Build");
 }

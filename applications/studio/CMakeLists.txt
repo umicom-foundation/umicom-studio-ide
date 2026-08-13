@@ -1038,6 +1038,7 @@ if(BUILD_TESTING)
     foreach(UMICOM_STUDIO_DEVELOPER_TEST
             build_service
             build_workbench
+            diagnostics_pipeline
             test_service
             test_explorer_state
             test_explorer_operations

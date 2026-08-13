@@ -67,6 +67,9 @@ UmiSettings *umi_studio_services_settings(UmiStudioServices *services);
 UmiDiagnosticStore *umi_studio_services_diagnostic_store(
     UmiStudioServices *services
 );
+UmiDiagnosticPipeline *umi_studio_services_diagnostic_pipeline(
+    UmiStudioServices *services
+);
 UmiTaskQueue *umi_studio_services_task_queue(UmiStudioServices *services);
 UmiDocumentStore *umi_studio_services_documents(UmiStudioServices *services);
 UmiSessionStore *umi_studio_services_session(UmiStudioServices *services);

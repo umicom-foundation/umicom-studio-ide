@@ -23,6 +23,7 @@
 #include "umicom/studio/data.h"
 #include "umicom/studio/debugger.h"
 #include "umicom/studio/developer_platform.h"
+#include "umicom/studio/diagnostics.h"
 #include "umicom/studio/documents.h"
 #include "umicom/studio/language.h"
 #include "umicom/studio/messages.h"
@@ -342,6 +343,11 @@ static UmiStatus build_phase_handler(UmiStudioServices *services,
     UmiBuildResult result;
     UmiStatus status = umi_studio_build_service_run(
         umi_studio_services_build(services), phase, &result);
+    UmiStatus diagnostic_status =
+        umi_studio_diagnostics_ingest_build_result(services, &result);
+    if (status == UMI_STATUS_OK && diagnostic_status != UMI_STATUS_OK) {
+        status = diagnostic_status;
+    }
     if (out_message != NULL && message_capacity > 0U) {
         (void)snprintf(out_message,
                        message_capacity,
@@ -457,23 +463,66 @@ static UmiStatus terminal_execute_handler(void *user_data,
                                           char *out_message,
                                           size_t message_capacity)
 {
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    char output_line[512];
     int exit_code = 0;
     UmiStatus status;
     if (argument == NULL || argument[0] == '\0') {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
     status = umi_studio_terminal_service_execute(
-        umi_studio_services_terminal((UmiStudioServices *)user_data),
+        umi_studio_services_terminal(services),
         argument,
         30000U,
         NULL,
         &exit_code);
+    (void)snprintf(output_line, sizeof(output_line),
+                   "Command '%s' exited with %d: %s",
+                   argument, exit_code, umi_status_text(status));
+    {
+        UmiStatus output_status = umi_diagnostic_pipeline_ingest_line(
+            umi_studio_services_diagnostic_pipeline(services),
+            "terminal", "Terminal", "Umicom Terminal",
+            status == UMI_STATUS_OK ? UMI_OUTPUT_STREAM_STANDARD : UMI_OUTPUT_STREAM_ERROR,
+            output_line, 0U);
+        if (status == UMI_STATUS_OK && output_status != UMI_STATUS_OK) status = output_status;
+    }
     if (out_message != NULL && message_capacity > 0U) {
         (void)snprintf(out_message,
                        message_capacity,
                        "Terminal command exited with %d: %s",
                        exit_code,
                        umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus diagnostics_clear_handler(void *user_data,
+                                           const char *argument,
+                                           char *out_message,
+                                           size_t message_capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_diagnostics_clear_problems((UmiStudioServices *)user_data);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity, "%s",
+                       status == UMI_STATUS_OK ? "Problems cleared" : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus output_clear_handler(void *user_data,
+                                      const char *argument,
+                                      char *out_message,
+                                      size_t message_capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_diagnostics_clear_output((UmiStudioServices *)user_data);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity, "%s",
+                       status == UMI_STATUS_OK ? "Output cleared" : umi_status_text(status));
     }
     return status;
 }
@@ -998,6 +1047,22 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "process.read",
                               UMI_COMMAND_MUTATES_STATE,
                               terminal_clear_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DIAGNOSTICS_CLEAR,
+                              "Clear Problems", "Diagnostics",
+                              "Clear retained Problems records.",
+                              "studio.diagnostics.write",
+                              UMI_COMMAND_MUTATES_STATE,
+                              diagnostics_clear_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_OUTPUT_CLEAR,
+                              "Clear Output", "Diagnostics",
+                              "Clear retained build, terminal and runtime output.",
+                              "studio.diagnostics.write",
+                              UMI_COMMAND_MUTATES_STATE,
+                              output_clear_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE,

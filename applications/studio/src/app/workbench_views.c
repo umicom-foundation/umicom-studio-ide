@@ -426,67 +426,9 @@ static UmiStatus create_output(const char *view_id,
                                UmiUiViewModel **out_view)
 {
     UmiStudioServices *services = (UmiStudioServices *)user_data;
-    UmiStudioBuildSnapshot build = {0};
-    UmiStudioLanguageSnapshot language = {0};
-    UmiStudioDebuggerSnapshot debug = {0};
-    UmiStatus status = create_base_view(
-        view_id, VIEW_OUTPUT, "Output",
-        "Live build, test, run and deployment execution summary.", out_view);
-    if (status != UMI_STATUS_OK) return status;
-    status = umi_studio_build_service_snapshot(
-        umi_studio_services_build(services), &build);
-    if (status == UMI_STATUS_OK) {
-        status = property_string(*out_view, "last-phase",
-                                 umi_build_phase_text(build.last_phase));
-    }
-    if (status == UMI_STATUS_OK) {
-        status = property_string(*out_view, "last-state",
-                                 umi_build_state_text(build.last_state));
-    }
-    if (status == UMI_STATUS_OK) {
-        status = property_integer(*out_view, "exit-code", build.last_exit_code);
-    }
-    if (status == UMI_STATUS_OK) {
-        status = property_integer(*out_view, "history",
-                                  (int64_t)build.history_count);
-    }
-    if (status == UMI_STATUS_OK &&
-        umi_studio_language_service_snapshot(
-            umi_studio_services_language(services), &language) == UMI_STATUS_OK) {
-        status = property_string(*out_view, "language-state",
-                                 language.session_state);
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "language-queued",
-                                      (int64_t)language.queued_messages);
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "language-sent",
-                                      (int64_t)language.sent_messages);
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "language-received",
-                                      (int64_t)language.received_messages);
-        }
-    }
-    if (status == UMI_STATUS_OK &&
-        umi_studio_debugger_service_snapshot(
-            umi_studio_services_debugger(services), &debug) == UMI_STATUS_OK) {
-        status = property_string(*out_view, "debug-state",
-                                 debug.controller_state);
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "debug-queued",
-                                      (int64_t)debug.queued_messages);
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "debug-sent",
-                                      (int64_t)debug.sent_messages);
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "debug-received",
-                                      (int64_t)debug.received_messages);
-        }
-    }
-    return status;
+    return umi_diagnostic_output_view_create(
+        view_id, umi_studio_services_diagnostic_pipeline(services), NULL,
+        out_view);
 }
 
 static UmiStatus create_problems(const char *view_id,
@@ -494,51 +436,8 @@ static UmiStatus create_problems(const char *view_id,
                                  UmiUiViewModel **out_view)
 {
     UmiStudioServices *services = (UmiStudioServices *)user_data;
-    UmiStudioBuildSnapshot build = {0};
-    UmiStudioLanguageSnapshot language = {0};
-    UmiStatus status = create_base_view(
-        view_id, VIEW_PROBLEMS, "Problems",
-        "Compiler and test diagnostics parsed by Framework build services.",
-        out_view);
-    if (status != UMI_STATUS_OK) return status;
-    status = umi_studio_build_service_snapshot(
-        umi_studio_services_build(services), &build);
-    if (status == UMI_STATUS_OK) {
-        status = property_integer(*out_view, "diagnostics",
-                                  (int64_t)build.diagnostic_count);
-    }
-    if (status == UMI_STATUS_OK) {
-        status = property_string(*out_view, "status",
-                                 umi_status_text(build.last_status));
-    }
-    if (status == UMI_STATUS_OK &&
-        umi_studio_language_service_snapshot(
-            umi_studio_services_language(services), &language) == UMI_STATUS_OK) {
-        status = property_integer(*out_view, "language-diagnostics",
-                                  (int64_t)language.diagnostics);
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(
-                *out_view, "total-diagnostics",
-                (int64_t)(build.diagnostic_count + language.diagnostics));
-        }
-        if (status == UMI_STATUS_OK) {
-            status = property_integer(*out_view, "compilation-commands",
-                                      (int64_t)language.compilation_commands);
-        }
-    }
-    if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 0U,
-                            "studio.action.language.initialize",
-                            "Start Language Intelligence",
-                            "Initialise the active language server");
-    }
-    if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 1U,
-                            "studio.action.language.workspace-symbols",
-                            "Workspace Symbols…",
-                            "Search symbols through the active language server");
-    }
-    return status;
+    return umi_diagnostic_problems_view_create(
+        view_id, umi_studio_services_diagnostic_pipeline(services), out_view);
 }
 
 static UmiStatus create_terminal(const char *view_id,

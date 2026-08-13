@@ -42,6 +42,8 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_TESTS_DISCOVER "studio.tests.discover"
 #define UMI_STUDIO_COMMAND_TERMINAL_EXECUTE "studio.terminal.execute"
 #define UMI_STUDIO_COMMAND_TERMINAL_CLEAR "studio.terminal.clear"
+#define UMI_STUDIO_COMMAND_DIAGNOSTICS_CLEAR "studio.diagnostics.clear"
+#define UMI_STUDIO_COMMAND_OUTPUT_CLEAR "studio.output.clear"
 #define UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE "studio.language.initialize"
 #define UMI_STUDIO_COMMAND_LANGUAGE_WORKSPACE_SYMBOLS "studio.language.workspace-symbols"
 #define UMI_STUDIO_COMMAND_DEBUG_INITIALIZE "studio.debug.initialize"
@@ -56,7 +58,7 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_VCS_REFRESH "studio.vcs.refresh"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 36U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 38U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);
