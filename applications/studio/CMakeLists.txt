@@ -28,6 +28,7 @@ add_library(umicom_studio_core STATIC
     src/app/diagnostics.c
     src/app/settings.c
     src/app/platform.c
+    src/app/toolchain_centre.c
     src/app/session.c
     src/app/documents.c
     src/app/tasks.c
@@ -193,6 +194,16 @@ add_executable(umicom-studio-platform
 target_link_libraries(umicom-studio-platform PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-platform)
 umicom_apply_sanitizers(umicom-studio-platform)
+
+# Native multi-profile Toolchain & Environment Centre inspection command.
+# The reusable discovery/catalogue/environment mechanisms remain Framework
+# owned; this target is Studio's composition and operator-facing boundary.
+add_executable(umicom-studio-toolchain
+    src/tools/toolchain_main.c
+)
+target_link_libraries(umicom-studio-toolchain PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-toolchain)
+umicom_apply_sanitizers(umicom-studio-toolchain)
 
 # Native Framework and Studio operational-state command.
 add_executable(umicom-studio-state
@@ -710,6 +721,25 @@ if(BUILD_TESTING)
     umicom_apply_sanitizers(umicom-studio-developer-project-import-test)
     add_test(NAME studio.platform.developer_project_import
         COMMAND umicom-studio-developer-project-import-test)
+
+    # Batch 35 Studio composition coverage: selection/environment snapshots,
+    # deterministic per-project binding and compile_commands.json import.
+    foreach(UMICOM_STUDIO_TOOLCHAIN_TEST
+            centre
+            project_binding
+            compilation_database)
+        add_executable(umicom-studio-toolchain-${UMICOM_STUDIO_TOOLCHAIN_TEST}-test
+            tests/test_toolchain_${UMICOM_STUDIO_TOOLCHAIN_TEST}.c)
+        target_link_libraries(
+            umicom-studio-toolchain-${UMICOM_STUDIO_TOOLCHAIN_TEST}-test
+            PRIVATE Umicom::StudioCore)
+        umicom_apply_warnings(
+            umicom-studio-toolchain-${UMICOM_STUDIO_TOOLCHAIN_TEST}-test)
+        umicom_apply_sanitizers(
+            umicom-studio-toolchain-${UMICOM_STUDIO_TOOLCHAIN_TEST}-test)
+        add_test(NAME studio.toolchain.${UMICOM_STUDIO_TOOLCHAIN_TEST}
+            COMMAND umicom-studio-toolchain-${UMICOM_STUDIO_TOOLCHAIN_TEST}-test)
+    endforeach()
 
     add_executable(umicom-studio-version-test
         tests/test_version.c
@@ -1237,6 +1267,7 @@ install(TARGETS
     umicom-studio-diagnostics
     umicom-studio-settings
     umicom-studio-platform
+    umicom-studio-toolchain
     umicom-studio-state
     umicom-studio-workspace
     umicom-studio-process
