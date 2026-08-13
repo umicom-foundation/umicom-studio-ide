@@ -432,6 +432,45 @@ static UmiStatus build_install_handler(void *user_data,
                                message_capacity);
 }
 
+static UmiStatus build_retry_handler(void *user_data,
+                                     const char *argument,
+                                     char *out_message,
+                                     size_t message_capacity)
+{
+    UmiStatus status;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_studio_build_service_retry(
+        umi_studio_services_build((UmiStudioServices *)user_data), argument);
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message, message_capacity,
+                           "Operation '%s' scheduled for retry", argument);
+        } else {
+            (void)snprintf(out_message, message_capacity,
+                           "Retry '%s': %s", argument,
+                           umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus build_cancel_handler(void *user_data,
+                                      const char *argument,
+                                      char *out_message,
+                                      size_t message_capacity)
+{
+    (void)argument;
+    umi_studio_build_service_cancel(
+        umi_studio_services_build((UmiStudioServices *)user_data));
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Build cancellation requested");
+    }
+    return UMI_STATUS_OK;
+}
+
 static UmiStatus tests_discover_handler(void *user_data,
                                         const char *argument,
                                         char *out_message,
@@ -464,29 +503,17 @@ static UmiStatus terminal_execute_handler(void *user_data,
                                           size_t message_capacity)
 {
     UmiStudioServices *services = (UmiStudioServices *)user_data;
-    char output_line[512];
     int exit_code = 0;
     UmiStatus status;
     if (argument == NULL || argument[0] == '\0') {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
-    status = umi_studio_terminal_service_execute(
-        umi_studio_services_terminal(services),
+    status = umi_terminal_controller_execute(
+        umi_studio_services_terminal_controller(services),
         argument,
         30000U,
         NULL,
         &exit_code);
-    (void)snprintf(output_line, sizeof(output_line),
-                   "Command '%s' exited with %d: %s",
-                   argument, exit_code, umi_status_text(status));
-    {
-        UmiStatus output_status = umi_diagnostic_pipeline_ingest_line(
-            umi_studio_services_diagnostic_pipeline(services),
-            "terminal", "Terminal", "Umicom Terminal",
-            status == UMI_STATUS_OK ? UMI_OUTPUT_STREAM_STANDARD : UMI_OUTPUT_STREAM_ERROR,
-            output_line, 0U);
-        if (status == UMI_STATUS_OK && output_status != UMI_STATUS_OK) status = output_status;
-    }
     if (out_message != NULL && message_capacity > 0U) {
         (void)snprintf(out_message,
                        message_capacity,
@@ -532,19 +559,300 @@ static UmiStatus terminal_clear_handler(void *user_data,
                                         char *out_message,
                                         size_t message_capacity)
 {
-    UmiStudioTerminalService *service = umi_studio_services_terminal(
+    UmiTerminalController *controller = umi_studio_services_terminal_controller(
         (UmiStudioServices *)user_data);
-    UmiTerminalSession *session;
-    UmiTerminalTranscript *transcript;
+    UmiStatus status;
     (void)argument;
-    if (service == NULL) return UMI_STATUS_INVALID_STATE;
-    session = umi_studio_terminal_service_primary(service);
-    transcript = umi_terminal_session_transcript(session);
-    if (transcript == NULL) return UMI_STATUS_INVALID_STATE;
-    umi_terminal_transcript_clear(transcript);
+    if (controller == NULL) return UMI_STATUS_INVALID_STATE;
+    status = umi_terminal_controller_clear_active(controller);
     if (out_message != NULL && message_capacity > 0U) {
         (void)snprintf(out_message, message_capacity,
-                       "Terminal transcript cleared");
+                       "%s", status == UMI_STATUS_OK
+                           ? "Terminal transcript cleared"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus terminal_new_handler(void *user_data,
+                                      const char *argument,
+                                      char *out_message,
+                                      size_t message_capacity)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiTerminalController *controller =
+        umi_studio_services_terminal_controller(services);
+    UmiTerminalControllerSnapshot controller_snapshot = {0};
+    UmiTerminalSessionSnapshot active_snapshot = {0};
+    UmiTerminalSession *active;
+    char session_id[UMI_TERMINAL_ID_CAPACITY];
+    char title[UMI_TERMINAL_TITLE_CAPACITY];
+    UmiStatus status;
+    if (controller == NULL) return UMI_STATUS_INVALID_STATE;
+    active = umi_terminal_controller_active_session(controller);
+    if (active == NULL) return UMI_STATUS_NOT_FOUND;
+    status = umi_terminal_controller_snapshot(controller, &controller_snapshot);
+    if (status == UMI_STATUS_OK) {
+        status = umi_terminal_session_snapshot(active, &active_snapshot);
+    }
+    (void)snprintf(session_id, sizeof(session_id), "studio.terminal.%llu",
+                   (unsigned long long)(controller_snapshot.revision + 1U));
+    (void)snprintf(title, sizeof(title), "Terminal %zu",
+                   controller_snapshot.tabs + 1U);
+    if (status == UMI_STATUS_OK) {
+        status = umi_terminal_controller_open(
+            controller,
+            argument != NULL ? argument : "",
+            session_id,
+            title,
+            active_snapshot.working_directory);
+    }
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message, message_capacity,
+                           "Opened %s", title);
+        } else {
+            (void)snprintf(out_message, message_capacity,
+                           "%s", umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus terminal_close_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_terminal_controller_close_active(
+        umi_studio_services_terminal_controller(
+            (UmiStudioServices *)user_data));
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity, "%s",
+                       status == UMI_STATUS_OK
+                           ? "Active terminal closed"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus terminal_activate_relative_handler(
+    void *user_data,
+    const char *argument,
+    char *out_message,
+    size_t message_capacity,
+    int direction)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_terminal_controller_activate_relative(
+        umi_studio_services_terminal_controller(
+            (UmiStudioServices *)user_data), direction);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity, "%s",
+                       status == UMI_STATUS_OK
+                           ? "Active terminal changed"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus terminal_next_handler(void *user_data,
+                                       const char *argument,
+                                       char *out_message,
+                                       size_t message_capacity)
+{
+    return terminal_activate_relative_handler(user_data, argument, out_message,
+                                               message_capacity, 1);
+}
+
+static UmiStatus terminal_previous_handler(void *user_data,
+                                           const char *argument,
+                                           char *out_message,
+                                           size_t message_capacity)
+{
+    return terminal_activate_relative_handler(user_data, argument, out_message,
+                                               message_capacity, -1);
+}
+
+static UmiStatus terminal_split_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity,
+                                        UmiTerminalOrientation orientation)
+{
+    UmiTerminalController *controller = umi_studio_services_terminal_controller(
+        (UmiStudioServices *)user_data);
+    UmiTerminalControllerSnapshot snapshot = {0};
+    char session_id[UMI_TERMINAL_ID_CAPACITY];
+    char title[UMI_TERMINAL_TITLE_CAPACITY];
+    UmiStatus status;
+    (void)argument;
+    if (controller == NULL) return UMI_STATUS_INVALID_STATE;
+    status = umi_terminal_controller_snapshot(controller, &snapshot);
+    (void)snprintf(session_id, sizeof(session_id), "studio.split.%llu",
+                   (unsigned long long)(snapshot.revision + 1U));
+    (void)snprintf(title, sizeof(title), "Split %zu", snapshot.tabs + 1U);
+    if (status == UMI_STATUS_OK) {
+        status = umi_terminal_controller_split_active(
+            controller, session_id, title, orientation);
+    }
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message, message_capacity,
+                           "Created %s", title);
+        } else {
+            (void)snprintf(out_message, message_capacity,
+                           "%s", umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus terminal_split_horizontal_handler(
+    void *user_data, const char *argument, char *out_message,
+    size_t message_capacity)
+{
+    return terminal_split_handler(user_data, argument, out_message,
+                                  message_capacity,
+                                  UMI_TERMINAL_ORIENTATION_HORIZONTAL);
+}
+
+static UmiStatus terminal_split_vertical_handler(
+    void *user_data, const char *argument, char *out_message,
+    size_t message_capacity)
+{
+    return terminal_split_handler(user_data, argument, out_message,
+                                  message_capacity,
+                                  UMI_TERMINAL_ORIENTATION_VERTICAL);
+}
+
+static UmiStatus terminal_history_clear_handler(
+    void *user_data, const char *argument, char *out_message,
+    size_t message_capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_terminal_controller_clear_history(
+        umi_studio_services_terminal_controller(
+            (UmiStudioServices *)user_data));
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity, "%s",
+                       status == UMI_STATUS_OK
+                           ? "Terminal history cleared"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus terminal_search_handler(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t message_capacity)
+{
+    UmiTerminalSearchQuery query;
+    UmiTerminalSearchResult result;
+    UmiStatus status;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    umi_terminal_search_query_init(&query);
+    (void)snprintf(query.text, sizeof(query.text), "%s", argument);
+    status = umi_terminal_controller_search_active(
+        umi_studio_services_terminal_controller(
+            (UmiStudioServices *)user_data), &query, &result);
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK && result.count > 0U) {
+            (void)snprintf(out_message, message_capacity,
+                           "%zu match(es); first at row %zu, byte %zu: %s",
+                           result.total_matches,
+                           result.matches[0].line_index + 1U,
+                           result.matches[0].byte_offset,
+                           result.matches[0].preview);
+        } else {
+            (void)snprintf(out_message, message_capacity, "%s",
+                           status == UMI_STATUS_OK
+                               ? "No matches"
+                               : umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus process_report_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    UmiProcessSupervisorStats stats;
+    (void)argument;
+    stats = umi_process_supervisor_stats(
+        umi_studio_services_process_supervisor(
+            (UmiStudioServices *)user_data));
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Processes: %zu total, %zu running, %llu succeeded, "
+                       "%llu failed, %llu cancelled",
+                       stats.jobs, stats.running,
+                       (unsigned long long)stats.succeeded,
+                       (unsigned long long)stats.failed,
+                       (unsigned long long)stats.cancelled);
+    }
+    return UMI_STATUS_OK;
+}
+
+static UmiStatus process_cancel_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    unsigned long long parsed;
+    char *end = NULL;
+    UmiStatus status;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    errno = 0;
+    parsed = strtoull(argument, &end, 10);
+    if (errno != 0 || end == argument || *end != '\0' || parsed == 0U) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_process_supervisor_cancel(
+        umi_studio_services_process_supervisor(
+            (UmiStudioServices *)user_data), (UmiProcessJobId)parsed);
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message, message_capacity,
+                           "Cancellation requested for process %llu",
+                           parsed);
+        } else {
+            (void)snprintf(out_message, message_capacity,
+                           "Process %llu: %s", parsed,
+                           umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus tasks_report_handler(void *user_data,
+                                      const char *argument,
+                                      char *out_message,
+                                      size_t message_capacity)
+{
+    UmiTaskQueueStats stats;
+    (void)argument;
+    stats = umi_task_queue_stats(umi_studio_services_task_queue(
+        (UmiStudioServices *)user_data));
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Tasks: %zu queued, %zu running, %llu completed, "
+                       "%llu failed, %llu cancelled",
+                       stats.queued, stats.running,
+                       (unsigned long long)stats.completed,
+                       (unsigned long long)stats.failed,
+                       (unsigned long long)stats.cancelled);
     }
     return UMI_STATUS_OK;
 }
@@ -854,6 +1162,17 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
 
     status = register_command(registry,
                               services,
+                              UMI_STUDIO_COMMAND_TASKS_REPORT,
+                              "Report Tasks",
+                              "Tasks",
+                              "Report shared task queue progress and totals.",
+                              "studio.tasks.read",
+                              UMI_COMMAND_NONE,
+                              tasks_report_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
                               UMI_STUDIO_COMMAND_RECOVERY_PURGE,
                               "Purge recovery data",
                               "Recovery",
@@ -1024,6 +1343,26 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               build_install_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_RETRY,
+                              "Retry Operation", "Build",
+                              "Retry a failed dependency-graph node.",
+                              "studio.build.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              build_retry_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_CANCEL,
+                              "Cancel Build", "Build",
+                              "Request cancellation of the active build operation.",
+                              "studio.build.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              build_cancel_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_TESTS_DISCOVER,
                               "Discover Tests", "Testing",
                               "Discover CTest tests from a build directory.",
@@ -1047,6 +1386,90 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "process.read",
                               UMI_COMMAND_MUTATES_STATE,
                               terminal_clear_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_NEW,
+                              "New Terminal", "Terminal",
+                              "Open and activate a terminal using a named profile.",
+                              "process.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              terminal_new_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_CLOSE,
+                              "Close Terminal", "Terminal",
+                              "Close the active terminal while retaining one session.",
+                              "process.execute",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              terminal_close_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_NEXT,
+                              "Next Terminal", "Terminal",
+                              "Activate the next terminal tab.",
+                              "process.read", UMI_COMMAND_NONE,
+                              terminal_next_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_PREVIOUS,
+                              "Previous Terminal", "Terminal",
+                              "Activate the previous terminal tab.",
+                              "process.read", UMI_COMMAND_NONE,
+                              terminal_previous_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_SPLIT_HORIZONTAL,
+                              "Split Terminal Horizontally", "Terminal",
+                              "Create a horizontal split from the active terminal.",
+                              "process.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              terminal_split_horizontal_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_SPLIT_VERTICAL,
+                              "Split Terminal Vertically", "Terminal",
+                              "Create a vertical split from the active terminal.",
+                              "process.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              terminal_split_vertical_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_HISTORY_CLEAR,
+                              "Clear Terminal History", "Terminal",
+                              "Clear retained command history without closing sessions.",
+                              "process.execute",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              terminal_history_clear_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_SEARCH,
+                              "Search Terminal", "Terminal",
+                              "Search the active retained terminal transcript.",
+                              "process.read", UMI_COMMAND_NONE,
+                              terminal_search_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_PROCESS_REPORT,
+                              "Report Processes", "Processes",
+                              "Report supervised process state and totals.",
+                              "process.read", UMI_COMMAND_NONE,
+                              process_report_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_PROCESS_CANCEL,
+                              "Cancel Process", "Processes",
+                              "Request cancellation of a supervised process ID.",
+                              "process.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              process_cancel_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_DIAGNOSTICS_CLEAR,

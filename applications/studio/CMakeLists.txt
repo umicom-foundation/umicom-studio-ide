@@ -1045,6 +1045,7 @@ if(BUILD_TESTING)
             test_explorer_hierarchy
             test_execution_bridge
             terminal_service
+            terminal_workbench
             language_service
             debugger_service
             source_control_service

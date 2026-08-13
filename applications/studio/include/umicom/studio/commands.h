@@ -22,6 +22,7 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_SESSION_SAVE "studio.session.save"
 #define UMI_STUDIO_COMMAND_DOCUMENTS_SAVE_ALL "studio.documents.save-all"
 #define UMI_STUDIO_COMMAND_TASKS_WAIT_IDLE "studio.tasks.wait-idle"
+#define UMI_STUDIO_COMMAND_TASKS_REPORT "studio.tasks.report"
 #define UMI_STUDIO_COMMAND_RECOVERY_PURGE "studio.recovery.purge"
 #define UMI_STUDIO_COMMAND_WORKSPACE_REFRESH "studio.workspace.refresh"
 #define UMI_STUDIO_COMMAND_WORKSPACE_CLOSE "studio.workspace.close"
@@ -39,9 +40,21 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_BUILD_CLEAN "studio.build.clean"
 #define UMI_STUDIO_COMMAND_BUILD_RUN "studio.build.run"
 #define UMI_STUDIO_COMMAND_BUILD_INSTALL "studio.build.install"
+#define UMI_STUDIO_COMMAND_BUILD_RETRY "studio.build.retry"
+#define UMI_STUDIO_COMMAND_BUILD_CANCEL "studio.build.cancel"
 #define UMI_STUDIO_COMMAND_TESTS_DISCOVER "studio.tests.discover"
 #define UMI_STUDIO_COMMAND_TERMINAL_EXECUTE "studio.terminal.execute"
 #define UMI_STUDIO_COMMAND_TERMINAL_CLEAR "studio.terminal.clear"
+#define UMI_STUDIO_COMMAND_TERMINAL_NEW "studio.terminal.new"
+#define UMI_STUDIO_COMMAND_TERMINAL_CLOSE "studio.terminal.close"
+#define UMI_STUDIO_COMMAND_TERMINAL_NEXT "studio.terminal.next"
+#define UMI_STUDIO_COMMAND_TERMINAL_PREVIOUS "studio.terminal.previous"
+#define UMI_STUDIO_COMMAND_TERMINAL_SPLIT_HORIZONTAL "studio.terminal.split-horizontal"
+#define UMI_STUDIO_COMMAND_TERMINAL_SPLIT_VERTICAL "studio.terminal.split-vertical"
+#define UMI_STUDIO_COMMAND_TERMINAL_HISTORY_CLEAR "studio.terminal.history-clear"
+#define UMI_STUDIO_COMMAND_TERMINAL_SEARCH "studio.terminal.search"
+#define UMI_STUDIO_COMMAND_PROCESS_REPORT "studio.process.report"
+#define UMI_STUDIO_COMMAND_PROCESS_CANCEL "studio.process.cancel"
 #define UMI_STUDIO_COMMAND_DIAGNOSTICS_CLEAR "studio.diagnostics.clear"
 #define UMI_STUDIO_COMMAND_OUTPUT_CLEAR "studio.output.clear"
 #define UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE "studio.language.initialize"
@@ -58,7 +71,7 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_VCS_REFRESH "studio.vcs.refresh"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 38U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 51U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

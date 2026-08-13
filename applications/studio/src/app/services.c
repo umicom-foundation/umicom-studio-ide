@@ -57,6 +57,7 @@ struct UmiStudioServices {
     UmiStudioOperations *operations;
     UmiStudioAiPlatform *ai_platform;
     UmiStudioDeveloperPlatform *developer_platform;
+    UmiTerminalController *terminal_controller;
     UmiStudioDeclarative *declarative;
     UmiStudioDesigner *designer;
     UmiStudioWebPlatform *web_platform;
@@ -110,6 +111,8 @@ static void destroy_partial(UmiStudioServices *services)
     services->declarative = NULL;
     umi_studio_ai_platform_destroy(services->ai_platform);
     services->ai_platform = NULL;
+    umi_terminal_controller_destroy(services->terminal_controller);
+    services->terminal_controller = NULL;
     umi_studio_developer_platform_destroy(services->developer_platform);
     services->developer_platform = NULL;
     umi_studio_operations_destroy(services->operations);
@@ -410,6 +413,31 @@ UmiStatus umi_studio_services_create(
         &services->clock,
         &services->developer_platform
     );
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_build_service_prepare_default_graph(
+            umi_studio_developer_platform_build(
+                services->developer_platform),
+            1);
+    }
+    if (status == UMI_STATUS_OK) {
+        UmiTerminalControllerConfig terminal_config =
+            umi_terminal_controller_config_default();
+        terminal_config.manager = umi_studio_terminal_service_manager(
+            umi_studio_developer_platform_terminal(
+                services->developer_platform));
+        terminal_config.process_supervisor = services->process_supervisor;
+        terminal_config.task_queue = services->task_queue;
+        terminal_config.diagnostic_pipeline = services->diagnostic_pipeline;
+        terminal_config.operation_graph = umi_studio_build_service_graph(
+            umi_studio_developer_platform_build(
+                services->developer_platform));
+        terminal_config.clock = &services->clock;
+        terminal_config.initial_session_id = "studio.primary";
+        terminal_config.initial_title = "Umicom Studio";
+        terminal_config.working_directory = current_directory;
+        status = umi_terminal_controller_create(
+            &terminal_config, &services->terminal_controller);
+    }
     if (status != UMI_STATUS_OK) {
         destroy_partial(services);
         return status;
@@ -585,6 +613,9 @@ UmiStatus umi_studio_services_publish(
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.terminal",
             umi_studio_developer_platform_terminal(services->developer_platform),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.terminal-controller",
+            services->terminal_controller,
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.language",
             umi_studio_developer_platform_language(services->developer_platform),
@@ -831,6 +862,12 @@ UmiStudioTerminalService *umi_studio_services_terminal(
     return services != NULL && services->developer_platform != NULL
         ? umi_studio_developer_platform_terminal(services->developer_platform)
         : NULL;
+}
+
+UmiTerminalController *umi_studio_services_terminal_controller(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->terminal_controller : NULL;
 }
 
 UmiStudioLanguageService *umi_studio_services_language(

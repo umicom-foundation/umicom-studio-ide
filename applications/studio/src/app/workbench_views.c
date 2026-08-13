@@ -46,6 +46,9 @@
 #define VIEW_OUTPUT        "studio.output"
 #define VIEW_PROBLEMS      "studio.problems"
 #define VIEW_TERMINAL      "studio.terminal"
+#define VIEW_PROCESSES     "studio.processes"
+#define VIEW_TASKS         "studio.tasks"
+#define VIEW_HISTORY       "studio.terminal-history"
 
 static UmiStatus add_action(UmiUiViewModel *view,
                             size_t index,
@@ -445,53 +448,35 @@ static UmiStatus create_terminal(const char *view_id,
                                  UmiUiViewModel **out_view)
 {
     UmiStudioServices *services = (UmiStudioServices *)user_data;
-    UmiStudioTerminalService *service = umi_studio_services_terminal(services);
-    UmiStudioTerminalSnapshot snapshot = {0};
-    UmiTerminalSession *session;
-    UmiTerminalTranscript *transcript;
-    size_t line_count;
-    size_t first;
-    size_t index;
-    UmiStatus status = create_base_view(
-        view_id, VIEW_TERMINAL, "Integrated Terminal",
-        "Execute trusted commands through the reusable Framework terminal session.",
-        out_view);
-    if (status != UMI_STATUS_OK) return status;
-    if (service == NULL ||
-        umi_studio_terminal_service_snapshot(service, &snapshot) != UMI_STATUS_OK) {
-        return property_boolean(*out_view, "available", 0);
-    }
-    status = property_boolean(*out_view, "available", 1);
-    if (status == UMI_STATUS_OK) {
-        status = property_string(*out_view, "working-directory",
-                                 snapshot.primary.working_directory);
-    }
-    if (status == UMI_STATUS_OK) {
-        status = property_integer(*out_view, "commands-executed",
-                                  (int64_t)snapshot.primary.commands_executed);
-    }
-    session = umi_studio_terminal_service_primary(service);
-    transcript = umi_terminal_session_transcript(session);
-    line_count = umi_terminal_transcript_count(transcript);
-    first = line_count > 8U ? line_count - 8U : 0U;
-    for (index = first; status == UMI_STATUS_OK && index < line_count; ++index) {
-        UmiTerminalTranscriptLine line;
-        char key[64];
-        if (umi_terminal_transcript_at(transcript, index, &line) != UMI_STATUS_OK) {
-            continue;
-        }
-        (void)snprintf(key, sizeof(key), "transcript-%03zu", index + 1U);
-        status = property_string(*out_view, key, line.text);
-    }
-    if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 0U, "studio.action.terminal.execute",
-                            "Execute…", "Enter and execute a trusted command");
-    }
-    if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 1U, "studio.action.terminal.clear",
-                            "Clear", "Clear the retained terminal transcript");
-    }
-    return status;
+    return umi_terminal_ui_terminal_view_create(
+        view_id, umi_studio_services_terminal_controller(services), out_view);
+}
+
+static UmiStatus create_processes(const char *view_id,
+                                  void *user_data,
+                                  UmiUiViewModel **out_view)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    return umi_terminal_ui_process_view_create(
+        view_id, umi_studio_services_terminal_controller(services), out_view);
+}
+
+static UmiStatus create_tasks(const char *view_id,
+                              void *user_data,
+                              UmiUiViewModel **out_view)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    return umi_terminal_ui_task_view_create(
+        view_id, umi_studio_services_terminal_controller(services), out_view);
+}
+
+static UmiStatus create_terminal_history(const char *view_id,
+                                         void *user_data,
+                                         UmiUiViewModel **out_view)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    return umi_terminal_ui_history_view_create(
+        view_id, umi_studio_services_terminal_controller(services), out_view);
 }
 
 static UmiStatus create_designer(const char *view_id,
@@ -642,7 +627,10 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_AI, create_ai },
     { VIEW_OUTPUT, create_output },
     { VIEW_PROBLEMS, create_problems },
-    { VIEW_TERMINAL, create_terminal }
+    { VIEW_TERMINAL, create_terminal },
+    { VIEW_PROCESSES, create_processes },
+    { VIEW_TASKS, create_tasks },
+    { VIEW_HISTORY, create_terminal_history }
 };
 
 UmiStatus umi_studio_workbench_views_register(

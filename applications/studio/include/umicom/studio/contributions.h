@@ -32,6 +32,9 @@ extern "C" {
 #define UMI_STUDIO_PANE_PROBLEMS "studio.pane.problems"
 #define UMI_STUDIO_PANE_SEARCH "studio.pane.search"
 #define UMI_STUDIO_PANE_TERMINAL "studio.pane.terminal"
+#define UMI_STUDIO_PANE_PROCESSES "studio.pane.processes"
+#define UMI_STUDIO_PANE_TASKS "studio.pane.tasks"
+#define UMI_STUDIO_PANE_TERMINAL_HISTORY "studio.pane.terminal-history"
 #define UMI_STUDIO_PANE_CHAT "studio.pane.chat"
 #define UMI_STUDIO_PANE_ARCHITECTURE "studio.pane.architecture"
 

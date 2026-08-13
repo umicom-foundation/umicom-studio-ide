@@ -111,6 +111,9 @@ UmiStudioTestService *umi_studio_services_tests(UmiStudioServices *services);
 UmiStudioTerminalService *umi_studio_services_terminal(
     UmiStudioServices *services
 );
+UmiTerminalController *umi_studio_services_terminal_controller(
+    UmiStudioServices *services
+);
 UmiStudioLanguageService *umi_studio_services_language(
     UmiStudioServices *services
 );

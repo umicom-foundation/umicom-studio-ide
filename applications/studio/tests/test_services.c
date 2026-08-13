@@ -63,6 +63,7 @@ int main(void)
     assert(umi_studio_services_build(services) != NULL);
     assert(umi_studio_services_tests(services) != NULL);
     assert(umi_studio_services_terminal(services) != NULL);
+    assert(umi_studio_services_terminal_controller(services) != NULL);
     assert(umi_studio_services_language(services) != NULL);
     assert(umi_studio_services_debugger(services) != NULL);
     assert(umi_studio_services_source_control(services) != NULL);
