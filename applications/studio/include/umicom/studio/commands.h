@@ -32,6 +32,8 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_MESSAGES_REPLAY "studio.messages.replay"
 #define UMI_STUDIO_COMMAND_SECURITY_REPORT "studio.security.report"
 #define UMI_STUDIO_COMMAND_PLUGINS_REPORT "studio.plugins.report"
+#define UMI_STUDIO_COMMAND_MARKETPLACE_CHECK_UPDATES "studio.marketplace.check-updates"
+#define UMI_STUDIO_COMMAND_MARKETPLACE_PLAN_UPDATE "studio.marketplace.plan-update"
 #define UMI_STUDIO_COMMAND_OBSERVABILITY_REPORT "studio.observability.report"
 #define UMI_STUDIO_COMMAND_RESILIENCE_REPORT "studio.resilience.report"
 #define UMI_STUDIO_COMMAND_BUILD_CONFIGURE "studio.build.configure"
@@ -84,7 +86,7 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_VCS_DIFF "studio.vcs.diff"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 64U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 66U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

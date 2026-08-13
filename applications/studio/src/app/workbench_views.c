@@ -30,6 +30,7 @@
 #include "umicom/studio/debugger.h"
 #include "umicom/studio/designer.h"
 #include "umicom/studio/extension_centre.h"
+#include "umicom/studio/product_centre.h"
 #include "umicom/studio/language.h"
 #include "umicom/studio/source_control.h"
 #include "umicom/studio/tests.h"
@@ -58,6 +59,11 @@
 #define VIEW_EXT_CATALOGUE "studio.extensions-catalogue"
 #define VIEW_EXT_PERMISSIONS "studio.extensions-permissions"
 #define VIEW_EXT_AUDIT     "studio.extensions-audit"
+#define VIEW_PRODUCT_MARKETPLACE "studio.product-marketplace"
+#define VIEW_PRODUCTS_INSTALLED "studio.products-installed"
+#define VIEW_PRODUCT_UPDATES "studio.product-updates"
+#define VIEW_PRODUCT_TRANSACTIONS "studio.product-transactions"
+#define VIEW_PRODUCT_EVIDENCE "studio.product-evidence"
 
 static UmiStatus add_action(UmiUiViewModel *view,
                             size_t index,
@@ -239,6 +245,62 @@ static UmiStatus create_extension_permissions(const char *view_id, void *user_da
 { return umi_studio_extension_centre_permissions_view((UmiStudioServices *)user_data, view_id, out_view); }
 static UmiStatus create_extension_audit(const char *view_id, void *user_data, UmiUiViewModel **out_view)
 { return umi_studio_extension_centre_audit_view((UmiStudioServices *)user_data, view_id, out_view); }
+
+/*
+ * Product views deliberately delegate to Framework's toolkit-neutral
+ * distribution UI.  Studio contributes stable view IDs and service lifetime;
+ * it does not duplicate catalogue, policy or transaction presentation logic.
+ */
+static UmiStudioProductCentre *product_centre(void *user_data)
+{
+    return umi_studio_services_product_centre(
+        (UmiStudioServices *)user_data);
+}
+
+static UmiStatus create_product_marketplace(
+    const char *view_id,
+    void *user_data,
+    UmiUiViewModel **out_view)
+{
+    return umi_studio_product_centre_marketplace_view(
+        product_centre(user_data), view_id, out_view);
+}
+
+static UmiStatus create_products_installed(
+    const char *view_id,
+    void *user_data,
+    UmiUiViewModel **out_view)
+{
+    return umi_studio_product_centre_installed_view(
+        product_centre(user_data), view_id, out_view);
+}
+
+static UmiStatus create_product_updates(
+    const char *view_id,
+    void *user_data,
+    UmiUiViewModel **out_view)
+{
+    return umi_studio_product_centre_updates_view(
+        product_centre(user_data), view_id, out_view);
+}
+
+static UmiStatus create_product_transactions(
+    const char *view_id,
+    void *user_data,
+    UmiUiViewModel **out_view)
+{
+    return umi_studio_product_centre_transactions_view(
+        product_centre(user_data), view_id, out_view);
+}
+
+static UmiStatus create_product_evidence(
+    const char *view_id,
+    void *user_data,
+    UmiUiViewModel **out_view)
+{
+    return umi_studio_product_centre_evidence_view(
+        product_centre(user_data), view_id, out_view);
+}
 
 static UmiStatus create_run_debug(const char *view_id,
                                   void *user_data,
@@ -638,7 +700,12 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_EXTENSIONS, create_extensions },
     { VIEW_EXT_CATALOGUE, create_extension_catalogue },
     { VIEW_EXT_PERMISSIONS, create_extension_permissions },
-    { VIEW_EXT_AUDIT, create_extension_audit }
+    { VIEW_EXT_AUDIT, create_extension_audit },
+    { VIEW_PRODUCT_MARKETPLACE, create_product_marketplace },
+    { VIEW_PRODUCTS_INSTALLED, create_products_installed },
+    { VIEW_PRODUCT_UPDATES, create_product_updates },
+    { VIEW_PRODUCT_TRANSACTIONS, create_product_transactions },
+    { VIEW_PRODUCT_EVIDENCE, create_product_evidence }
 };
 
 UmiStatus umi_studio_workbench_views_register(

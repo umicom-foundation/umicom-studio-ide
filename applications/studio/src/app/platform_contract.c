@@ -32,6 +32,8 @@ static const char *const CORE_COMMAND_IDS[] = {
     UMI_STUDIO_COMMAND_MESSAGES_REPLAY,
     UMI_STUDIO_COMMAND_SECURITY_REPORT,
     UMI_STUDIO_COMMAND_PLUGINS_REPORT,
+    UMI_STUDIO_COMMAND_MARKETPLACE_CHECK_UPDATES,
+    UMI_STUDIO_COMMAND_MARKETPLACE_PLAN_UPDATE,
     UMI_STUDIO_COMMAND_OBSERVABILITY_REPORT,
     UMI_STUDIO_COMMAND_RESILIENCE_REPORT,
     UMI_STUDIO_COMMAND_BUILD_CONFIGURE,
@@ -136,6 +138,8 @@ static const char *const REQUIRED_SERVICE_IDS[] = {
     "umicom.studio.designer",
     "umicom.studio.ai-platform",
     "umicom.studio.delivery-platform",
+    "umicom.studio.product-centre",
+    "umicom.studio.distribution-service",
     "umicom.studio.clock"
 };
 

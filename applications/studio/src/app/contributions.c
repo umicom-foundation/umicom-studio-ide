@@ -58,7 +58,12 @@ static const UmiUiPaneSnapshot STUDIO_PANES[] = {
     { UMI_STUDIO_PANE_EXTENSIONS, "Extensions", "studio.extensions-installed", "application-x-addon-symbolic", UMI_UI_PLACEMENT_LEFT, 160, 0, 1, 1, { 380, 500 } },
     { UMI_STUDIO_PANE_EXTENSION_CATALOGUE, "Extension Catalogue", "studio.extensions-catalogue", "system-search-symbolic", UMI_UI_PLACEMENT_LEFT, 161, 0, 1, 1, { 420, 500 } },
     { UMI_STUDIO_PANE_EXTENSION_PERMISSIONS, "Extension Permissions", "studio.extensions-permissions", "security-high-symbolic", UMI_UI_PLACEMENT_LEFT, 162, 0, 1, 1, { 420, 500 } },
-    { UMI_STUDIO_PANE_EXTENSION_AUDIT, "Extension Audit", "studio.extensions-audit", "document-open-recent-symbolic", UMI_UI_PLACEMENT_BOTTOM, 163, 0, 1, 1, { 760, 280 } }
+    { UMI_STUDIO_PANE_EXTENSION_AUDIT, "Extension Audit", "studio.extensions-audit", "document-open-recent-symbolic", UMI_UI_PLACEMENT_BOTTOM, 163, 0, 1, 1, { 760, 280 } },
+    { UMI_STUDIO_PANE_PRODUCT_MARKETPLACE, "Product Marketplace", "studio.product-marketplace", "system-software-install-symbolic", UMI_UI_PLACEMENT_LEFT, 170, 0, 1, 1, { 440, 500 } },
+    { UMI_STUDIO_PANE_PRODUCTS_INSTALLED, "Installed Products", "studio.products-installed", "package-x-generic-symbolic", UMI_UI_PLACEMENT_LEFT, 171, 0, 1, 1, { 440, 500 } },
+    { UMI_STUDIO_PANE_PRODUCT_UPDATES, "Product Updates", "studio.product-updates", "software-update-available-symbolic", UMI_UI_PLACEMENT_LEFT, 172, 0, 1, 1, { 440, 500 } },
+    { UMI_STUDIO_PANE_PRODUCT_TRANSACTIONS, "Distribution Transactions", "studio.product-transactions", "document-open-recent-symbolic", UMI_UI_PLACEMENT_BOTTOM, 173, 0, 1, 1, { 760, 300 } },
+    { UMI_STUDIO_PANE_PRODUCT_EVIDENCE, "Supply-chain Evidence", "studio.product-evidence", "security-high-symbolic", UMI_UI_PLACEMENT_BOTTOM, 174, 0, 1, 1, { 760, 300 } }
 };
 
 static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
@@ -145,7 +150,14 @@ static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
     { "studio.action.pane.vcs-history", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Repository History", "Show repository history", "document-open-recent-symbolic", "", 1, 1, 1, 1, 540, UMI_STUDIO_PANE_VCS_HISTORY, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.pane.vcs-branches", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Branches", "Show repository branches", "view-list-tree-symbolic", "", 1, 1, 1, 1, 550, UMI_STUDIO_PANE_VCS_BRANCHES, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.pane.vcs-remotes", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Remotes & Operations", "Show remotes and operation journal", "network-server-symbolic", "", 1, 1, 1, 1, 560, UMI_STUDIO_PANE_VCS_REMOTES, UMI_UI_ACTION_ARGUMENT_NONE },
-    { "studio.action.pane.vcs-diff", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Diff Viewer", "Show source-control diff viewer", "document-properties-symbolic", "", 1, 1, 1, 1, 570, UMI_STUDIO_PANE_VCS_DIFF, UMI_UI_ACTION_ARGUMENT_NONE }
+    { "studio.action.pane.vcs-diff", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Diff Viewer", "Show source-control diff viewer", "document-properties-symbolic", "", 1, 1, 1, 1, 570, UMI_STUDIO_PANE_VCS_DIFF, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.marketplace.check-updates", UMI_STUDIO_COMMAND_MARKETPLACE_CHECK_UPDATES, "Check for Product Updates", "Evaluate installed products against verified releases", "view-refresh-symbolic", "", 1, 1, 0, 0, 580, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.marketplace.plan-update", UMI_STUDIO_COMMAND_MARKETPLACE_PLAN_UPDATE, "Plan Product Update…", "Create a recoverable update plan for a release ID", "system-software-install-symbolic", "", 1, 1, 0, 0, 590, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.pane.product-marketplace", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Product Marketplace", "Browse verified application, runtime and template releases", "system-software-install-symbolic", "", 1, 1, 1, 1, 600, UMI_STUDIO_PANE_PRODUCT_MARKETPLACE, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.products-installed", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Installed Products", "Inspect installed versions and rollback readiness", "package-x-generic-symbolic", "", 1, 1, 1, 1, 610, UMI_STUDIO_PANE_PRODUCTS_INSTALLED, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.product-updates", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Product Updates", "Inspect verified update notifications", "software-update-available-symbolic", "", 1, 1, 1, 1, 620, UMI_STUDIO_PANE_PRODUCT_UPDATES, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.product-transactions", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Distribution Transactions", "Inspect install, update and rollback plans", "document-open-recent-symbolic", "", 1, 1, 1, 1, 630, UMI_STUDIO_PANE_PRODUCT_TRANSACTIONS, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.product-evidence", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Supply-chain Evidence", "Inspect checksum, signature, SBOM, licence and provenance evidence", "security-high-symbolic", "", 1, 1, 1, 1, 640, UMI_STUDIO_PANE_PRODUCT_EVIDENCE, UMI_UI_ACTION_ARGUMENT_NONE }
 };
 
 static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
@@ -213,6 +225,13 @@ static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
     { "menu.extensions.catalogue", "extensions", "views", "studio.action.pane.extension-catalogue", "", 0, 20 },
     { "menu.extensions.permissions", "extensions", "views", "studio.action.pane.extension-permissions", "", 0, 30 },
     { "menu.extensions.audit", "extensions", "views", "studio.action.pane.extension-audit", "", 0, 40 },
+    { "menu.products.check-updates", "products", "management", "studio.action.marketplace.check-updates", "", 0, 10 },
+    { "menu.products.plan-update", "products", "management", "studio.action.marketplace.plan-update", "", 0, 20 },
+    { "menu.products.marketplace", "products", "views", "studio.action.pane.product-marketplace", "", 0, 30 },
+    { "menu.products.installed", "products", "views", "studio.action.pane.products-installed", "", 0, 40 },
+    { "menu.products.updates", "products", "views", "studio.action.pane.product-updates", "", 0, 50 },
+    { "menu.products.transactions", "products", "views", "studio.action.pane.product-transactions", "", 0, 60 },
+    { "menu.products.evidence", "products", "views", "studio.action.pane.product-evidence", "", 0, 70 },
     { "menu.help.about", "help", "about", "studio.action.notification.info", "", 0, 10 }
 };
 
@@ -262,7 +281,12 @@ static const UmiUiContributionSnapshot STUDIO_CONTRIBUTIONS[] = {
     { "studio.contribution.extensions", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_EXTENSIONS, 160, 1 },
     { "studio.contribution.extension-catalogue", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_EXTENSION_CATALOGUE, 161, 1 },
     { "studio.contribution.extension-permissions", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_EXTENSION_PERMISSIONS, 162, 1 },
-    { "studio.contribution.extension-audit", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_EXTENSION_AUDIT, 163, 1 }
+    { "studio.contribution.extension-audit", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_EXTENSION_AUDIT, 163, 1 },
+    { "studio.contribution.product-marketplace", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_PRODUCT_MARKETPLACE, 170, 1 },
+    { "studio.contribution.products-installed", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_PRODUCTS_INSTALLED, 171, 1 },
+    { "studio.contribution.product-updates", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_PRODUCT_UPDATES, 172, 1 },
+    { "studio.contribution.product-transactions", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_PRODUCT_TRANSACTIONS, 173, 1 },
+    { "studio.contribution.product-evidence", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_PRODUCT_EVIDENCE, 174, 1 }
 };
 
 UmiStatus umi_studio_contributions_register_layout(UmiUiWorkbench *workbench)

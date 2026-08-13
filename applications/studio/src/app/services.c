@@ -25,6 +25,7 @@
 #include "umicom/studio/delivery_platform.h"
 #include "umicom/studio/designer.h"
 #include "umicom/studio/extension_platform.h"
+#include "umicom/studio/product_centre.h"
 #include "umicom/studio/fabric.h"
 #include "umicom/studio/operations.h"
 #include "umicom/studio/session.h"
@@ -65,6 +66,7 @@ struct UmiStudioServices {
     UmiStudioDeliveryPlatform *delivery_platform;
     UmiStudioCompatibilityPlatform *compatibility_platform;
     UmiStudioExtensionPlatform *extension_platform;
+    UmiStudioProductCentre *product_centre;
     UmiClock clock;
     int published;
 };
@@ -101,6 +103,8 @@ static void destroy_partial(UmiStudioServices *services)
     if (services->task_queue != NULL) {
         (void)umi_task_queue_shutdown(services->task_queue, 1);
     }
+    umi_studio_product_centre_destroy(services->product_centre);
+    services->product_centre = NULL;
     umi_studio_compatibility_platform_destroy(services->compatibility_platform);
     services->compatibility_platform = NULL;
     umi_studio_extension_platform_destroy(services->extension_platform);
@@ -465,6 +469,9 @@ UmiStatus umi_studio_services_create(
     if (status == UMI_STATUS_OK) {
         status = umi_studio_delivery_platform_create(&services->delivery_platform);
     }
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_product_centre_create(&services->product_centre);
+    }
 
     if (status == UMI_STATUS_OK) {
         status = umi_studio_compatibility_platform_create(
@@ -654,6 +661,12 @@ UmiStatus umi_studio_services_publish(
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.delivery-platform",
             services->delivery_platform,
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.product-centre",
+            services->product_centre,
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.distribution-service",
+            umi_studio_product_centre_service(services->product_centre),
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.ai-platform",
             services->ai_platform,
@@ -1013,4 +1026,10 @@ UmiStudioExtensionPlatform *umi_studio_services_extension_platform(
     UmiStudioServices *services)
 {
     return services != NULL ? services->extension_platform : NULL;
+}
+
+UmiStudioProductCentre *umi_studio_services_product_centre(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->product_centre : NULL;
 }

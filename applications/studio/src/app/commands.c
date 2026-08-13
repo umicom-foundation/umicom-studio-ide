@@ -29,6 +29,7 @@
 #include "umicom/studio/messages.h"
 #include "umicom/studio/observability.h"
 #include "umicom/studio/plugins.h"
+#include "umicom/studio/product_centre.h"
 #include "umicom/studio/resilience.h"
 #include "umicom/studio/security.h"
 #include "umicom/studio/source_control.h"
@@ -289,6 +290,68 @@ static UmiStatus plugins_report_handler(void *user_data,
                        "Plug-ins: %zu registered, %zu contributions",
                        report.registered,
                        report.contributions);
+    }
+    return status;
+}
+
+static UmiStatus marketplace_check_updates_handler(
+    void *user_data,
+    const char *argument,
+    char *out_message,
+    size_t message_capacity)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiStudioProductCentre *centre = umi_studio_services_product_centre(services);
+    UmiClock *clock = umi_studio_services_clock(services);
+    size_t available = 0U;
+    UmiStatus status;
+    uint64_t timestamp_ms = 0U;
+    (void)argument;
+
+    if (clock != NULL && clock->wall_nanoseconds != NULL) {
+        timestamp_ms = clock->wall_nanoseconds(clock) / UINT64_C(1000000);
+    }
+    status = centre != NULL
+        ? umi_studio_product_centre_check_updates(
+              centre, timestamp_ms, &available)
+        : UMI_STATUS_UNAVAILABLE;
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Product updates: %zu verified release(s) available",
+                       available);
+    }
+    return status;
+}
+
+static UmiStatus marketplace_plan_update_handler(
+    void *user_data,
+    const char *argument,
+    char *out_message,
+    size_t message_capacity)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiStudioProductCentre *centre = umi_studio_services_product_centre(services);
+    UmiClock *clock = umi_studio_services_clock(services);
+    UmiDistributionDecision decision;
+    UmiDistributionTransaction transaction;
+    UmiStatus status;
+    uint64_t timestamp_ms = 0U;
+    if (argument == NULL || argument[0] == '\0') return UMI_STATUS_INVALID_ARGUMENT;
+    (void)memset(&decision, 0, sizeof(decision));
+    (void)memset(&transaction, 0, sizeof(transaction));
+    if (clock != NULL && clock->wall_nanoseconds != NULL) {
+        timestamp_ms = clock->wall_nanoseconds(clock) / UINT64_C(1000000);
+    }
+    status = centre != NULL
+        ? umi_studio_product_centre_plan_update(
+              centre, argument, timestamp_ms, &decision, &transaction)
+        : UMI_STATUS_UNAVAILABLE;
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity, "%s",
+                       status == UMI_STATUS_OK
+                           ? transaction.message
+                           : (decision.reason[0] != '\0'
+                                  ? decision.reason : umi_status_text(status)));
     }
     return status;
 }
@@ -1346,6 +1409,28 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "studio.plugins.read",
                               UMI_COMMAND_NONE,
                               plugins_report_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_MARKETPLACE_CHECK_UPDATES,
+                              "Check for product updates",
+                              "Products",
+                              "Evaluate installed products against trusted and verified releases.",
+                              "studio.products.read",
+                              UMI_COMMAND_AUDITED,
+                              marketplace_check_updates_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry,
+                              services,
+                              UMI_STUDIO_COMMAND_MARKETPLACE_PLAN_UPDATE,
+                              "Plan product update",
+                              "Products",
+                              "Create a recoverable update transaction for a release ID.",
+                              "studio.products.manage",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              marketplace_plan_update_handler);
     if (status != UMI_STATUS_OK) return status;
 
     status = register_command(registry,

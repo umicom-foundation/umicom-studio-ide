@@ -54,6 +54,11 @@ extern "C" {
 #define UMI_STUDIO_PANE_EXTENSION_CATALOGUE "studio.pane.extension-catalogue"
 #define UMI_STUDIO_PANE_EXTENSION_PERMISSIONS "studio.pane.extension-permissions"
 #define UMI_STUDIO_PANE_EXTENSION_AUDIT "studio.pane.extension-audit"
+#define UMI_STUDIO_PANE_PRODUCT_MARKETPLACE "studio.pane.product-marketplace"
+#define UMI_STUDIO_PANE_PRODUCTS_INSTALLED "studio.pane.products-installed"
+#define UMI_STUDIO_PANE_PRODUCT_UPDATES "studio.pane.product-updates"
+#define UMI_STUDIO_PANE_PRODUCT_TRANSACTIONS "studio.pane.product-transactions"
+#define UMI_STUDIO_PANE_PRODUCT_EVIDENCE "studio.pane.product-evidence"
 
 UmiStatus umi_studio_contributions_register(UmiUiWorkbench *workbench);
 UmiStatus umi_studio_contributions_register_layout(UmiUiWorkbench *workbench);

@@ -64,6 +64,7 @@ add_library(umicom_studio_core STATIC
     src/app/global_search.c
     src/app/extension_centre.c
     src/app/extension_platform.c
+    src/app/product_centre.c
     src/app/application_centre.c
     src/app/settings_centre.c
     src/app/welcome_centre.c
@@ -1005,6 +1006,7 @@ if(BUILD_TESTING)
             security
             plugins
             extension_platform
+            product_centre
             observability
             resilience)
         add_executable(umicom-studio-${UMICOM_STUDIO_OPERATION_TEST}-test
@@ -1028,7 +1030,8 @@ if(BUILD_TESTING)
             ui_services
             ui_session
             ui_actions
-            extension_centre)
+            extension_centre
+            product_centre_views)
         add_executable(umicom-studio-${UMICOM_STUDIO_UI_TEST}-test
             tests/test_${UMICOM_STUDIO_UI_TEST}.c)
         target_link_libraries(umicom-studio-${UMICOM_STUDIO_UI_TEST}-test
@@ -1168,6 +1171,7 @@ if(BUILD_TESTING)
         studio.security
         studio.plugins
         studio.extension_platform
+        studio.product_centre
         studio.observability
         studio.resilience
         studio.ui
@@ -1181,6 +1185,7 @@ if(BUILD_TESTING)
         studio.ui_session
         studio.ui_actions
         studio.extension_centre
+        studio.product_centre_views
         studio.build_service
         studio.build_workbench
         studio.test_service
