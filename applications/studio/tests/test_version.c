@@ -4,7 +4,7 @@
  *
  * PURPOSE:
  *   Verify the public Studio version structure and string remain synchronised
- *   with the 0.16.0 release.
+ *   with the 0.17.0 release.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -21,6 +21,6 @@ int main(void)
     assert(version.major == 0U);
     assert(version.minor == 16U);
     assert(version.patch == 0U);
-    assert(strcmp(umi_studio_version_string(), "0.16.0") == 0);
+    assert(strcmp(umi_studio_version_string(), "0.17.0") == 0);
     return 0;
 }

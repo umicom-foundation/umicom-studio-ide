@@ -39,6 +39,19 @@ UmiStatus umi_studio_workbench_reset_layout(UmiUiWorkbench *workbench)
 UmiStatus umi_studio_workbench_populate(UmiUiWorkbench *workbench,
                                         UmiStudioServices *services)
 {
+    static const char WELCOME_SOURCE[] =
+        "/* Umicom Studio IDE — Framework Workbench */\n"
+        "\n"
+        "#include <stdio.h>\n"
+        "#include \"umicom/umicom.h\"\n"
+        "\n"
+        "int main(void)\n"
+        "{\n"
+        "    puts(\"Welcome to Umicom Studio\");\n"
+        "    puts(\"Framework owns reusable editor and workbench services.\");\n"
+        "    return 0;\n"
+        "}\n";
+    UmiUiDocumentViewSnapshot welcome = {0};
     UmiStatus status;
     if (workbench == NULL || services == NULL) return UMI_STATUS_INVALID_ARGUMENT;
 
@@ -57,8 +70,33 @@ UmiStatus umi_studio_workbench_populate(UmiUiWorkbench *workbench,
 
     status = umi_studio_workbench_shell_catalogue_register(workbench, services);
     if (status != UMI_STATUS_OK) return status;
-    return umi_ui_workbench_activate_perspective(
+    status = umi_ui_workbench_activate_perspective(
         workbench, UMI_STUDIO_DEFAULT_PERSPECTIVE);
+    if (status != UMI_STATUS_OK) return status;
+
+    /*
+     * Present a real editable document on first launch. Product-neutral tab
+     * state and content transport live in Framework; Studio supplies only the
+     * welcome document identity and text.
+     */
+    (void)snprintf(welcome.view_id, sizeof(welcome.view_id), "%s",
+                   "studio.editor.welcome");
+    (void)snprintf(welcome.document_id, sizeof(welcome.document_id), "%s",
+                   "studio.document.welcome");
+    (void)snprintf(welcome.title, sizeof(welcome.title), "%s", "Welcome.c");
+    (void)snprintf(welcome.icon_name, sizeof(welcome.icon_name), "%s",
+                   "text-x-csrc-symbolic");
+    (void)snprintf(welcome.uri, sizeof(welcome.uri), "%s",
+                   "umicom://studio/welcome.c");
+    (void)snprintf(welcome.language_id, sizeof(welcome.language_id), "%s", "c");
+    (void)snprintf(welcome.source_text, sizeof(welcome.source_text), "%s",
+                   WELCOME_SOURCE);
+    welcome.active = 1;
+    welcome.pinned = 1;
+    status = umi_ui_document_view_model_upsert(
+        umi_ui_workbench_documents(workbench), &welcome);
+    if (status != UMI_STATUS_OK) return status;
+    return umi_ui_workbench_activate_document(workbench, welcome.view_id);
 }
 
 UmiStatus umi_studio_workbench_restore_session(UmiUiWorkbench *workbench,

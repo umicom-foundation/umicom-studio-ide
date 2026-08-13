@@ -4,7 +4,8 @@
  *
  * PURPOSE:
  *   Start the GTK4 Umicom Studio IDE frontend inside the Umicom Framework
- *   lifecycle and provide a controlled Batch 23 Framework-workbench launch path.
+ *   lifecycle. Batch 38 makes the Framework-owned workbench the default while
+ *   retaining the established product frontend behind --legacy-ui.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -12,9 +13,8 @@
  *---------------------------------------------------------------------------*/
 
 /* BEGINNER NOTE:
- * --framework-workbench starts the new Framework-owned workbench shell without
- * deleting the established Studio frontend. This gives us a safe migration
- * path: both frontends share the same Bootstrap, services and command registry.
+ * Normal startup presents the reusable Framework workbench. --legacy-ui keeps
+ * the older product shell available during migration and comparison testing.
  */
 
 #include <gtk/gtk.h>
@@ -157,7 +157,8 @@ static int filter_dev_flags(int argc, char **argv, char ***out_argv)
     for (index = 1; index < argc; ++index) {
         if (str_eq(argv[index], "--console") ||
             str_eq(argv[index], "--dev") ||
-            str_eq(argv[index], "--framework-workbench")) {
+            str_eq(argv[index], "--framework-workbench") ||
+            str_eq(argv[index], "--legacy-ui")) {
             continue;
         }
         filtered[count++] = argv[index];
@@ -180,12 +181,18 @@ static int run_studio(UmiStudioBootstrap *bootstrap, int argc, char **argv)
         if (str_eq(argv[index], "--test-window")) {
             return run_test_window_app(argc, argv);
         }
-        if (str_eq(argv[index], "--framework-workbench")) {
+        if (str_eq(argv[index], "--legacy-ui")) {
             filtered_argc = filter_dev_flags(argc, argv, &filtered_argv);
             if (filtered_argv == NULL) return 1;
-            result = run_framework_workbench(bootstrap,
-                                             filtered_argc,
-                                             filtered_argv);
+            application = umi_app_new();
+            if (application == NULL) {
+                free(filtered_argv);
+                return 1;
+            }
+            result = g_application_run(G_APPLICATION(application),
+                                       filtered_argc,
+                                       filtered_argv);
+            g_object_unref(application);
             free(filtered_argv);
             return result;
         }
@@ -194,15 +201,9 @@ static int run_studio(UmiStudioBootstrap *bootstrap, int argc, char **argv)
     filtered_argc = filter_dev_flags(argc, argv, &filtered_argv);
     if (filtered_argv == NULL) return 1;
 
-    application = umi_app_new();
-    if (application == NULL) {
-        free(filtered_argv);
-        return 1;
-    }
-    result = g_application_run(G_APPLICATION(application),
-                               filtered_argc,
-                               filtered_argv);
-    g_object_unref(application);
+    result = run_framework_workbench(bootstrap,
+                                     filtered_argc,
+                                     filtered_argv);
     free(filtered_argv);
     return result;
 }
@@ -251,7 +252,8 @@ static int wants_console(int argc, char **argv)
             str_eq(argv[index], "--dev") ||
             str_eq(argv[index], "--test-window") ||
             str_eq(argv[index], "--bare-gtk") ||
-            str_eq(argv[index], "--framework-workbench")) {
+            str_eq(argv[index], "--framework-workbench") ||
+            str_eq(argv[index], "--legacy-ui")) {
             return 1;
         }
     }

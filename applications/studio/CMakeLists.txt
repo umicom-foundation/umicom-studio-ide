@@ -15,7 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.16.0")
+set(UMICOM_STUDIO_VERSION "0.17.0")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
@@ -459,7 +459,7 @@ if(UMICOM_STUDIO_BUILD_GTK)
         NOMINMAX
         _CRT_SECURE_NO_WARNINGS
         UMICOM_VERSION_MAJOR=0
-        UMICOM_VERSION_MINOR=16
+        UMICOM_VERSION_MINOR=17
         UMICOM_VERSION_PATCH=0
         gtk_widget_destroy=g_object_unref
     )
@@ -600,7 +600,7 @@ if(UMICOM_STUDIO_BUILD_GTK)
         NOMINMAX
         _CRT_SECURE_NO_WARNINGS
         UMICOM_VERSION_MAJOR=0
-        UMICOM_VERSION_MINOR=16
+        UMICOM_VERSION_MINOR=17
         UMICOM_VERSION_PATCH=0
     )
 

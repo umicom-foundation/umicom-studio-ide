@@ -49,25 +49,56 @@ static const UmiUiPaneSnapshot STUDIO_PANES[] = {
 };
 
 static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
-    { "studio.action.perspective.develop", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Develop", "Activate Develop perspective", "applications-development-symbolic", "Ctrl+1", 1, 1, 0, 0, 10 },
-    { "studio.action.perspective.build", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Build", "Activate Build perspective", "system-run-symbolic", "Ctrl+2", 1, 1, 0, 0, 20 },
-    { "studio.action.perspective.test", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Test", "Activate Test perspective", "emblem-ok-symbolic", "Ctrl+3", 1, 1, 0, 0, 30 },
-    { "studio.action.pane.explorer", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Project Explorer", "Show or hide Project Explorer", "folder-symbolic", "Ctrl+Shift+E", 1, 1, 1, 1, 40 },
-    { "studio.action.pane.output", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Output", "Show or hide Output", "utilities-terminal-symbolic", "Ctrl+J", 1, 1, 1, 1, 50 },
-    { "studio.action.pane.problems", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Problems", "Show or hide Problems", "dialog-warning-symbolic", "Ctrl+Shift+M", 1, 1, 1, 1, 60 },
-    { "studio.action.layout.reset", UMI_STUDIO_COMMAND_LAYOUT_RESET, "Reset Layout", "Restore the default Studio layout", "view-restore-symbolic", "", 1, 1, 0, 0, 70 },
-    { "studio.action.notification.info", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Show Notification", "Publish an information notification", "dialog-information-symbolic", "", 1, 1, 0, 0, 80 }
+    { "studio.action.perspective.develop", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Develop", "Activate Develop perspective", "applications-development-symbolic", "Ctrl+1", 1, 1, 0, 0, 10, UMI_STUDIO_PERSPECTIVE_DEVELOP },
+    { "studio.action.perspective.build", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Build", "Activate Build perspective", "system-run-symbolic", "Ctrl+2", 1, 1, 0, 0, 20, UMI_STUDIO_PERSPECTIVE_BUILD },
+    { "studio.action.perspective.test", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Test", "Activate Test perspective", "emblem-ok-symbolic", "Ctrl+3", 1, 1, 0, 0, 30, UMI_STUDIO_PERSPECTIVE_TEST },
+    { "studio.action.pane.explorer", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Project Explorer", "Show or hide Project Explorer", "folder-symbolic", "Ctrl+Shift+E", 1, 1, 1, 1, 40, UMI_STUDIO_PANE_EXPLORER },
+    { "studio.action.pane.output", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Output", "Show or hide Output", "utilities-terminal-symbolic", "Ctrl+J", 1, 1, 1, 1, 50, UMI_STUDIO_PANE_OUTPUT },
+    { "studio.action.pane.problems", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Problems", "Show or hide Problems", "dialog-warning-symbolic", "Ctrl+Shift+M", 1, 1, 1, 1, 60, UMI_STUDIO_PANE_PROBLEMS },
+    { "studio.action.layout.reset", UMI_STUDIO_COMMAND_LAYOUT_RESET, "Reset Layout", "Restore the default Studio layout", "view-restore-symbolic", "", 1, 1, 0, 0, 70, "" },
+    { "studio.action.notification.info", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "About This Workbench", "Show Framework workbench information", "dialog-information-symbolic", "", 1, 1, 0, 0, 80, "Umicom Studio 0.17 uses the Framework-owned workbench and Editor Core v2." },
+
+    /*
+     * Batch 38 publishes the conventional IDE menu vocabulary immediately.
+     * File-system and editor command handlers arrive as subsequent vertical
+     * slices; until then these entries report their integration boundary.
+     */
+    { "studio.action.file.new", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "New File", "Create an untitled editor document", "document-new-symbolic", "Ctrl+N", 1, 1, 0, 0, 100, "New File is registered; untitled-document persistence is the next editor slice." },
+    { "studio.action.file.open", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Open File…", "Open a file in the Framework editor", "document-open-symbolic", "Ctrl+O", 1, 1, 0, 0, 110, "Open File is registered; the Framework document-loader adapter is the next editor slice." },
+    { "studio.action.file.save", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Save", "Save the active Framework working copy", "document-save-symbolic", "Ctrl+S", 1, 1, 0, 0, 120, "Save is registered; the Framework document-saver adapter is the next editor slice." },
+    { "studio.action.file.save-as", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Save As…", "Save the active document to another URI", "document-save-as-symbolic", "Ctrl+Shift+S", 1, 1, 0, 0, 130, "Save As is registered; URI provider integration is the next editor slice." },
+    { "studio.action.edit.undo", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Undo", "Undo the latest editor transaction", "edit-undo-symbolic", "Ctrl+Z", 1, 1, 0, 0, 140, "The Framework edit-history service is ready; GTK command routing follows next." },
+    { "studio.action.edit.redo", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Redo", "Redo the latest editor transaction", "edit-redo-symbolic", "Ctrl+Shift+Z", 1, 1, 0, 0, 150, "The Framework edit-history service is ready; GTK command routing follows next." },
+    { "studio.action.edit.find", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Find", "Find text in the active editor", "edit-find-symbolic", "Ctrl+F", 1, 1, 0, 0, 160, "The Framework literal-search engine is ready; find-widget binding follows next." },
+    { "studio.action.edit.replace", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Replace", "Replace text in the active editor", "edit-find-replace-symbolic", "Ctrl+H", 1, 1, 0, 0, 170, "Replace is registered against the Framework editor roadmap." },
+    { "studio.action.view.command-palette", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Command Palette", "Focus the global Framework command palette", "system-search-symbolic", "Ctrl+Shift+P", 1, 1, 0, 0, 180, "Use the Quick Access field in the workbench toolbar to search commands." },
+    { "studio.action.go.line", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Go to Line…", "Navigate to a line in the active document", "go-jump-symbolic", "Ctrl+G", 1, 1, 0, 0, 190, "Go to Line is registered against the Framework navigation contracts." },
+    { "studio.action.run.build", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Build Workspace", "Open the Build perspective", "system-run-symbolic", "Ctrl+Shift+B", 1, 1, 0, 0, 200, UMI_STUDIO_PERSPECTIVE_BUILD },
+    { "studio.action.run.test", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Run Tests", "Open the Test perspective", "emblem-ok-symbolic", "Ctrl+Alt+T", 1, 1, 0, 0, 210, UMI_STUDIO_PERSPECTIVE_TEST },
+    { "studio.action.terminal.show", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Show Terminal", "Show or hide the terminal pane", "utilities-terminal-symbolic", "Ctrl+`", 1, 1, 1, 0, 220, UMI_STUDIO_PANE_TERMINAL }
 };
 
 static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
-    { "menu.view.develop", "view", "perspectives", "studio.action.perspective.develop", "", 0, 10 },
-    { "menu.view.build", "view", "perspectives", "studio.action.perspective.build", "", 0, 20 },
-    { "menu.view.test", "view", "perspectives", "studio.action.perspective.test", "", 0, 30 },
-    { "menu.view.separator", "view", "panes", "", "", 1, 40 },
-    { "menu.view.explorer", "view", "panes", "studio.action.pane.explorer", "", 0, 50 },
-    { "menu.view.output", "view", "panes", "studio.action.pane.output", "", 0, 60 },
-    { "menu.view.problems", "view", "panes", "studio.action.pane.problems", "", 0, 70 },
-    { "menu.view.reset", "view", "layout", "studio.action.layout.reset", "", 0, 80 }
+    { "menu.file.new", "file", "documents", "studio.action.file.new", "", 0, 10 },
+    { "menu.file.open", "file", "documents", "studio.action.file.open", "", 0, 20 },
+    { "menu.file.sep", "file", "save", "", "", 1, 30 },
+    { "menu.file.save", "file", "save", "studio.action.file.save", "", 0, 40 },
+    { "menu.file.save-as", "file", "save", "studio.action.file.save-as", "", 0, 50 },
+    { "menu.edit.undo", "edit", "history", "studio.action.edit.undo", "", 0, 10 },
+    { "menu.edit.redo", "edit", "history", "studio.action.edit.redo", "", 0, 20 },
+    { "menu.edit.sep", "edit", "search", "", "", 1, 30 },
+    { "menu.edit.find", "edit", "search", "studio.action.edit.find", "", 0, 40 },
+    { "menu.edit.replace", "edit", "search", "studio.action.edit.replace", "", 0, 50 },
+    { "menu.view.palette", "view", "commands", "studio.action.view.command-palette", "", 0, 10 },
+    { "menu.view.explorer", "view", "panes", "studio.action.pane.explorer", "", 0, 20 },
+    { "menu.view.output", "view", "panes", "studio.action.pane.output", "", 0, 30 },
+    { "menu.view.problems", "view", "panes", "studio.action.pane.problems", "", 0, 40 },
+    { "menu.view.reset", "view", "layout", "studio.action.layout.reset", "", 0, 50 },
+    { "menu.go.line", "go", "navigation", "studio.action.go.line", "", 0, 10 },
+    { "menu.run.build", "run", "build", "studio.action.run.build", "", 0, 10 },
+    { "menu.run.test", "run", "test", "studio.action.run.test", "", 0, 20 },
+    { "menu.terminal.show", "terminal", "terminal", "studio.action.terminal.show", "", 0, 10 },
+    { "menu.help.about", "help", "about", "studio.action.notification.info", "", 0, 10 }
 };
 
 static const UmiUiToolbarSnapshot STUDIO_TOOLBAR[] = {
