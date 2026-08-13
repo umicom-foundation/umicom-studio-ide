@@ -50,6 +50,10 @@ extern "C" {
 #define UMI_STUDIO_PANE_APPLICATIONS "studio.pane.applications"
 #define UMI_STUDIO_PANE_FRAMEWORK "studio.pane.framework"
 #define UMI_STUDIO_PANE_AI "studio.pane.ai"
+#define UMI_STUDIO_PANE_EXTENSIONS "studio.pane.extensions"
+#define UMI_STUDIO_PANE_EXTENSION_CATALOGUE "studio.pane.extension-catalogue"
+#define UMI_STUDIO_PANE_EXTENSION_PERMISSIONS "studio.pane.extension-permissions"
+#define UMI_STUDIO_PANE_EXTENSION_AUDIT "studio.pane.extension-audit"
 
 UmiStatus umi_studio_contributions_register(UmiUiWorkbench *workbench);
 UmiStatus umi_studio_contributions_register_layout(UmiUiWorkbench *workbench);

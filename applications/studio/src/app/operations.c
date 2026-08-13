@@ -107,6 +107,8 @@ static UmiStatus configure_plugin_grants(UmiStudioOperations *operations)
         "studio.panes",
         "studio.tools",
         "studio.providers",
+        "studio.extensions.manage",
+        "studio.extensions.install",
         "workspace.read"
     };
     UmiPermissionSet *grants = umi_plugin_host_grants(operations->plugins);

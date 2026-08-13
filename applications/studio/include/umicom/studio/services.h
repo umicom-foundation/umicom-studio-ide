@@ -25,6 +25,7 @@
 #include "umicom/studio/declarative.h"
 #include "umicom/studio/delivery_platform.h"
 #include "umicom/studio/designer.h"
+#include "umicom/studio/extension_platform.h"
 #include "umicom/studio/settings.h"
 #include "umicom/studio/web_platform.h"
 
@@ -104,6 +105,9 @@ UmiStudioWebPlatform *umi_studio_services_web_platform(UmiStudioServices *servic
 UmiStudioDeliveryPlatform *umi_studio_services_delivery_platform(
     UmiStudioServices *services);
 UmiStudioCompatibilityPlatform *umi_studio_services_compatibility_platform(
+    UmiStudioServices *services
+);
+UmiStudioExtensionPlatform *umi_studio_services_extension_platform(
     UmiStudioServices *services
 );
 UmiStudioBuildService *umi_studio_services_build(UmiStudioServices *services);

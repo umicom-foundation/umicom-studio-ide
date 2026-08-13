@@ -54,7 +54,11 @@ static const UmiUiPaneSnapshot STUDIO_PANES[] = {
     { UMI_STUDIO_PANE_DESIGNER, "Designer", "studio.designer", "applications-graphics-symbolic", UMI_UI_PLACEMENT_LEFT, 120, 0, 1, 1, { 320, 500 } },
     { UMI_STUDIO_PANE_APPLICATIONS, "Applications", "studio.application-hub", "view-app-grid-symbolic", UMI_UI_PLACEMENT_LEFT, 130, 0, 1, 1, { 320, 500 } },
     { UMI_STUDIO_PANE_FRAMEWORK, "Framework", "studio.framework", "view-grid-symbolic", UMI_UI_PLACEMENT_LEFT, 140, 0, 1, 1, { 320, 500 } },
-    { UMI_STUDIO_PANE_AI, "AI / AuthorEngine", "studio.authorengine", "mail-message-new-symbolic", UMI_UI_PLACEMENT_LEFT, 150, 0, 1, 1, { 320, 500 } }
+    { UMI_STUDIO_PANE_AI, "AI / AuthorEngine", "studio.authorengine", "mail-message-new-symbolic", UMI_UI_PLACEMENT_LEFT, 150, 0, 1, 1, { 320, 500 } },
+    { UMI_STUDIO_PANE_EXTENSIONS, "Extensions", "studio.extensions-installed", "application-x-addon-symbolic", UMI_UI_PLACEMENT_LEFT, 160, 0, 1, 1, { 380, 500 } },
+    { UMI_STUDIO_PANE_EXTENSION_CATALOGUE, "Extension Catalogue", "studio.extensions-catalogue", "system-search-symbolic", UMI_UI_PLACEMENT_LEFT, 161, 0, 1, 1, { 420, 500 } },
+    { UMI_STUDIO_PANE_EXTENSION_PERMISSIONS, "Extension Permissions", "studio.extensions-permissions", "security-high-symbolic", UMI_UI_PLACEMENT_LEFT, 162, 0, 1, 1, { 420, 500 } },
+    { UMI_STUDIO_PANE_EXTENSION_AUDIT, "Extension Audit", "studio.extensions-audit", "document-open-recent-symbolic", UMI_UI_PLACEMENT_BOTTOM, 163, 0, 1, 1, { 760, 280 } }
 };
 
 static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
@@ -134,6 +138,10 @@ static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
     { "studio.action.vcs.branch-checkout", UMI_STUDIO_COMMAND_VCS_BRANCH_CHECKOUT, "Checkout Branch…", "Switch to an existing branch", "go-jump-symbolic", "", 1, 1, 0, 0, 510, "", UMI_UI_ACTION_ARGUMENT_TEXT },
     { "studio.action.vcs.branch-delete", UMI_STUDIO_COMMAND_VCS_BRANCH_DELETE, "Delete Branch…", "Safely delete a merged branch", "edit-delete-symbolic", "", 1, 1, 0, 0, 520, "", UMI_UI_ACTION_ARGUMENT_TEXT },
     { "studio.action.vcs.diff", UMI_STUDIO_COMMAND_VCS_DIFF, "Open Diff…", "Open a working-tree or staged path diff", "document-properties-symbolic", "", 1, 1, 0, 0, 530, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.extensions.refresh", UMI_STUDIO_COMMAND_PLUGINS_REPORT, "Refresh Extensions", "Refresh and report installed extension state", "view-refresh-symbolic", "", 1, 1, 0, 0, 540, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.extension-catalogue", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Extension Catalogue", "Show or hide the Extension Catalogue", "system-search-symbolic", "", 1, 1, 1, 1, 550, UMI_STUDIO_PANE_EXTENSION_CATALOGUE, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.extension-permissions", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Extension Permissions", "Show or hide extension permissions", "security-high-symbolic", "", 1, 1, 1, 1, 560, UMI_STUDIO_PANE_EXTENSION_PERMISSIONS, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.extension-audit", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Extension Audit", "Show or hide extension audit history", "document-open-recent-symbolic", "", 1, 1, 1, 1, 570, UMI_STUDIO_PANE_EXTENSION_AUDIT, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.pane.vcs-history", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Repository History", "Show repository history", "document-open-recent-symbolic", "", 1, 1, 1, 1, 540, UMI_STUDIO_PANE_VCS_HISTORY, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.pane.vcs-branches", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Branches", "Show repository branches", "view-list-tree-symbolic", "", 1, 1, 1, 1, 550, UMI_STUDIO_PANE_VCS_BRANCHES, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.pane.vcs-remotes", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Remotes & Operations", "Show remotes and operation journal", "network-server-symbolic", "", 1, 1, 1, 1, 560, UMI_STUDIO_PANE_VCS_REMOTES, UMI_UI_ACTION_ARGUMENT_NONE },
@@ -201,6 +209,10 @@ static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
     { "menu.source-control.branches", "source-control", "views", "studio.action.pane.vcs-branches", "", 0, 90 },
     { "menu.source-control.remotes", "source-control", "views", "studio.action.pane.vcs-remotes", "", 0, 100 },
     { "menu.source-control.diff", "source-control", "views", "studio.action.pane.vcs-diff", "", 0, 110 },
+    { "menu.extensions.refresh", "extensions", "management", "studio.action.extensions.refresh", "", 0, 10 },
+    { "menu.extensions.catalogue", "extensions", "views", "studio.action.pane.extension-catalogue", "", 0, 20 },
+    { "menu.extensions.permissions", "extensions", "views", "studio.action.pane.extension-permissions", "", 0, 30 },
+    { "menu.extensions.audit", "extensions", "views", "studio.action.pane.extension-audit", "", 0, 40 },
     { "menu.help.about", "help", "about", "studio.action.notification.info", "", 0, 10 }
 };
 
@@ -246,7 +258,11 @@ static const UmiUiContributionSnapshot STUDIO_CONTRIBUTIONS[] = {
     { "studio.contribution.designer", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_DESIGNER, 120, 1 },
     { "studio.contribution.applications", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_APPLICATIONS, 130, 1 },
     { "studio.contribution.framework", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_FRAMEWORK, 140, 1 },
-    { "studio.contribution.ai", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_AI, 150, 1 }
+    { "studio.contribution.ai", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_AI, 150, 1 },
+    { "studio.contribution.extensions", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_EXTENSIONS, 160, 1 },
+    { "studio.contribution.extension-catalogue", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_EXTENSION_CATALOGUE, 161, 1 },
+    { "studio.contribution.extension-permissions", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_EXTENSION_PERMISSIONS, 162, 1 },
+    { "studio.contribution.extension-audit", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_EXTENSION_AUDIT, 163, 1 }
 };
 
 UmiStatus umi_studio_contributions_register_layout(UmiUiWorkbench *workbench)

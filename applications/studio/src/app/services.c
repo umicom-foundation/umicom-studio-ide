@@ -24,6 +24,7 @@
 #include "umicom/studio/declarative.h"
 #include "umicom/studio/delivery_platform.h"
 #include "umicom/studio/designer.h"
+#include "umicom/studio/extension_platform.h"
 #include "umicom/studio/fabric.h"
 #include "umicom/studio/operations.h"
 #include "umicom/studio/session.h"
@@ -63,6 +64,7 @@ struct UmiStudioServices {
     UmiStudioWebPlatform *web_platform;
     UmiStudioDeliveryPlatform *delivery_platform;
     UmiStudioCompatibilityPlatform *compatibility_platform;
+    UmiStudioExtensionPlatform *extension_platform;
     UmiClock clock;
     int published;
 };
@@ -101,6 +103,8 @@ static void destroy_partial(UmiStudioServices *services)
     }
     umi_studio_compatibility_platform_destroy(services->compatibility_platform);
     services->compatibility_platform = NULL;
+    umi_studio_extension_platform_destroy(services->extension_platform);
+    services->extension_platform = NULL;
     umi_studio_delivery_platform_destroy(services->delivery_platform);
     services->delivery_platform = NULL;
     umi_studio_web_platform_destroy(services->web_platform);
@@ -231,6 +235,13 @@ UmiStatus umi_studio_services_create(
     services->clock = umi_clock_system();
     status = umi_studio_operations_create(&services->clock,
                                           &services->operations);
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+    status = umi_studio_extension_platform_create(
+        umi_studio_operations_plugins(services->operations),
+        &services->extension_platform);
     if (status != UMI_STATUS_OK) {
         destroy_partial(services);
         return status;
@@ -996,4 +1007,10 @@ UmiStudioCompatibilityPlatform *umi_studio_services_compatibility_platform(
     UmiStudioServices *services)
 {
     return services == NULL ? NULL : services->compatibility_platform;
+}
+
+UmiStudioExtensionPlatform *umi_studio_services_extension_platform(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->extension_platform : NULL;
 }

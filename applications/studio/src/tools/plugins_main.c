@@ -34,10 +34,16 @@ int main(int argc, char **argv)
     if (status == UMI_STATUS_OK) {
         (void)printf("Registered: %zu\nEnabled: %zu\nFailed: %zu\n"
                      "Contributions: %zu\nFiles examined: %zu\n"
-                     "Manifests loaded: %zu\nInvalid manifests: %zu\n",
+                     "Manifests loaded: %zu\nInvalid manifests: %zu\n"
+                     "Extension points: %zu\nCatalogue entries: %zu\n"
+                     "Audit events: %zu\nPermission grants: %zu\n"
+                     "Default isolation: %s\n",
                      report.registered, report.enabled, report.failed,
                      report.contributions, report.files_examined,
-                     report.manifests_loaded, report.invalid_manifests);
+                     report.manifests_loaded, report.invalid_manifests,
+                     report.extension_points, report.catalogue_entries,
+                     report.audit_events, report.permission_grants,
+                     report.default_isolation);
     } else {
         (void)fprintf(stderr, "Plug-in command failed: %s\n", umi_status_text(status));
     }

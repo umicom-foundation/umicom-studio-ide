@@ -27,6 +27,11 @@ typedef struct UmiStudioPluginReport {
     size_t files_examined;
     size_t manifests_loaded;
     size_t invalid_manifests;
+    size_t extension_points;
+    size_t catalogue_entries;
+    size_t audit_events;
+    size_t permission_grants;
+    char default_isolation[64];
 } UmiStudioPluginReport;
 
 UmiStatus umi_studio_plugins_discover(UmiStudioServices *services,

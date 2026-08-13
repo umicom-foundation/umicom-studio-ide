@@ -29,6 +29,7 @@
 #include "umicom/studio/commands.h"
 #include "umicom/studio/debugger.h"
 #include "umicom/studio/designer.h"
+#include "umicom/studio/extension_centre.h"
 #include "umicom/studio/language.h"
 #include "umicom/studio/source_control.h"
 #include "umicom/studio/tests.h"
@@ -53,6 +54,10 @@
 #define VIEW_PROCESSES     "studio.processes"
 #define VIEW_TASKS         "studio.tasks"
 #define VIEW_HISTORY       "studio.terminal-history"
+#define VIEW_EXTENSIONS    "studio.extensions-installed"
+#define VIEW_EXT_CATALOGUE "studio.extensions-catalogue"
+#define VIEW_EXT_PERMISSIONS "studio.extensions-permissions"
+#define VIEW_EXT_AUDIT     "studio.extensions-audit"
 
 static UmiStatus add_action(UmiUiViewModel *view,
                             size_t index,
@@ -225,6 +230,15 @@ static UmiStatus create_vcs_remotes(const char *view_id, void *user_data, UmiUiV
 { UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_remotes_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
 static UmiStatus create_vcs_diff(const char *view_id, void *user_data, UmiUiViewModel **out_view)
 { UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_diff_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
+
+static UmiStatus create_extensions(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ return umi_studio_extension_centre_installed_view((UmiStudioServices *)user_data, view_id, out_view); }
+static UmiStatus create_extension_catalogue(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ return umi_studio_extension_centre_catalogue_view((UmiStudioServices *)user_data, view_id, out_view); }
+static UmiStatus create_extension_permissions(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ return umi_studio_extension_centre_permissions_view((UmiStudioServices *)user_data, view_id, out_view); }
+static UmiStatus create_extension_audit(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ return umi_studio_extension_centre_audit_view((UmiStudioServices *)user_data, view_id, out_view); }
 
 static UmiStatus create_run_debug(const char *view_id,
                                   void *user_data,
@@ -620,7 +634,11 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_TERMINAL, create_terminal },
     { VIEW_PROCESSES, create_processes },
     { VIEW_TASKS, create_tasks },
-    { VIEW_HISTORY, create_terminal_history }
+    { VIEW_HISTORY, create_terminal_history },
+    { VIEW_EXTENSIONS, create_extensions },
+    { VIEW_EXT_CATALOGUE, create_extension_catalogue },
+    { VIEW_EXT_PERMISSIONS, create_extension_permissions },
+    { VIEW_EXT_AUDIT, create_extension_audit }
 };
 
 UmiStatus umi_studio_workbench_views_register(
