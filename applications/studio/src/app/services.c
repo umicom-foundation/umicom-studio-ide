@@ -855,6 +855,24 @@ UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,
     if (status == UMI_STATUS_OK) {
         status = umi_file_index_rebuild(services->file_index);
     }
+    if (status == UMI_STATUS_OK) {
+        UmiWorkspaceGraphSnapshot workspace_snapshot;
+        UmiWorkspaceProjectSnapshot project_snapshot;
+        const char *project_id = "workspace";
+        if (umi_workspace_graph_snapshot(services->workspace,
+                                         &workspace_snapshot) ==
+                UMI_STATUS_OK) {
+            if (workspace_snapshot.project_count > 0U &&
+                umi_workspace_graph_project_at(services->workspace, 0U,
+                                                &project_snapshot) ==
+                    UMI_STATUS_OK) {
+                project_id = project_snapshot.stable_id;
+            }
+            status = umi_studio_test_service_set_workspace(
+                umi_studio_services_tests(services), root, project_id,
+                workspace_snapshot.revision);
+        }
+    }
     return status;
 }
 
@@ -866,6 +884,10 @@ UmiStatus umi_studio_services_close_workspace(UmiStudioServices *services)
     status = umi_workspace_graph_close(services->workspace);
     if (status == UMI_STATUS_OK) {
         status = umi_file_index_clear(services->file_index);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_test_service_set_workspace(
+            umi_studio_services_tests(services), "", "", 0U);
     }
     return status;
 }

@@ -1031,6 +1031,10 @@ if(BUILD_TESTING)
             build_service
             build_workbench
             test_service
+            test_explorer_state
+            test_explorer_operations
+            test_explorer_hierarchy
+            test_execution_bridge
             terminal_service
             language_service
             debugger_service
