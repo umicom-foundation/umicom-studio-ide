@@ -405,7 +405,7 @@ if(UMICOM_STUDIO_BUILD_GTK)
     pkg_check_modules(JSON_GLIB REQUIRED IMPORTED_TARGET json-glib-1.0)
     pkg_check_modules(SOUP3 REQUIRED IMPORTED_TARGET libsoup-3.0)
     pkg_check_modules(CURL REQUIRED IMPORTED_TARGET libcurl)
-    pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
+    pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4>=4.10)
     pkg_check_modules(PIXBUF REQUIRED IMPORTED_TARGET gdk-pixbuf-2.0)
     pkg_check_modules(CAIRO REQUIRED IMPORTED_TARGET cairo)
     pkg_check_modules(PANGO REQUIRED IMPORTED_TARGET pango)
@@ -1329,6 +1329,13 @@ install(TARGETS
     umicom-studio-architecture
     RUNTIME DESTINATION bin
 )
+
+# The interactive IDE is optional, so install it only when the GTK product was
+# built.  This makes the new Deploy action and documented cmake --install flow
+# produce a launchable Studio application instead of tools alone.
+if(TARGET umicom-studio-ide)
+    install(TARGETS umicom-studio-ide RUNTIME DESTINATION bin)
+endif()
 
 if(BUILD_TESTING)
 add_executable(umicom-studio-codeguard-test tests/test_codeguard.c)

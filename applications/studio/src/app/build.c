@@ -73,6 +73,22 @@ UmiStatus umi_studio_build_service_create(const char *source_root,
                            sizeof(service->profile.configuration),
                            "Debug");
     }
+    if (status == UMI_STATUS_OK) {
+        status = copy_text(service->profile.install_directory,
+                           sizeof(service->profile.install_directory),
+                           "build/umicom-development/install");
+    }
+    if (status == UMI_STATUS_OK) {
+#ifdef _WIN32
+        status = copy_text(service->profile.run_program,
+                           sizeof(service->profile.run_program),
+                           "build/umicom-development/bin/umicom-studio-ide.exe");
+#else
+        status = copy_text(service->profile.run_program,
+                           sizeof(service->profile.run_program),
+                           "build/umicom-development/bin/umicom-studio-ide");
+#endif
+    }
     service->profile.parallel_jobs = 4U;
     service->profile.timeout_ms = 0U;
     service->profile.build_testing = 1;

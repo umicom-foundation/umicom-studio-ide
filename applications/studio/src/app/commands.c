@@ -400,6 +400,30 @@ static UmiStatus build_clean_handler(void *user_data,
                                message_capacity);
 }
 
+static UmiStatus build_run_handler(void *user_data,
+                                   const char *argument,
+                                   char *out_message,
+                                   size_t message_capacity)
+{
+    (void)argument;
+    return build_phase_handler((UmiStudioServices *)user_data,
+                               UMI_BUILD_PHASE_RUN,
+                               out_message,
+                               message_capacity);
+}
+
+static UmiStatus build_install_handler(void *user_data,
+                                       const char *argument,
+                                       char *out_message,
+                                       size_t message_capacity)
+{
+    (void)argument;
+    return build_phase_handler((UmiStudioServices *)user_data,
+                               UMI_BUILD_PHASE_INSTALL,
+                               out_message,
+                               message_capacity);
+}
+
 static UmiStatus tests_discover_handler(void *user_data,
                                         const char *argument,
                                         char *out_message,
@@ -450,6 +474,28 @@ static UmiStatus terminal_execute_handler(void *user_data,
                        umi_status_text(status));
     }
     return status;
+}
+
+static UmiStatus terminal_clear_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    UmiStudioTerminalService *service = umi_studio_services_terminal(
+        (UmiStudioServices *)user_data);
+    UmiTerminalSession *session;
+    UmiTerminalTranscript *transcript;
+    (void)argument;
+    if (service == NULL) return UMI_STATUS_INVALID_STATE;
+    session = umi_studio_terminal_service_primary(service);
+    transcript = umi_terminal_session_transcript(session);
+    if (transcript == NULL) return UMI_STATUS_INVALID_STATE;
+    umi_terminal_transcript_clear(transcript);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Terminal transcript cleared");
+    }
+    return UMI_STATUS_OK;
 }
 
 static UmiStatus language_initialize_handler(void *user_data,
@@ -779,6 +825,22 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               build_clean_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_RUN,
+                              "Start Studio", "Run",
+                              "Start the configured Umicom Studio executable.",
+                              "process.execute",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              build_run_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_INSTALL,
+                              "Deploy Local", "Deploy",
+                              "Install the active profile into its local staging prefix.",
+                              "studio.delivery.execute",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              build_install_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_TESTS_DISCOVER,
                               "Discover Tests", "Testing",
                               "Discover CTest tests from a build directory.",
@@ -794,6 +856,14 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                   UMI_COMMAND_REQUIRES_TRUST |
                                   UMI_COMMAND_AUDITED,
                               terminal_execute_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TERMINAL_CLEAR,
+                              "Clear Terminal", "Terminal",
+                              "Clear the retained transcript for the primary terminal.",
+                              "process.read",
+                              UMI_COMMAND_MUTATES_STATE,
+                              terminal_clear_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE,

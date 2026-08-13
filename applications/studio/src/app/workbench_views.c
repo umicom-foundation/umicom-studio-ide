@@ -26,10 +26,12 @@
 #include <string.h>
 
 #include "umicom/studio/build.h"
+#include "umicom/studio/commands.h"
 #include "umicom/studio/debugger.h"
 #include "umicom/studio/designer.h"
 #include "umicom/studio/source_control.h"
 #include "umicom/studio/tests.h"
+#include "umicom/studio/terminal.h"
 
 #define VIEW_EXPLORER      "studio.project-explorer"
 #define VIEW_SEARCH        "studio.search"
@@ -40,6 +42,23 @@
 #define VIEW_APPLICATIONS  "studio.application-hub"
 #define VIEW_FRAMEWORK     "studio.framework"
 #define VIEW_AI            "studio.authorengine"
+#define VIEW_OUTPUT        "studio.output"
+#define VIEW_PROBLEMS      "studio.problems"
+#define VIEW_TERMINAL      "studio.terminal"
+
+static UmiStatus add_action(UmiUiViewModel *view,
+                            size_t index,
+                            const char *action_id,
+                            const char *label,
+                            const char *tooltip)
+{
+    UmiUiCommandViewAction action = {0};
+    (void)snprintf(action.action_id, sizeof(action.action_id), "%s", action_id);
+    (void)snprintf(action.label, sizeof(action.label), "%s", label);
+    (void)snprintf(action.tooltip, sizeof(action.tooltip), "%s", tooltip);
+    action.enabled = 1;
+    return umi_ui_command_view_set_action(view, index, &action);
+}
 
 typedef UmiStatus (*StudioViewCreateFn)(
     const char *view_id,
@@ -270,6 +289,22 @@ static UmiStatus create_run_debug(const char *view_id,
                                       (int64_t)debug_snapshot.received_messages);
         }
     }
+    if (status == UMI_STATUS_OK) {
+        status = add_action(*out_view, 0U, "studio.action.build.configure",
+                            "Configure", "Configure the active CMake profile");
+    }
+    if (status == UMI_STATUS_OK) {
+        status = add_action(*out_view, 1U, "studio.action.build.compile",
+                            "Build", "Compile the active workspace");
+    }
+    if (status == UMI_STATUS_OK) {
+        status = add_action(*out_view, 2U, "studio.action.build.run",
+                            "Start", "Start the configured Studio executable");
+    }
+    if (status == UMI_STATUS_OK) {
+        status = add_action(*out_view, 3U, "studio.action.build.install",
+                            "Deploy", "Install into the local staging prefix");
+    }
     return status;
 }
 
@@ -312,6 +347,122 @@ static UmiStatus create_testing(const char *view_id,
     if (status == UMI_STATUS_OK) {
         status = property_integer(*out_view, "failed",
                                   (int64_t)snapshot.failed);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = add_action(*out_view, 0U, "studio.action.test.discover",
+                            "Discover", "Discover CTest tests in the build directory");
+    }
+    if (status == UMI_STATUS_OK) {
+        status = add_action(*out_view, 1U, "studio.action.build.test",
+                            "Run All", "Run the complete CTest suite");
+    }
+    return status;
+}
+
+static UmiStatus create_output(const char *view_id,
+                               void *user_data,
+                               UmiUiViewModel **out_view)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiStudioBuildSnapshot build = {0};
+    UmiStatus status = create_base_view(
+        view_id, VIEW_OUTPUT, "Output",
+        "Live build, test, run and deployment execution summary.", out_view);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_studio_build_service_snapshot(
+        umi_studio_services_build(services), &build);
+    if (status == UMI_STATUS_OK) {
+        status = property_string(*out_view, "last-phase",
+                                 umi_build_phase_text(build.last_phase));
+    }
+    if (status == UMI_STATUS_OK) {
+        status = property_string(*out_view, "last-state",
+                                 umi_build_state_text(build.last_state));
+    }
+    if (status == UMI_STATUS_OK) {
+        status = property_integer(*out_view, "exit-code", build.last_exit_code);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = property_integer(*out_view, "history",
+                                  (int64_t)build.history_count);
+    }
+    return status;
+}
+
+static UmiStatus create_problems(const char *view_id,
+                                 void *user_data,
+                                 UmiUiViewModel **out_view)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiStudioBuildSnapshot build = {0};
+    UmiStatus status = create_base_view(
+        view_id, VIEW_PROBLEMS, "Problems",
+        "Compiler and test diagnostics parsed by Framework build services.",
+        out_view);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_studio_build_service_snapshot(
+        umi_studio_services_build(services), &build);
+    if (status == UMI_STATUS_OK) {
+        status = property_integer(*out_view, "diagnostics",
+                                  (int64_t)build.diagnostic_count);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = property_string(*out_view, "status",
+                                 umi_status_text(build.last_status));
+    }
+    return status;
+}
+
+static UmiStatus create_terminal(const char *view_id,
+                                 void *user_data,
+                                 UmiUiViewModel **out_view)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiStudioTerminalService *service = umi_studio_services_terminal(services);
+    UmiStudioTerminalSnapshot snapshot = {0};
+    UmiTerminalSession *session;
+    UmiTerminalTranscript *transcript;
+    size_t line_count;
+    size_t first;
+    size_t index;
+    UmiStatus status = create_base_view(
+        view_id, VIEW_TERMINAL, "Integrated Terminal",
+        "Execute trusted commands through the reusable Framework terminal session.",
+        out_view);
+    if (status != UMI_STATUS_OK) return status;
+    if (service == NULL ||
+        umi_studio_terminal_service_snapshot(service, &snapshot) != UMI_STATUS_OK) {
+        return property_boolean(*out_view, "available", 0);
+    }
+    status = property_boolean(*out_view, "available", 1);
+    if (status == UMI_STATUS_OK) {
+        status = property_string(*out_view, "working-directory",
+                                 snapshot.primary.working_directory);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = property_integer(*out_view, "commands-executed",
+                                  (int64_t)snapshot.primary.commands_executed);
+    }
+    session = umi_studio_terminal_service_primary(service);
+    transcript = umi_terminal_session_transcript(session);
+    line_count = umi_terminal_transcript_count(transcript);
+    first = line_count > 8U ? line_count - 8U : 0U;
+    for (index = first; status == UMI_STATUS_OK && index < line_count; ++index) {
+        UmiTerminalTranscriptLine line;
+        char key[64];
+        if (umi_terminal_transcript_at(transcript, index, &line) != UMI_STATUS_OK) {
+            continue;
+        }
+        (void)snprintf(key, sizeof(key), "transcript-%03zu", index + 1U);
+        status = property_string(*out_view, key, line.text);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = add_action(*out_view, 0U, "studio.action.terminal.execute",
+                            "Execute…", "Enter and execute a trusted command");
+    }
+    if (status == UMI_STATUS_OK) {
+        status = add_action(*out_view, 1U, "studio.action.terminal.clear",
+                            "Clear", "Clear the retained terminal transcript");
     }
     return status;
 }
@@ -461,7 +612,10 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_DESIGNER, create_designer },
     { VIEW_APPLICATIONS, create_applications },
     { VIEW_FRAMEWORK, create_framework },
-    { VIEW_AI, create_ai }
+    { VIEW_AI, create_ai },
+    { VIEW_OUTPUT, create_output },
+    { VIEW_PROBLEMS, create_problems },
+    { VIEW_TERMINAL, create_terminal }
 };
 
 UmiStatus umi_studio_workbench_views_register(

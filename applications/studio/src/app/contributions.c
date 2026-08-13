@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "umicom/document/commands.h"
+#include "umicom/studio/commands.h"
 #include "umicom/studio/perspectives.h"
 #include "umicom/studio/workbench_commands.h"
 
@@ -31,7 +32,7 @@ static const UmiUiPaneSnapshot STUDIO_PANES[] = {
     { UMI_STUDIO_PANE_OUTPUT, "Output", "studio.output", "utilities-terminal-symbolic", UMI_UI_PLACEMENT_BOTTOM, 30, 1, 1, 1, { 760, 220 } },
     { UMI_STUDIO_PANE_PROBLEMS, "Problems", "studio.problems", "dialog-warning-symbolic", UMI_UI_PLACEMENT_BOTTOM, 40, 1, 1, 1, { 760, 220 } },
     { UMI_STUDIO_PANE_SEARCH, "Search", "studio.search", "system-search-symbolic", UMI_UI_PLACEMENT_LEFT, 50, 0, 1, 1, { 320, 500 } },
-    { UMI_STUDIO_PANE_TERMINAL, "Terminal", "studio.terminal", "utilities-terminal-symbolic", UMI_UI_PLACEMENT_BOTTOM, 60, 0, 1, 1, { 760, 240 } },
+    { UMI_STUDIO_PANE_TERMINAL, "Terminal", "studio.terminal", "utilities-terminal-symbolic", UMI_UI_PLACEMENT_BOTTOM, 60, 1, 1, 1, { 760, 240 } },
     { UMI_STUDIO_PANE_CHAT, "AI Chat", "studio.ai-chat", "mail-message-new-symbolic", UMI_UI_PLACEMENT_RIGHT, 70, 1, 1, 1, { 360, 500 } },
     { UMI_STUDIO_PANE_ARCHITECTURE, "Architecture", "studio.architecture", "view-grid-symbolic", UMI_UI_PLACEMENT_RIGHT, 80, 0, 1, 1, { 360, 500 } },
 
@@ -72,9 +73,16 @@ static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
     { "studio.action.edit.replace", UMI_DOCUMENT_COMMAND_REPLACE, "Replace", "Replace text in the active editor", "edit-find-replace-symbolic", "Ctrl+H", 1, 1, 0, 0, 170, "", UMI_UI_ACTION_ARGUMENT_FIND_REPLACE },
     { "studio.action.view.command-palette", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "Command Palette", "Focus the global Framework command palette", "system-search-symbolic", "Ctrl+Shift+P", 1, 1, 0, 0, 180, "Use the Quick Access field in the workbench toolbar to search commands.", UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.go.line", UMI_DOCUMENT_COMMAND_GO_TO_LINE, "Go to Line…", "Navigate to a line in the active document", "go-jump-symbolic", "Ctrl+G", 1, 1, 0, 0, 190, "", UMI_UI_ACTION_ARGUMENT_LINE_NUMBER },
-    { "studio.action.run.build", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Build Workspace", "Open the Build perspective", "system-run-symbolic", "Ctrl+Shift+B", 1, 1, 0, 0, 200, UMI_STUDIO_PERSPECTIVE_BUILD, UMI_UI_ACTION_ARGUMENT_NONE },
-    { "studio.action.run.test", UMI_STUDIO_COMMAND_PERSPECTIVE_ACTIVATE, "Run Tests", "Open the Test perspective", "emblem-ok-symbolic", "Ctrl+Alt+T", 1, 1, 0, 0, 210, UMI_STUDIO_PERSPECTIVE_TEST, UMI_UI_ACTION_ARGUMENT_NONE },
-    { "studio.action.terminal.show", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Show Terminal", "Show or hide the terminal pane", "utilities-terminal-symbolic", "Ctrl+`", 1, 1, 1, 0, 220, UMI_STUDIO_PANE_TERMINAL, UMI_UI_ACTION_ARGUMENT_NONE }
+    { "studio.action.build.configure", UMI_STUDIO_COMMAND_BUILD_CONFIGURE, "Configure Workspace", "Configure the active CMake build profile", "emblem-system-symbolic", "", 1, 1, 0, 0, 200, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.build.compile", UMI_STUDIO_COMMAND_BUILD_COMPILE, "Build Workspace", "Compile the active CMake build profile", "system-run-symbolic", "Ctrl+Shift+B", 1, 1, 0, 0, 210, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.build.test", UMI_STUDIO_COMMAND_BUILD_TEST, "Run Tests", "Run all CTest tests in the active profile", "emblem-ok-symbolic", "Ctrl+Alt+T", 1, 1, 0, 0, 220, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.build.clean", UMI_STUDIO_COMMAND_BUILD_CLEAN, "Clean Workspace", "Clean generated outputs in the active profile", "edit-clear-all-symbolic", "", 1, 1, 0, 0, 230, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.build.run", UMI_STUDIO_COMMAND_BUILD_RUN, "Start Umicom Studio", "Start the configured Studio executable", "media-playback-start-symbolic", "F5", 1, 1, 0, 0, 240, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.build.install", UMI_STUDIO_COMMAND_BUILD_INSTALL, "Deploy Local", "Install into the configured local staging prefix", "package-x-generic-symbolic", "", 1, 1, 0, 0, 250, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.test.discover", UMI_STUDIO_COMMAND_TESTS_DISCOVER, "Discover Tests", "Discover CTest tests in the active build directory", "system-search-symbolic", "", 1, 1, 0, 0, 260, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.terminal.show", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Show Terminal", "Show or hide the terminal pane", "utilities-terminal-symbolic", "Ctrl+`", 1, 1, 1, 1, 270, UMI_STUDIO_PANE_TERMINAL, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.terminal.execute", UMI_STUDIO_COMMAND_TERMINAL_EXECUTE, "Execute in Terminal…", "Execute a command in the primary terminal", "utilities-terminal-symbolic", "", 1, 1, 0, 0, 280, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.terminal.clear", UMI_STUDIO_COMMAND_TERMINAL_CLEAR, "Clear Terminal", "Clear the primary terminal transcript", "edit-clear-all-symbolic", "", 1, 1, 0, 0, 290, "", UMI_UI_ACTION_ARGUMENT_NONE }
 };
 
 static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
@@ -95,9 +103,15 @@ static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
     { "menu.view.problems", "view", "panes", "studio.action.pane.problems", "", 0, 40 },
     { "menu.view.reset", "view", "layout", "studio.action.layout.reset", "", 0, 50 },
     { "menu.go.line", "go", "navigation", "studio.action.go.line", "", 0, 10 },
-    { "menu.run.build", "run", "build", "studio.action.run.build", "", 0, 10 },
-    { "menu.run.test", "run", "test", "studio.action.run.test", "", 0, 20 },
+    { "menu.run.configure", "run", "build", "studio.action.build.configure", "", 0, 10 },
+    { "menu.run.build", "run", "build", "studio.action.build.compile", "", 0, 20 },
+    { "menu.run.test", "run", "test", "studio.action.build.test", "", 0, 30 },
+    { "menu.run.clean", "run", "build", "studio.action.build.clean", "", 0, 40 },
+    { "menu.run.start", "run", "run", "studio.action.build.run", "", 0, 50 },
+    { "menu.run.deploy", "run", "deploy", "studio.action.build.install", "", 0, 60 },
     { "menu.terminal.show", "terminal", "terminal", "studio.action.terminal.show", "", 0, 10 },
+    { "menu.terminal.execute", "terminal", "terminal", "studio.action.terminal.execute", "", 0, 20 },
+    { "menu.terminal.clear", "terminal", "terminal", "studio.action.terminal.clear", "", 0, 30 },
     { "menu.help.about", "help", "about", "studio.action.notification.info", "", 0, 10 }
 };
 
@@ -147,6 +161,7 @@ UmiStatus umi_studio_contributions_register_layout(UmiUiWorkbench *workbench)
         { "centre.bottom", "centre.vertical", "", UMI_UI_LAYOUT_TABS, UMI_UI_HORIZONTAL, 0.28, 20 },
         { "bottom.output", "centre.bottom", UMI_STUDIO_PANE_OUTPUT, UMI_UI_LAYOUT_PANE, UMI_UI_HORIZONTAL, 1.0, 10 },
         { "bottom.problems", "centre.bottom", UMI_STUDIO_PANE_PROBLEMS, UMI_UI_LAYOUT_PANE, UMI_UI_HORIZONTAL, 1.0, 20 },
+        { "bottom.terminal", "centre.bottom", UMI_STUDIO_PANE_TERMINAL, UMI_UI_LAYOUT_PANE, UMI_UI_HORIZONTAL, 1.0, 30 },
         { "right.chat", "root.horizontal", UMI_STUDIO_PANE_CHAT, UMI_UI_LAYOUT_PANE, UMI_UI_VERTICAL, 0.24, 30 }
     };
     size_t index;
