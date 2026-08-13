@@ -77,12 +77,22 @@ static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
     { "studio.action.build.compile", UMI_STUDIO_COMMAND_BUILD_COMPILE, "Build Workspace", "Compile the active CMake build profile", "system-run-symbolic", "Ctrl+Shift+B", 1, 1, 0, 0, 210, "", UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.build.test", UMI_STUDIO_COMMAND_BUILD_TEST, "Run Tests", "Run all CTest tests in the active profile", "emblem-ok-symbolic", "Ctrl+Alt+T", 1, 1, 0, 0, 220, "", UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.build.clean", UMI_STUDIO_COMMAND_BUILD_CLEAN, "Clean Workspace", "Clean generated outputs in the active profile", "edit-clear-all-symbolic", "", 1, 1, 0, 0, 230, "", UMI_UI_ACTION_ARGUMENT_NONE },
-    { "studio.action.build.run", UMI_STUDIO_COMMAND_BUILD_RUN, "Start Umicom Studio", "Start the configured Studio executable", "media-playback-start-symbolic", "F5", 1, 1, 0, 0, 240, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.build.run", UMI_STUDIO_COMMAND_BUILD_RUN, "Start Without Debugging", "Start the configured Studio executable without a debug adapter", "media-playback-start-symbolic", "Ctrl+F5", 1, 1, 0, 0, 240, "", UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.build.install", UMI_STUDIO_COMMAND_BUILD_INSTALL, "Deploy Local", "Install into the configured local staging prefix", "package-x-generic-symbolic", "", 1, 1, 0, 0, 250, "", UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.test.discover", UMI_STUDIO_COMMAND_TESTS_DISCOVER, "Discover Tests", "Discover CTest tests in the active build directory", "system-search-symbolic", "", 1, 1, 0, 0, 260, "", UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.terminal.show", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Show Terminal", "Show or hide the terminal pane", "utilities-terminal-symbolic", "Ctrl+`", 1, 1, 1, 1, 270, UMI_STUDIO_PANE_TERMINAL, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.terminal.execute", UMI_STUDIO_COMMAND_TERMINAL_EXECUTE, "Execute in Terminal…", "Execute a command in the primary terminal", "utilities-terminal-symbolic", "", 1, 1, 0, 0, 280, "", UMI_UI_ACTION_ARGUMENT_TEXT },
-    { "studio.action.terminal.clear", UMI_STUDIO_COMMAND_TERMINAL_CLEAR, "Clear Terminal", "Clear the primary terminal transcript", "edit-clear-all-symbolic", "", 1, 1, 0, 0, 290, "", UMI_UI_ACTION_ARGUMENT_NONE }
+    { "studio.action.terminal.clear", UMI_STUDIO_COMMAND_TERMINAL_CLEAR, "Clear Terminal", "Clear the primary terminal transcript", "edit-clear-all-symbolic", "", 1, 1, 0, 0, 290, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.language.initialize", UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE, "Start Language Intelligence", "Initialise the active Language Server Protocol client", "accessories-dictionary-symbolic", "", 1, 1, 0, 0, 300, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.language.workspace-symbols", UMI_STUDIO_COMMAND_LANGUAGE_WORKSPACE_SYMBOLS, "Go to Symbol in Workspace…", "Search workspace symbols through the active language server", "system-search-symbolic", "Ctrl+T", 1, 1, 0, 0, 310, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.debug.start", UMI_STUDIO_COMMAND_DEBUG_START, "Start Debugging", "Launch the configured program through the active debug adapter", "debug-run-symbolic", "F5", 1, 1, 0, 0, 320, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.debug.continue", UMI_STUDIO_COMMAND_DEBUG_CONTINUE, "Continue", "Continue the selected debug thread", "media-playback-start-symbolic", "F6", 1, 1, 0, 0, 330, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.debug.pause", UMI_STUDIO_COMMAND_DEBUG_PAUSE, "Pause", "Pause the selected debug thread", "media-playback-pause-symbolic", "", 1, 1, 0, 0, 340, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.debug.next", UMI_STUDIO_COMMAND_DEBUG_NEXT, "Step Over", "Step over the next statement", "go-next-symbolic", "F10", 1, 1, 0, 0, 350, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.debug.step-in", UMI_STUDIO_COMMAND_DEBUG_STEP_IN, "Step Into", "Step into the next function call", "go-down-symbolic", "F11", 1, 1, 0, 0, 360, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.debug.step-out", UMI_STUDIO_COMMAND_DEBUG_STEP_OUT, "Step Out", "Step out of the current function", "go-up-symbolic", "Shift+F11", 1, 1, 0, 0, 370, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.debug.stop", UMI_STUDIO_COMMAND_DEBUG_STOP, "Stop Debugging", "Terminate the active debug session", "media-playback-stop-symbolic", "Shift+F5", 1, 1, 0, 0, 380, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.debug.add-breakpoint", UMI_STUDIO_COMMAND_DEBUG_ADD_BREAKPOINT, "Add Breakpoint…", "Add a Framework-owned source breakpoint using path:line", "media-record-symbolic", "F9", 1, 1, 0, 0, 390, "", UMI_UI_ACTION_ARGUMENT_TEXT }
 };
 
 static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
@@ -103,12 +113,22 @@ static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
     { "menu.view.problems", "view", "panes", "studio.action.pane.problems", "", 0, 40 },
     { "menu.view.reset", "view", "layout", "studio.action.layout.reset", "", 0, 50 },
     { "menu.go.line", "go", "navigation", "studio.action.go.line", "", 0, 10 },
+    { "menu.go.workspace-symbols", "go", "navigation", "studio.action.language.workspace-symbols", "", 0, 20 },
     { "menu.run.configure", "run", "build", "studio.action.build.configure", "", 0, 10 },
     { "menu.run.build", "run", "build", "studio.action.build.compile", "", 0, 20 },
     { "menu.run.test", "run", "test", "studio.action.build.test", "", 0, 30 },
     { "menu.run.clean", "run", "build", "studio.action.build.clean", "", 0, 40 },
     { "menu.run.start", "run", "run", "studio.action.build.run", "", 0, 50 },
     { "menu.run.deploy", "run", "deploy", "studio.action.build.install", "", 0, 60 },
+    { "menu.run.debug-separator", "run", "debug", "", "", 1, 70 },
+    { "menu.run.debug-start", "run", "debug", "studio.action.debug.start", "", 0, 80 },
+    { "menu.run.debug-continue", "run", "debug", "studio.action.debug.continue", "", 0, 90 },
+    { "menu.run.debug-pause", "run", "debug", "studio.action.debug.pause", "", 0, 100 },
+    { "menu.run.debug-next", "run", "debug", "studio.action.debug.next", "", 0, 110 },
+    { "menu.run.debug-step-in", "run", "debug", "studio.action.debug.step-in", "", 0, 120 },
+    { "menu.run.debug-step-out", "run", "debug", "studio.action.debug.step-out", "", 0, 130 },
+    { "menu.run.debug-stop", "run", "debug", "studio.action.debug.stop", "", 0, 140 },
+    { "menu.run.debug-breakpoint", "run", "debug", "studio.action.debug.add-breakpoint", "", 0, 150 },
     { "menu.terminal.show", "terminal", "terminal", "studio.action.terminal.show", "", 0, 10 },
     { "menu.terminal.execute", "terminal", "terminal", "studio.action.terminal.execute", "", 0, 20 },
     { "menu.terminal.clear", "terminal", "terminal", "studio.action.terminal.clear", "", 0, 30 },
@@ -121,7 +141,10 @@ static const UmiUiToolbarSnapshot STUDIO_TOOLBAR[] = {
     { "toolbar.test", "main", "studio.action.perspective.test", "perspectives", 0, 30 },
     { "toolbar.separator", "main", "", "layout", 1, 40 },
     { "toolbar.explorer", "main", "studio.action.pane.explorer", "layout", 0, 50 },
-    { "toolbar.output", "main", "studio.action.pane.output", "layout", 0, 60 }
+    { "toolbar.output", "main", "studio.action.pane.output", "layout", 0, 60 },
+    { "toolbar.run-separator", "main", "", "run", 1, 70 },
+    { "toolbar.debug-start", "main", "studio.action.debug.start", "run", 0, 80 },
+    { "toolbar.debug-stop", "main", "studio.action.debug.stop", "run", 0, 90 }
 };
 
 static const UmiUiStatusSnapshot STUDIO_STATUS[] = {

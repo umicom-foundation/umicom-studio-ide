@@ -21,6 +21,8 @@ struct UmiStudioDebuggerService {
     UmiProtocolClient *client;
     UmiDapClient dap;
     UmiDapBreakpointRegistry *breakpoints;
+    UmiDebugService *model;
+    UmiDebugController *controller;
 };
 
 UmiStatus umi_studio_debugger_service_create(
@@ -42,6 +44,11 @@ UmiStatus umi_studio_debugger_service_create(
     if (status == UMI_STATUS_OK) {
         status = umi_dap_breakpoint_registry_create(&service->breakpoints);
     }
+    if (status == UMI_STATUS_OK) status = umi_debug_service_create(&service->model);
+    if (status == UMI_STATUS_OK) {
+        status = umi_debug_controller_create(&service->dap, service->model,
+                                             &service->controller);
+    }
     if (status != UMI_STATUS_OK) {
         umi_studio_debugger_service_destroy(service);
         return status;
@@ -53,6 +60,8 @@ UmiStatus umi_studio_debugger_service_create(
 void umi_studio_debugger_service_destroy(UmiStudioDebuggerService *service)
 {
     if (service == NULL) return;
+    umi_debug_controller_destroy(service->controller);
+    umi_debug_service_destroy(service->model);
     umi_dap_breakpoint_registry_destroy(service->breakpoints);
     umi_protocol_client_destroy(service->client);
     umi_protocol_transport_destroy(service->transport);
@@ -65,7 +74,18 @@ UmiStatus umi_studio_debugger_service_initialize(
     int64_t *out_request_id)
 {
     if (service == NULL) return UMI_STATUS_INVALID_ARGUMENT;
-    return umi_dap_initialize(&service->dap, adapter_id, out_request_id);
+    {
+        UmiStatus status = umi_debug_controller_initialize(
+            service->controller, adapter_id);
+        if (status == UMI_STATUS_OK && out_request_id != NULL) {
+            UmiDebugControllerSnapshot snapshot;
+            if (umi_debug_controller_snapshot(service->controller,
+                                               &snapshot) == UMI_STATUS_OK) {
+                *out_request_id = snapshot.last_request_id;
+            }
+        }
+        return status;
+    }
 }
 
 UmiStatus umi_studio_debugger_service_launch(
@@ -75,11 +95,47 @@ UmiStatus umi_studio_debugger_service_launch(
     int64_t *out_request_id)
 {
     if (service == NULL) return UMI_STATUS_INVALID_ARGUMENT;
-    return umi_dap_launch(&service->dap,
-                          program,
-                          working_directory,
-                          out_request_id);
+    {
+        UmiStatus status = umi_debug_controller_launch(
+            service->controller, program, working_directory);
+        if (status == UMI_STATUS_OK && out_request_id != NULL) {
+            UmiDebugControllerSnapshot snapshot;
+            if (umi_debug_controller_snapshot(service->controller,
+                                               &snapshot) == UMI_STATUS_OK) {
+                *out_request_id = snapshot.last_request_id;
+            }
+        }
+        return status;
+    }
 }
+
+UmiStatus umi_studio_debugger_service_start(UmiStudioDebuggerService *service,
+    const char *adapter_id, const char *program, const char *working_directory)
+{
+    UmiDebugControllerSnapshot snapshot;
+    UmiStatus status;
+    if (service == NULL || adapter_id == NULL || program == NULL ||
+        working_directory == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_debug_controller_snapshot(service->controller, &snapshot);
+    if (status == UMI_STATUS_OK &&
+        (snapshot.state == UMI_DEBUG_CONTROLLER_IDLE ||
+         snapshot.state == UMI_DEBUG_CONTROLLER_TERMINATED)) {
+        status = umi_debug_controller_initialize(service->controller,
+                                                 adapter_id);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_debug_controller_launch(service->controller, program,
+                                             working_directory);
+    }
+    return status;
+}
+
+UmiStatus umi_studio_debugger_service_continue(UmiStudioDebuggerService *service,int thread_id){return service!=NULL?umi_debug_controller_continue(service->controller,thread_id):UMI_STATUS_INVALID_ARGUMENT;}
+UmiStatus umi_studio_debugger_service_pause(UmiStudioDebuggerService *service,int thread_id){return service!=NULL?umi_debug_controller_pause(service->controller,thread_id):UMI_STATUS_INVALID_ARGUMENT;}
+UmiStatus umi_studio_debugger_service_next(UmiStudioDebuggerService *service,int thread_id){return service!=NULL?umi_debug_controller_next(service->controller,thread_id):UMI_STATUS_INVALID_ARGUMENT;}
+UmiStatus umi_studio_debugger_service_step_in(UmiStudioDebuggerService *service,int thread_id){return service!=NULL?umi_debug_controller_step_in(service->controller,thread_id):UMI_STATUS_INVALID_ARGUMENT;}
+UmiStatus umi_studio_debugger_service_step_out(UmiStudioDebuggerService *service,int thread_id){return service!=NULL?umi_debug_controller_step_out(service->controller,thread_id):UMI_STATUS_INVALID_ARGUMENT;}
+UmiStatus umi_studio_debugger_service_stop(UmiStudioDebuggerService *service,int restart){return service!=NULL?umi_debug_controller_terminate(service->controller,restart):UMI_STATUS_INVALID_ARGUMENT;}
 
 UmiStatus umi_studio_debugger_service_add_breakpoint(
     UmiStudioDebuggerService *service,
@@ -101,7 +157,24 @@ UmiStatus umi_studio_debugger_service_add_breakpoint(
     breakpoint.line = line;
     breakpoint.column = column;
     breakpoint.enabled = 1;
-    return umi_dap_breakpoint_add(service->breakpoints, &breakpoint);
+    {
+        UmiStatus status = umi_dap_breakpoint_add(service->breakpoints,
+                                                  &breakpoint);
+        if (status == UMI_STATUS_OK) {
+            UmiDebugBreakpointSnapshot model_breakpoint = {0};
+            (void)snprintf(model_breakpoint.id, sizeof(model_breakpoint.id),
+                           "%s:%d:%d", source_path, line, column);
+            (void)snprintf(model_breakpoint.uri,
+                           sizeof(model_breakpoint.uri), "%s", source_path);
+            model_breakpoint.line = (uint32_t)line;
+            model_breakpoint.column = column > 0 ? (uint32_t)column : 0U;
+            model_breakpoint.enabled = 1;
+            status = umi_debug_breakpoint_registry_upsert(
+                umi_debug_service_breakpoint(service->model),
+                &model_breakpoint);
+        }
+        return status;
+    }
 }
 
 UmiStatus umi_studio_debugger_service_snapshot(
@@ -119,7 +192,37 @@ UmiStatus umi_studio_debugger_service_snapshot(
     out_snapshot->queued_messages = stats.queued;
     out_snapshot->sent_messages = stats.sent;
     out_snapshot->received_messages = stats.received;
+    {
+        UmiDebugServiceSnapshot model;
+        UmiDebugControllerSnapshot controller;
+        if (umi_debug_service_snapshot(service->model, &model) == UMI_STATUS_OK) {
+            out_snapshot->session_count = model.session_count;
+            out_snapshot->thread_count = model.thread_count;
+            out_snapshot->stack_frame_count = model.stack_frame_count;
+            out_snapshot->variable_count = model.variable_count;
+            out_snapshot->watch_count = model.watch_count;
+            out_snapshot->event_count = model.event_count;
+        }
+        if (umi_debug_controller_snapshot(service->controller,
+                                          &controller) == UMI_STATUS_OK) {
+            (void)snprintf(out_snapshot->controller_state,
+                           sizeof(out_snapshot->controller_state), "%s",
+                           umi_debug_controller_state_text(controller.state));
+        }
+    }
     return UMI_STATUS_OK;
+}
+
+UmiDebugService *umi_studio_debugger_service_model(
+    UmiStudioDebuggerService *service)
+{
+    return service != NULL ? service->model : NULL;
+}
+
+UmiDebugController *umi_studio_debugger_service_controller(
+    UmiStudioDebuggerService *service)
+{
+    return service != NULL ? service->controller : NULL;
 }
 
 UmiProtocolTransport *umi_studio_debugger_service_transport(

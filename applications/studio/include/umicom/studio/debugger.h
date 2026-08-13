@@ -28,6 +28,13 @@ typedef struct UmiStudioDebuggerSnapshot {
     size_t queued_messages;
     size_t sent_messages;
     size_t received_messages;
+    size_t session_count;
+    size_t thread_count;
+    size_t stack_frame_count;
+    size_t variable_count;
+    size_t watch_count;
+    size_t event_count;
+    char controller_state[64];
 } UmiStudioDebuggerSnapshot;
 
 UmiStatus umi_studio_debugger_service_create(
@@ -45,6 +52,28 @@ UmiStatus umi_studio_debugger_service_launch(
     const char *working_directory,
     int64_t *out_request_id
 );
+UmiStatus umi_studio_debugger_service_start(
+    UmiStudioDebuggerService *service, const char *adapter_id,
+    const char *program, const char *working_directory
+);
+UmiStatus umi_studio_debugger_service_continue(
+    UmiStudioDebuggerService *service, int thread_id
+);
+UmiStatus umi_studio_debugger_service_pause(
+    UmiStudioDebuggerService *service, int thread_id
+);
+UmiStatus umi_studio_debugger_service_next(
+    UmiStudioDebuggerService *service, int thread_id
+);
+UmiStatus umi_studio_debugger_service_step_in(
+    UmiStudioDebuggerService *service, int thread_id
+);
+UmiStatus umi_studio_debugger_service_step_out(
+    UmiStudioDebuggerService *service, int thread_id
+);
+UmiStatus umi_studio_debugger_service_stop(
+    UmiStudioDebuggerService *service, int restart
+);
 UmiStatus umi_studio_debugger_service_add_breakpoint(
     UmiStudioDebuggerService *service,
     const char *source_path,
@@ -56,6 +85,12 @@ UmiStatus umi_studio_debugger_service_snapshot(
     UmiStudioDebuggerSnapshot *out_snapshot
 );
 UmiProtocolTransport *umi_studio_debugger_service_transport(
+    UmiStudioDebuggerService *service
+);
+UmiDebugService *umi_studio_debugger_service_model(
+    UmiStudioDebuggerService *service
+);
+UmiDebugController *umi_studio_debugger_service_controller(
     UmiStudioDebuggerService *service
 );
 

@@ -43,11 +43,20 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_TERMINAL_EXECUTE "studio.terminal.execute"
 #define UMI_STUDIO_COMMAND_TERMINAL_CLEAR "studio.terminal.clear"
 #define UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE "studio.language.initialize"
+#define UMI_STUDIO_COMMAND_LANGUAGE_WORKSPACE_SYMBOLS "studio.language.workspace-symbols"
 #define UMI_STUDIO_COMMAND_DEBUG_INITIALIZE "studio.debug.initialize"
+#define UMI_STUDIO_COMMAND_DEBUG_START "studio.debug.start"
+#define UMI_STUDIO_COMMAND_DEBUG_CONTINUE "studio.debug.continue"
+#define UMI_STUDIO_COMMAND_DEBUG_PAUSE "studio.debug.pause"
+#define UMI_STUDIO_COMMAND_DEBUG_NEXT "studio.debug.next"
+#define UMI_STUDIO_COMMAND_DEBUG_STEP_IN "studio.debug.step-in"
+#define UMI_STUDIO_COMMAND_DEBUG_STEP_OUT "studio.debug.step-out"
+#define UMI_STUDIO_COMMAND_DEBUG_STOP "studio.debug.stop"
+#define UMI_STUDIO_COMMAND_DEBUG_ADD_BREAKPOINT "studio.debug.add-breakpoint"
 #define UMI_STUDIO_COMMAND_VCS_REFRESH "studio.vcs.refresh"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 27U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 36U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

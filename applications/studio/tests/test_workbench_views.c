@@ -25,6 +25,9 @@ int main(void)
     UmiUiWorkbench *workbench;
     UmiUiViewPresentation presentation;
     UmiUiPropertySnapshot title;
+    UmiUiPropertySnapshot debug_state;
+    UmiUiViewModel *run_debug = NULL;
+    UmiUiCommandViewAction action;
 
     assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
 
@@ -44,6 +47,24 @@ int main(void)
                &presentation, "title", &title) == UMI_STATUS_OK);
     assert(title.value.kind == UMI_UI_VALUE_STRING);
     assert(strcmp(title.value.string_value, "Explorer") == 0);
+
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench),
+               "studio.run-debug",
+               UMI_STUDIO_PANE_RUN_DEBUG,
+               &run_debug) == UMI_STATUS_OK);
+    assert(umi_ui_view_model_get_property(
+               run_debug, "debug-state", &debug_state.value) == UMI_STATUS_OK);
+    assert(debug_state.value.kind == UMI_UI_VALUE_STRING);
+    assert(strcmp(debug_state.value.string_value, "idle") == 0);
+    assert(umi_ui_command_view_action_at(run_debug, 4U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id, "studio.action.debug.start") == 0);
+    assert(umi_ui_command_view_action_at(run_debug, 11U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id,
+                  "studio.action.debug.add-breakpoint") == 0);
+    umi_ui_view_model_destroy(run_debug);
 
     umi_studio_bootstrap_destroy(bootstrap);
     return 0;

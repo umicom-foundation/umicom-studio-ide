@@ -14,8 +14,10 @@
 #include "umicom/studio/commands.h"
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "umicom/studio/build.h"
 #include "umicom/studio/data.h"
@@ -547,6 +549,138 @@ static UmiStatus debug_initialize_handler(void *user_data,
     return status;
 }
 
+static UmiStatus language_workspace_symbols_handler(void *user_data,
+                                                     const char *argument,
+                                                     char *out_message,
+                                                     size_t message_capacity)
+{
+    int64_t request_id = 0;
+    UmiStatus status = umi_studio_language_service_workspace_symbols(
+        umi_studio_services_language((UmiStudioServices *)user_data),
+        argument != NULL ? argument : "", &request_id);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Workspace-symbol request %lld: %s",
+                       (long long)request_id, umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus debug_thread_argument(const char *argument, int *out_thread)
+{
+    long parsed = 0L;
+    char *end = NULL;
+    if (out_thread == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    if (argument != NULL && argument[0] != '\0') {
+        parsed = strtol(argument, &end, 10);
+        if (end == argument || *end != '\0' || parsed < 0L ||
+            parsed > INT32_MAX) return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    *out_thread = (int)parsed;
+    return UMI_STATUS_OK;
+}
+
+static UmiStatus debug_start_handler(void *user_data, const char *argument,
+                                     char *out_message, size_t capacity)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    const UmiBuildProfile *profile = umi_studio_build_service_profile(
+        umi_studio_services_build(services));
+    const char *adapter = argument != NULL && argument[0] != '\0'
+        ? argument : "cppdbg";
+    UmiStatus status;
+    if (profile == NULL || profile->run_program[0] == '\0') {
+        return UMI_STATUS_INVALID_STATE;
+    }
+    status = umi_studio_debugger_service_start(
+        umi_studio_services_debugger(services), adapter,
+        profile->run_program, profile->source_directory);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Debug start: %s",
+                       umi_status_text(status));
+    }
+    return status;
+}
+
+typedef UmiStatus (*DebugThreadAction)(UmiStudioDebuggerService *, int);
+static UmiStatus debug_thread_handler(void *user_data, const char *argument,
+                                      char *out_message, size_t capacity,
+                                      const char *name,
+                                      DebugThreadAction action)
+{
+    int thread_id = 0;
+    UmiStatus status = debug_thread_argument(argument, &thread_id);
+    if (status == UMI_STATUS_OK) {
+        status = action(umi_studio_services_debugger(
+            (UmiStudioServices *)user_data), thread_id);
+    }
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "%s thread %d: %s", name,
+                       thread_id, umi_status_text(status));
+    }
+    return status;
+}
+
+#define DEBUG_THREAD_HANDLER(function_name, label, action)                  \
+static UmiStatus function_name(void *user_data, const char *argument,       \
+                               char *out_message, size_t capacity)          \
+{                                                                           \
+    return debug_thread_handler(user_data, argument, out_message, capacity, \
+                                label, action);                              \
+}
+DEBUG_THREAD_HANDLER(debug_continue_handler, "Continue", umi_studio_debugger_service_continue)
+DEBUG_THREAD_HANDLER(debug_pause_handler, "Pause", umi_studio_debugger_service_pause)
+DEBUG_THREAD_HANDLER(debug_next_handler, "Step over", umi_studio_debugger_service_next)
+DEBUG_THREAD_HANDLER(debug_step_in_handler, "Step into", umi_studio_debugger_service_step_in)
+DEBUG_THREAD_HANDLER(debug_step_out_handler, "Step out", umi_studio_debugger_service_step_out)
+#undef DEBUG_THREAD_HANDLER
+
+static UmiStatus debug_stop_handler(void *user_data, const char *argument,
+                                    char *out_message, size_t capacity)
+{
+    UmiStatus status = umi_studio_debugger_service_stop(
+        umi_studio_services_debugger((UmiStudioServices *)user_data),
+        argument != NULL && strcmp(argument, "restart") == 0);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Debug stop: %s",
+                       umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus debug_add_breakpoint_handler(void *user_data,
+                                              const char *argument,
+                                              char *out_message,
+                                              size_t capacity)
+{
+    char path[UMI_PROTOCOL_URI_CAPACITY];
+    const char *separator;
+    char *end = NULL;
+    long line;
+    size_t path_length;
+    UmiStatus status;
+    if (argument == NULL || (separator = strrchr(argument, ':')) == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    path_length = (size_t)(separator - argument);
+    if (path_length == 0U || path_length + 1U > sizeof(path)) {
+        return UMI_STATUS_CAPACITY_EXCEEDED;
+    }
+    (void)memcpy(path, argument, path_length);
+    path[path_length] = '\0';
+    line = strtol(separator + 1, &end, 10);
+    if (end == separator + 1 || *end != '\0' || line <= 0L ||
+        line > INT32_MAX) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_studio_debugger_service_add_breakpoint(
+        umi_studio_services_debugger((UmiStudioServices *)user_data),
+        path, (int)line, 1);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Breakpoint %s:%ld: %s",
+                       path, line, umi_status_text(status));
+    }
+    return status;
+}
+
 static UmiStatus vcs_refresh_handler(void *user_data,
                                      const char *argument,
                                      char *out_message,
@@ -873,11 +1007,61 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               language_initialize_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_LANGUAGE_WORKSPACE_SYMBOLS,
+                              "Workspace Symbols", "Language",
+                              "Search symbols through the active language server.",
+                              "studio.language.use", UMI_COMMAND_NONE,
+                              language_workspace_symbols_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_DEBUG_INITIALIZE,
                               "Initialise Debug Adapter", "Debug",
                               "Send the Debug Adapter Protocol initialise request.",
                               "studio.debug.use", UMI_COMMAND_NONE,
                               debug_initialize_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_DEBUG_START,
+                              "Start Debugging", "Debug",
+                              "Initialise the adapter and launch the active program.",
+                              "studio.debug.use", UMI_COMMAND_AUDITED,
+                              debug_start_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_DEBUG_CONTINUE,
+                              "Continue", "Debug", "Continue the selected thread.",
+                              "studio.debug.use", UMI_COMMAND_NONE,
+                              debug_continue_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_DEBUG_PAUSE,
+                              "Pause", "Debug", "Pause the selected thread.",
+                              "studio.debug.use", UMI_COMMAND_NONE,
+                              debug_pause_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_DEBUG_NEXT,
+                              "Step Over", "Debug", "Step over on the selected thread.",
+                              "studio.debug.use", UMI_COMMAND_NONE,
+                              debug_next_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_DEBUG_STEP_IN,
+                              "Step Into", "Debug", "Step into on the selected thread.",
+                              "studio.debug.use", UMI_COMMAND_NONE,
+                              debug_step_in_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_DEBUG_STEP_OUT,
+                              "Step Out", "Debug", "Step out on the selected thread.",
+                              "studio.debug.use", UMI_COMMAND_NONE,
+                              debug_step_out_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_DEBUG_STOP,
+                              "Stop Debugging", "Debug", "Terminate the debuggee.",
+                              "studio.debug.use", UMI_COMMAND_AUDITED,
+                              debug_stop_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_ADD_BREAKPOINT,
+                              "Add Breakpoint", "Debug",
+                              "Add a source breakpoint using path:line.",
+                              "studio.debug.use", UMI_COMMAND_MUTATES_STATE,
+                              debug_add_breakpoint_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_VCS_REFRESH,
