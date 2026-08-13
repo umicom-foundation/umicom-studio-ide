@@ -27,6 +27,14 @@ int main(void)
     assert(snapshot.next_operation_id == 1U);
     assert(umi_studio_build_service_history(service) != NULL);
     assert(umi_studio_build_service_profile(service) != NULL);
+    assert(umi_studio_build_service_prepare_default_graph(service, 1) ==
+           UMI_STATUS_OK);
+    assert(umi_studio_build_service_snapshot(service, &snapshot) ==
+           UMI_STATUS_OK);
+    assert(snapshot.graph.node_count == 4U);
+    assert(snapshot.graph.dependency_count == 3U);
+    assert(snapshot.graph.ready_count == 1U);
+    assert(umi_studio_build_service_artifacts(service) != NULL);
     umi_studio_build_service_destroy(service);
     umi_clock_dispose(&clock);
     return 0;

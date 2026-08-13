@@ -87,6 +87,7 @@ add_library(umicom_studio_core STATIC
     src/app/developer_workspace_state_centre.c
     src/app/ui_catalogue.c
     src/app/build.c
+    src/app/build_workbench.c
     src/app/tests.c
     src/app/terminal.c
     src/app/language.c
@@ -1028,6 +1029,7 @@ if(BUILD_TESTING)
 
     foreach(UMICOM_STUDIO_DEVELOPER_TEST
             build_service
+            build_workbench
             test_service
             terminal_service
             language_service
@@ -1159,6 +1161,7 @@ if(BUILD_TESTING)
         studio.ui_session
         studio.ui_actions
         studio.build_service
+        studio.build_workbench
         studio.test_service
         studio.terminal_service
         studio.language_service

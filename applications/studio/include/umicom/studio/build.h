@@ -34,6 +34,8 @@ typedef struct UmiStudioBuildSnapshot {
     UmiStatus last_status;
     int last_exit_code;
     size_t diagnostic_count;
+    UmiBuildGraphSnapshot graph;
+    size_t artifact_count;
 } UmiStudioBuildSnapshot;
 
 UmiStatus umi_studio_build_service_create(const char *source_root,
@@ -47,6 +49,28 @@ UmiStatus umi_studio_build_service_set_profile(
 UmiStatus umi_studio_build_service_run(UmiStudioBuildService *service,
                                        UmiBuildPhase phase,
                                        UmiBuildResult *out_result);
+UmiStatus umi_studio_build_service_prepare_default_graph(
+    UmiStudioBuildService *service,
+    int include_run);
+UmiStatus umi_studio_build_service_execute_next(
+    UmiStudioBuildService *service,
+    UmiBuildResult *out_result);
+UmiStatus umi_studio_build_service_execute_all(
+    UmiStudioBuildService *service,
+    size_t maximum_nodes,
+    size_t *out_executed_count);
+void umi_studio_build_service_cancel(UmiStudioBuildService *service);
+UmiStatus umi_studio_build_service_retry(UmiStudioBuildService *service,
+                                         const char *node_id);
+UmiStatus umi_studio_build_service_invalidate(UmiStudioBuildService *service,
+                                              const char *node_id,
+                                              uint64_t input_revision);
+UmiBuildGraph *umi_studio_build_service_graph(UmiStudioBuildService *service);
+UmiBuildArtifactIndex *umi_studio_build_service_artifacts(
+    UmiStudioBuildService *service);
+UmiStatus umi_studio_build_service_record_artifact(
+    UmiStudioBuildService *service,
+    const UmiBuildArtifactSnapshot *artifact);
 UmiStatus umi_studio_build_service_snapshot(
     const UmiStudioBuildService *service,
     UmiStudioBuildSnapshot *out_snapshot
