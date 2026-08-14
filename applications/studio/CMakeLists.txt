@@ -15,7 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.18.0")
+set(UMICOM_STUDIO_VERSION "0.19.0")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
@@ -167,6 +167,15 @@ add_library(umicom_studio_core STATIC
     src/app/duplicate_review.c
     src/app/consolidation.c
     src/app/codeguard.c
+    src/app/quality_centre.c
+    src/app/quality_evidence.c
+    src/app/quality_navigation.c
+    src/app/quality_remediation.c
+    src/app/quality_duplicates.c
+    src/app/quality_compatibility.c
+    src/app/quality_gates_v2.c
+    src/app/quality_views_v2.c
+    src/app/quality_commands_v2.c
     src/app/delivery_release.c
     src/app/delivery_package.c
     src/app/delivery_update.c
@@ -464,6 +473,10 @@ add_executable(umicom-studio-duplicates src/tools/duplicates_main.c)
 target_link_libraries(umicom-studio-duplicates PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-duplicates)
 umicom_apply_sanitizers(umicom-studio-duplicates)
+add_executable(umicom-studio-quality-centre src/tools/quality_centre_main.c)
+target_link_libraries(umicom-studio-quality-centre PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-quality-centre)
+umicom_apply_sanitizers(umicom-studio-quality-centre)
 add_executable(umicom-studio-quality src/tools/quality_main.c)
 target_link_libraries(umicom-studio-quality PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-quality)
@@ -1465,6 +1478,7 @@ install(TARGETS
     umicom-studio-data
     umicom-studio-database-explorer
     umicom-studio-integration-designer
+    umicom-studio-quality-centre
     umicom-studio-messages
     umicom-studio-replay
     umicom-studio-history
@@ -1533,4 +1547,24 @@ add_executable(umicom-studio-quality-gate-test tests/test_quality_gate.c)
 target_link_libraries(umicom-studio-quality-gate-test PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-quality-gate-test)
 add_test(NAME studio.quality_gate COMMAND umicom-studio-quality-gate-test)
+foreach(UMICOM_STUDIO_QUALITY_V2_TEST
+        quality_centre
+        quality_evidence_navigation
+        quality_remediation
+        quality_duplicates
+        quality_compatibility
+        quality_gates_v2
+        quality_views_v2
+        quality_commands_v2)
+    string(REPLACE "_" "-" UMICOM_STUDIO_QUALITY_V2_TEST_TARGET
+        "${UMICOM_STUDIO_QUALITY_V2_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_QUALITY_V2_TEST}.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_QUALITY_V2_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test)
+endforeach()
 endif()
