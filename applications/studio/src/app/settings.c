@@ -129,6 +129,48 @@ static const UmiSettingDefinition STUDIO_SETTINGS_SCHEMA[] = {
         0, 0, 0.0, 0.0, 0, 0
     },
     {
+        UMI_STUDIO_SETTING_AI_CODING_CONTEXT_TOKENS,
+        UMI_SETTING_INTEGER,
+        "16384",
+        "Maximum repository-file tokens selected for one coding task.",
+        1024, 524288, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AI_CODING_MAX_PATCH_FILES,
+        UMI_SETTING_INTEGER,
+        "16",
+        "Maximum files accepted in one AI coding patch preview.",
+        1, UMI_AI_CODING_PATCH_FILE_MAX, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AI_CODING_MAX_PATCH_LINES,
+        UMI_SETTING_INTEGER,
+        "2000",
+        "Maximum total added and removed lines in one AI coding patch.",
+        1, 100000, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AI_CODING_ALLOW_CREATE,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Allow reviewed AI coding patches to create files.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AI_CODING_ALLOW_DELETE,
+        UMI_SETTING_BOOLEAN,
+        "false",
+        "Allow reviewed AI coding patches to delete files.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AI_CODING_REQUIRE_APPROVAL,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Require explicit user approval before an AI coding patch is applied.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
         UMI_STUDIO_SETTING_DIAGNOSTIC_CAPACITY,
         UMI_SETTING_INTEGER,
         "512",

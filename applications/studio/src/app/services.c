@@ -186,8 +186,14 @@ UmiStatus umi_studio_services_create(
     int64_t parallel_jobs = 0;
     int64_t ai_context_tokens = 0;
     int64_t ai_output_tokens = 0;
+    int64_t ai_coding_context_tokens = 0;
+    int64_t ai_coding_patch_files = 0;
+    int64_t ai_coding_patch_lines = 0;
     int ai_allow_remote = 0;
     int ai_persist_sessions = 0;
+    int ai_coding_allow_create = 0;
+    int ai_coding_allow_delete = 0;
+    int ai_coding_require_approval = 0;
     char current_directory[UMI_PATH_CAPACITY];
     UmiFileIndexConfig file_index_config;
     UmiWatcherConfig watcher_config;
@@ -510,10 +516,34 @@ UmiStatus umi_studio_services_create(
         if (status == UMI_STATUS_OK) status = umi_settings_get_boolean(
             services->settings, UMI_STUDIO_SETTING_AI_PERSIST_SESSIONS,
             &ai_persist_sessions);
+        if (status == UMI_STATUS_OK) status = umi_settings_get_integer(
+            services->settings, UMI_STUDIO_SETTING_AI_CODING_CONTEXT_TOKENS,
+            &ai_coding_context_tokens);
+        if (status == UMI_STATUS_OK) status = umi_settings_get_integer(
+            services->settings, UMI_STUDIO_SETTING_AI_CODING_MAX_PATCH_FILES,
+            &ai_coding_patch_files);
+        if (status == UMI_STATUS_OK) status = umi_settings_get_integer(
+            services->settings, UMI_STUDIO_SETTING_AI_CODING_MAX_PATCH_LINES,
+            &ai_coding_patch_lines);
+        if (status == UMI_STATUS_OK) status = umi_settings_get_boolean(
+            services->settings, UMI_STUDIO_SETTING_AI_CODING_ALLOW_CREATE,
+            &ai_coding_allow_create);
+        if (status == UMI_STATUS_OK) status = umi_settings_get_boolean(
+            services->settings, UMI_STUDIO_SETTING_AI_CODING_ALLOW_DELETE,
+            &ai_coding_allow_delete);
+        if (status == UMI_STATUS_OK) status = umi_settings_get_boolean(
+            services->settings, UMI_STUDIO_SETTING_AI_CODING_REQUIRE_APPROVAL,
+            &ai_coding_require_approval);
         if (status == UMI_STATUS_OK &&
             (ai_context_tokens <= 0 || ai_context_tokens > UINT32_MAX ||
              ai_output_tokens <= 0 || ai_output_tokens > UINT32_MAX ||
-             ai_output_tokens >= ai_context_tokens)) {
+             ai_output_tokens >= ai_context_tokens ||
+             ai_coding_context_tokens <= 0 ||
+             ai_coding_context_tokens > UINT32_MAX ||
+             ai_coding_patch_files <= 0 ||
+             ai_coding_patch_files > UMI_AI_CODING_PATCH_FILE_MAX ||
+             ai_coding_patch_lines <= 0 ||
+             ai_coding_patch_lines > UINT32_MAX)) {
             status = UMI_STATUS_INVALID_STATE;
         }
         if (status == UMI_STATUS_OK) {
@@ -521,6 +551,13 @@ UmiStatus umi_studio_services_create(
             ai_config.reserved_output_tokens = (uint32_t)ai_output_tokens;
             ai_config.allow_remote = ai_allow_remote;
             ai_config.persist_sessions = ai_persist_sessions;
+            ai_config.coding_context_tokens =
+                (uint32_t)ai_coding_context_tokens;
+            ai_config.maximum_patch_files = (size_t)ai_coding_patch_files;
+            ai_config.maximum_patch_lines = (uint32_t)ai_coding_patch_lines;
+            ai_config.allow_patch_create = ai_coding_allow_create;
+            ai_config.allow_patch_delete = ai_coding_allow_delete;
+            ai_config.require_patch_approval = ai_coding_require_approval;
             status = umi_studio_ai_platform_create_configured(
                 &ai_config, &services->ai_platform);
         }
@@ -720,6 +757,9 @@ UmiStatus umi_studio_services_publish(
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.authorengine-integration",
             umi_studio_ai_platform_authorengine(services->ai_platform),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.ai-coding-assistant",
+            umi_studio_ai_platform_coding_assistant(services->ai_platform),
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.helix",
             umi_studio_ai_platform_helix(services->ai_platform),

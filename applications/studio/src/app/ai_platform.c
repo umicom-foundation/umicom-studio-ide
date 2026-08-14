@@ -24,6 +24,8 @@ struct UmiStudioAiPlatform {
     UmiAiRuntime ai;
     UmiHelixRuntime helix;
     UmiAiAuthorEngineService *authorengine;
+    UmiAiCodingAssistantService *coding_assistant;
+    uint32_t coding_context_tokens;
     char default_provider[UMI_AI_ID_CAPACITY];
 };
 
@@ -93,8 +95,14 @@ UmiStudioAiPlatformConfig umi_studio_ai_platform_config_default(void)
     (void)copy_text(config.workspace, sizeof(config.workspace), ".");
     config.context_tokens = 32768U;
     config.reserved_output_tokens = 2048U;
+    config.coding_context_tokens = 16384U;
+    config.maximum_patch_lines = 2000U;
+    config.maximum_patch_files = UMI_AI_CODING_PATCH_FILE_MAX;
     config.allow_remote = 0;
     config.persist_sessions = 1;
+    config.allow_patch_create = 1;
+    config.allow_patch_delete = 0;
+    config.require_patch_approval = 1;
     return config;
 }
 
@@ -172,6 +180,30 @@ static UmiStatus register_context(UmiStudioAiPlatform *platform,
         umi_ai_authorengine_service_context(platform->authorengine), &source);
 }
 
+static UmiStatus register_coding_file(UmiStudioAiPlatform *platform,
+                                      const char *path,
+                                      const char *language_id,
+                                      const char *summary,
+                                      uint32_t tokens,
+                                      uint32_t priority,
+                                      int active)
+{
+    UmiAiCodingContextFile file;
+    (void)memset(&file, 0, sizeof(file));
+    if (!copy_text(file.path, sizeof(file.path), path) ||
+        !copy_text(file.language_id, sizeof(file.language_id), language_id) ||
+        !copy_text(file.summary, sizeof(file.summary), summary)) {
+        return UMI_STATUS_CAPACITY_EXCEEDED;
+    }
+    file.classification = UMI_AI_DATA_INTERNAL;
+    file.estimated_tokens = tokens;
+    file.priority = priority;
+    file.active = active;
+    file.enabled = 1;
+    return umi_ai_coding_context_upsert(
+        umi_ai_coding_assistant_context(platform->coding_assistant), &file);
+}
+
 UmiStatus umi_studio_ai_platform_create_configured(
     const UmiStudioAiPlatformConfig *config,
     UmiStudioAiPlatform **out_platform)
@@ -186,12 +218,17 @@ UmiStatus umi_studio_ai_platform_create_configured(
     if (config == NULL || out_platform == NULL ||
         config->authorengine_executable[0] == '\0' ||
         config->workspace[0] == '\0' || config->context_tokens == 0U ||
-        config->reserved_output_tokens >= config->context_tokens) {
+        config->reserved_output_tokens >= config->context_tokens ||
+        config->coding_context_tokens == 0U ||
+        config->maximum_patch_lines == 0U ||
+        config->maximum_patch_files == 0U ||
+        config->maximum_patch_files > UMI_AI_CODING_PATCH_FILE_MAX) {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
     *out_platform = NULL;
     platform = (UmiStudioAiPlatform *)calloc(1U, sizeof(*platform));
     if (platform == NULL) return UMI_STATUS_OUT_OF_MEMORY;
+    platform->coding_context_tokens = config->coding_context_tokens;
 
     umi_ai_runtime_init(&platform->ai);
     platform->ai.policy.allow_tools = 1;
@@ -292,6 +329,33 @@ UmiStatus umi_studio_ai_platform_create_configured(
             platform->authorengine, "studio.session.default", "studio.local",
             "studio-reference", "studio.workspace", "Studio AI Workspace", 0U);
     }
+    if (status == UMI_STATUS_OK) {
+        UmiAiCodingPatchPolicy patch_policy =
+            umi_ai_coding_patch_policy_default();
+        status = umi_ai_coding_assistant_create(
+            platform->authorengine, &platform->coding_assistant);
+        patch_policy.maximum_files = config->maximum_patch_files;
+        patch_policy.maximum_changed_lines = config->maximum_patch_lines;
+        patch_policy.allow_create = config->allow_patch_create != 0;
+        patch_policy.allow_delete = config->allow_patch_delete != 0;
+        patch_policy.require_approval = config->require_patch_approval != 0;
+        if (status == UMI_STATUS_OK) {
+            status = umi_ai_coding_assistant_set_patch_policy(
+                platform->coding_assistant, &patch_policy);
+        }
+    }
+    if (status == UMI_STATUS_OK) status = register_coding_file(
+        platform, "CMakeLists.txt", "cmake", "Studio root build composition",
+        900U, 80U, 0);
+    if (status == UMI_STATUS_OK) status = register_coding_file(
+        platform, "applications/studio/CMakeLists.txt", "cmake",
+        "Studio targets and focused tests", 1800U, 90U, 0);
+    if (status == UMI_STATUS_OK) status = register_coding_file(
+        platform, "applications/studio/src/app/ai_platform.c", "c23",
+        "Active AI and AuthorEngine product composition", 2200U, 100U, 1);
+    if (status == UMI_STATUS_OK) status = register_coding_file(
+        platform, "framework/include/umicom/ai/ai.h", "c23",
+        "Framework AI public aggregate", 500U, 70U, 0);
     if (status != UMI_STATUS_OK) {
         umi_studio_ai_platform_destroy(platform);
         return status;
@@ -309,6 +373,7 @@ UmiStatus umi_studio_ai_platform_create(UmiStudioAiPlatform **out_platform)
 void umi_studio_ai_platform_destroy(UmiStudioAiPlatform *platform)
 {
     if (platform == NULL) return;
+    umi_ai_coding_assistant_destroy(platform->coding_assistant);
     umi_ai_authorengine_service_destroy(platform->authorengine);
     free(platform);
 }
@@ -327,6 +392,18 @@ UmiAiAuthorEngineService *umi_studio_ai_platform_authorengine(
     UmiStudioAiPlatform *platform)
 {
     return platform != NULL ? platform->authorengine : NULL;
+}
+
+UmiAiCodingAssistantService *umi_studio_ai_platform_coding_assistant(
+    UmiStudioAiPlatform *platform)
+{
+    return platform != NULL ? platform->coding_assistant : NULL;
+}
+
+uint32_t umi_studio_ai_platform_coding_context_tokens(
+    const UmiStudioAiPlatform *platform)
+{
+    return platform != NULL ? platform->coding_context_tokens : 0U;
 }
 
 const char *umi_studio_ai_platform_default_provider(

@@ -44,6 +44,18 @@ extern "C" {
     "studio.ai.allow_remote"
 #define UMI_STUDIO_SETTING_AI_PERSIST_SESSIONS \
     "studio.ai.persist_sessions"
+#define UMI_STUDIO_SETTING_AI_CODING_CONTEXT_TOKENS \
+    "studio.ai.coding.context_tokens"
+#define UMI_STUDIO_SETTING_AI_CODING_MAX_PATCH_FILES \
+    "studio.ai.coding.maximum_patch_files"
+#define UMI_STUDIO_SETTING_AI_CODING_MAX_PATCH_LINES \
+    "studio.ai.coding.maximum_patch_lines"
+#define UMI_STUDIO_SETTING_AI_CODING_ALLOW_CREATE \
+    "studio.ai.coding.allow_file_creation"
+#define UMI_STUDIO_SETTING_AI_CODING_ALLOW_DELETE \
+    "studio.ai.coding.allow_file_deletion"
+#define UMI_STUDIO_SETTING_AI_CODING_REQUIRE_APPROVAL \
+    "studio.ai.coding.require_patch_approval"
 #define UMI_STUDIO_SETTING_DIAGNOSTIC_CAPACITY \
     "studio.diagnostics.capacity"
 #define UMI_STUDIO_SETTING_AUTO_SAVE "studio.files.auto_save"

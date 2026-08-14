@@ -37,6 +37,14 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_AI_REFRESH_HEALTH "studio.ai.refresh-health"
 #define UMI_STUDIO_COMMAND_AI_NEW_SESSION "studio.ai.new-session"
 #define UMI_STUDIO_COMMAND_AI_SAVE_SESSION "studio.ai.save-session"
+#define UMI_STUDIO_COMMAND_AI_CODE_CHAT "studio.ai.code-chat"
+#define UMI_STUDIO_COMMAND_AI_COMPLETE_CODE "studio.ai.complete-code"
+#define UMI_STUDIO_COMMAND_AI_EXPLAIN_CODE "studio.ai.explain-code"
+#define UMI_STUDIO_COMMAND_AI_REFACTOR_CODE "studio.ai.refactor-code"
+#define UMI_STUDIO_COMMAND_AI_GENERATE_TESTS "studio.ai.generate-tests"
+#define UMI_STUDIO_COMMAND_AI_PATCH_APPROVE "studio.ai.patch-approve"
+#define UMI_STUDIO_COMMAND_AI_PATCH_APPLY "studio.ai.patch-apply"
+#define UMI_STUDIO_COMMAND_AI_PATCH_REVERT "studio.ai.patch-revert"
 #define UMI_STUDIO_COMMAND_OBSERVABILITY_REPORT "studio.observability.report"
 #define UMI_STUDIO_COMMAND_RESILIENCE_REPORT "studio.resilience.report"
 #define UMI_STUDIO_COMMAND_BUILD_CONFIGURE "studio.build.configure"
@@ -89,7 +97,7 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_VCS_DIFF "studio.vcs.diff"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 69U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 77U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

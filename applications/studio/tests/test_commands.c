@@ -128,6 +128,16 @@ int main(void)
 
     assert(umi_command_registry_execute(
         registry,
+        UMI_STUDIO_COMMAND_AI_EXPLAIN_CODE,
+        "applications/studio/src/app/ai_platform.c|Explain ownership.",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(strstr(message, "explanation plan") != NULL);
+    assert(strstr(message, "repository file(s)") != NULL);
+
+    assert(umi_command_registry_execute(
+        registry,
         UMI_STUDIO_COMMAND_LANGUAGE_INITIALIZE,
         "0",
         message,

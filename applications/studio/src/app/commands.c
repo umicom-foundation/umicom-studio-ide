@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "umicom/studio/build.h"
+#include "umicom/studio/coding_assistant.h"
 #include "umicom/studio/data.h"
 #include "umicom/studio/debugger.h"
 #include "umicom/studio/developer_platform.h"
@@ -1311,6 +1312,182 @@ static UmiStatus ai_save_session_handler(void *user_data,
     return status;
 }
 
+static UmiStatus coding_task_execute(void *user_data,
+                                     const char *argument,
+                                     char *out_message,
+                                     size_t message_capacity,
+                                     UmiAiCodingTaskKind task)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(services);
+    UmiClock *clock = umi_studio_services_clock(services);
+    UmiAiCodingTaskPlan plan;
+    char request_id[UMI_AI_ID_CAPACITY];
+    char active_path[UMI_AI_TEXT_CAPACITY];
+    char instruction[UMI_AI_TEXT_CAPACITY];
+    const char *separator = argument != NULL ? strchr(argument, '|') : NULL;
+    UmiStatus status;
+
+    (void)snprintf(request_id, sizeof(request_id), "studio.coding.%u.%" PRIu64,
+                   (unsigned int)task, clock->wall_nanoseconds(clock));
+    (void)snprintf(active_path, sizeof(active_path), "%s",
+                   "applications/studio/src/app/ai_platform.c");
+    (void)snprintf(instruction, sizeof(instruction), "%s",
+                   argument != NULL && argument[0] != '\0'
+                       ? argument : "Work with the active code selection.");
+    /* A frontend may send relative-path|instruction.  Keeping the transport
+     * textual makes the command available to palettes, consoles and tests. */
+    if (separator != NULL) {
+        size_t path_length = (size_t)(separator - argument);
+        if (path_length == 0U || path_length >= sizeof(active_path)) {
+            return UMI_STATUS_INVALID_ARGUMENT;
+        }
+        (void)memcpy(active_path, argument, path_length);
+        active_path[path_length] = '\0';
+        (void)snprintf(instruction, sizeof(instruction), "%s", separator + 1);
+    }
+    status = umi_studio_coding_assistant_prepare(
+        platform, request_id, task, instruction, active_path, &plan);
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(
+                out_message, message_capacity,
+                "%s plan %s: %zu repository file(s), %" PRIu32
+                " total context tokens, review hash %016" PRIx64,
+                umi_ai_coding_task_kind_text(task), request_id,
+                plan.repository_context.file_count, plan.total_context_tokens,
+                plan.plan_hash);
+        } else {
+            (void)snprintf(out_message, message_capacity,
+                           "AI coding task: %s", umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+#define DEFINE_CODING_TASK_HANDLER(name_, task_) \
+    static UmiStatus name_(void *user_data, const char *argument, \
+                           char *out_message, size_t capacity) \
+    { \
+        return coding_task_execute( \
+            user_data, argument, out_message, capacity, task_); \
+    }
+DEFINE_CODING_TASK_HANDLER(ai_code_chat_handler, UMI_AI_CODING_TASK_CHAT)
+DEFINE_CODING_TASK_HANDLER(ai_complete_code_handler,
+                           UMI_AI_CODING_TASK_COMPLETE)
+DEFINE_CODING_TASK_HANDLER(ai_explain_code_handler,
+                           UMI_AI_CODING_TASK_EXPLAIN)
+DEFINE_CODING_TASK_HANDLER(ai_refactor_code_handler,
+                           UMI_AI_CODING_TASK_REFACTOR)
+DEFINE_CODING_TASK_HANDLER(ai_generate_tests_handler,
+                           UMI_AI_CODING_TASK_GENERATE_TESTS)
+#undef DEFINE_CODING_TASK_HANDLER
+
+static UmiStatus resolve_patch_id(UmiStudioAiPlatform *platform,
+                                  const char *argument,
+                                  char *out_patch_id,
+                                  size_t capacity)
+{
+    UmiAiCodingAssistantSnapshot snapshot;
+    int written;
+    if (argument != NULL && argument[0] != '\0') {
+        written = snprintf(out_patch_id, capacity, "%s", argument);
+        return written >= 0 && (size_t)written < capacity
+            ? UMI_STATUS_OK : UMI_STATUS_CAPACITY_EXCEEDED;
+    }
+    if (umi_ai_coding_assistant_snapshot(
+            umi_studio_ai_platform_coding_assistant(platform), &snapshot)
+        != UMI_STATUS_OK || snapshot.last_patch_id[0] == '\0') {
+        return UMI_STATUS_NOT_FOUND;
+    }
+    written = snprintf(out_patch_id, capacity, "%s", snapshot.last_patch_id);
+    return written >= 0 && (size_t)written < capacity
+        ? UMI_STATUS_OK : UMI_STATUS_CAPACITY_EXCEEDED;
+}
+
+static UmiStatus ai_patch_approve_handler(void *user_data,
+                                          const char *argument,
+                                          char *out_message,
+                                          size_t message_capacity)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    char patch_id[UMI_AI_ID_CAPACITY];
+    UmiStatus status = resolve_patch_id(
+        platform, argument, patch_id, sizeof(patch_id));
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_coding_assistant_approve_patch(
+            platform, patch_id, "studio.user");
+    }
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       status == UMI_STATUS_OK ? "Approved AI patch %s"
+                                               : "AI patch approval: %s",
+                       status == UMI_STATUS_OK ? patch_id
+                                               : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus coding_patch_mutate(void *user_data,
+                                     const char *argument,
+                                     char *out_message,
+                                     size_t message_capacity,
+                                     int revert)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    UmiAiAuthorEngineServiceSnapshot integration;
+    UmiStudioCodingWorkspace workspace;
+    UmiAiCodingFileAdapter adapter;
+    char patch_id[UMI_AI_ID_CAPACITY];
+    UmiStatus status = resolve_patch_id(
+        platform, argument, patch_id, sizeof(patch_id));
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_ai_platform_snapshot(platform, &integration);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_coding_workspace_adapter_init(
+            &workspace, integration.workspace, &adapter);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = revert
+            ? umi_studio_coding_assistant_revert_patch(
+                  platform, patch_id, &adapter)
+            : umi_studio_coding_assistant_apply_patch(
+                  platform, patch_id, &adapter);
+    }
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message, message_capacity, "%s AI patch %s",
+                           revert ? "Reverted" : "Applied", patch_id);
+        } else {
+            (void)snprintf(out_message, message_capacity, "AI patch %s: %s",
+                           revert ? "revert" : "apply",
+                           umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus ai_patch_apply_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    return coding_patch_mutate(
+        user_data, argument, out_message, message_capacity, 0);
+}
+
+static UmiStatus ai_patch_revert_handler(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t message_capacity)
+{
+    return coding_patch_mutate(
+        user_data, argument, out_message, message_capacity, 1);
+}
+
 static UmiStatus register_command(UmiCommandRegistry *registry,
                                   UmiStudioServices *services,
                                   const char *command_id,
@@ -1536,6 +1713,68 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "studio.ai.manage",
                               UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
                               ai_save_session_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_CODE_CHAT,
+                              "Code chat", "AI Coding",
+                              "Plan a repository-aware coding conversation.",
+                              "studio.ai.read", UMI_COMMAND_AUDITED,
+                              ai_code_chat_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_COMPLETE_CODE,
+                              "Complete code", "AI Coding",
+                              "Plan context-aware code completion for the active file.",
+                              "studio.ai.read", UMI_COMMAND_AUDITED,
+                              ai_complete_code_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_EXPLAIN_CODE,
+                              "Explain code", "AI Coding",
+                              "Plan an explanation using governed repository context.",
+                              "studio.ai.read", UMI_COMMAND_AUDITED,
+                              ai_explain_code_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_REFACTOR_CODE,
+                              "Refactor code", "AI Coding",
+                              "Plan a refactoring whose patch requires review.",
+                              "studio.ai.manage", UMI_COMMAND_AUDITED,
+                              ai_refactor_code_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_GENERATE_TESTS,
+                              "Generate tests", "AI Coding",
+                              "Plan repository-aware tests as a reviewable patch.",
+                              "studio.ai.manage", UMI_COMMAND_AUDITED,
+                              ai_generate_tests_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_PATCH_APPROVE,
+                              "Approve AI patch", "AI Coding",
+                              "Approve the exact current AI patch preview.",
+                              "studio.ai.manage",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED |
+                                  UMI_COMMAND_REQUIRES_TRUST,
+                              ai_patch_approve_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_PATCH_APPLY,
+                              "Apply AI patch", "AI Coding",
+                              "Apply an approved patch after workspace conflict checks.",
+                              "studio.documents.write",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED |
+                                  UMI_COMMAND_REQUIRES_TRUST,
+                              ai_patch_apply_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_PATCH_REVERT,
+                              "Revert AI patch", "AI Coding",
+                              "Revert an applied patch when its files are unchanged.",
+                              "studio.documents.write",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED |
+                                  UMI_COMMAND_REQUIRES_TRUST,
+                              ai_patch_revert_handler);
     if (status != UMI_STATUS_OK) return status;
 
     status = register_command(registry,

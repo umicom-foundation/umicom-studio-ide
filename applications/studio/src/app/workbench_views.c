@@ -53,6 +53,9 @@
 #define VIEW_AI_CONTEXT    "studio.ai-context"
 #define VIEW_AI_SESSIONS   "studio.ai-sessions"
 #define VIEW_AI_PRIVACY    "studio.ai-privacy"
+#define VIEW_AI_CODING     "studio.ai-coding"
+#define VIEW_AI_CODING_CONTEXT "studio.ai-coding-context"
+#define VIEW_AI_PATCH_REVIEW "studio.ai-patch-review"
 #define VIEW_OUTPUT        "studio.output"
 #define VIEW_PROBLEMS      "studio.problems"
 #define VIEW_TERMINAL      "studio.terminal"
@@ -719,6 +722,50 @@ static UmiStatus create_ai_privacy(const char *view_id,
         : UMI_STATUS_INVALID_STATE;
 }
 
+static UmiStatus create_ai_coding(const char *view_id,
+                                  void *user_data,
+                                  UmiUiViewModel **out_view)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    return platform != NULL
+        ? umi_ai_ui_coding_assistant_view_create(
+              view_id, umi_studio_ai_platform_coding_assistant(platform),
+              out_view)
+        : UMI_STATUS_INVALID_STATE;
+}
+
+static UmiStatus create_ai_coding_context(const char *view_id,
+                                          void *user_data,
+                                          UmiUiViewModel **out_view)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    return platform != NULL
+        ? umi_ai_ui_coding_repository_view_create(
+              view_id, umi_studio_ai_platform_coding_assistant(platform),
+              out_view)
+        : UMI_STATUS_INVALID_STATE;
+}
+
+static UmiStatus create_ai_patch_review(const char *view_id,
+                                        void *user_data,
+                                        UmiUiViewModel **out_view)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    UmiAiCodingAssistantSnapshot snapshot;
+    UmiStatus status;
+    if (platform == NULL) return UMI_STATUS_INVALID_STATE;
+    status = umi_ai_coding_assistant_snapshot(
+        umi_studio_ai_platform_coding_assistant(platform), &snapshot);
+    return status == UMI_STATUS_OK
+        ? umi_ai_ui_coding_patch_view_create(
+              view_id, umi_studio_ai_platform_coding_assistant(platform),
+              snapshot.last_patch_id, out_view)
+        : status;
+}
+
 typedef struct StudioViewDefinition {
     const char *view_type;
     StudioViewCreateFn create;
@@ -742,6 +789,9 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_AI_CONTEXT, create_ai_context },
     { VIEW_AI_SESSIONS, create_ai_sessions },
     { VIEW_AI_PRIVACY, create_ai_privacy },
+    { VIEW_AI_CODING, create_ai_coding },
+    { VIEW_AI_CODING_CONTEXT, create_ai_coding_context },
+    { VIEW_AI_PATCH_REVIEW, create_ai_patch_review },
     { VIEW_OUTPUT, create_output },
     { VIEW_PROBLEMS, create_problems },
     { VIEW_TERMINAL, create_terminal },

@@ -30,8 +30,14 @@ typedef struct UmiStudioAiPlatformConfig {
     char workspace[UMI_AI_TEXT_CAPACITY];
     uint32_t context_tokens;
     uint32_t reserved_output_tokens;
+    uint32_t coding_context_tokens;
+    uint32_t maximum_patch_lines;
+    size_t maximum_patch_files;
     int allow_remote;
     int persist_sessions;
+    int allow_patch_create;
+    int allow_patch_delete;
+    int require_patch_approval;
 } UmiStudioAiPlatformConfig;
 
 UmiStudioAiPlatformConfig umi_studio_ai_platform_config_default(void);
@@ -44,6 +50,10 @@ UmiAiRuntime *umi_studio_ai_platform_runtime(UmiStudioAiPlatform *platform);
 UmiHelixRuntime *umi_studio_ai_platform_helix(UmiStudioAiPlatform *platform);
 UmiAiAuthorEngineService *umi_studio_ai_platform_authorengine(
     UmiStudioAiPlatform *platform);
+UmiAiCodingAssistantService *umi_studio_ai_platform_coding_assistant(
+    UmiStudioAiPlatform *platform);
+uint32_t umi_studio_ai_platform_coding_context_tokens(
+    const UmiStudioAiPlatform *platform);
 const char *umi_studio_ai_platform_default_provider(
     const UmiStudioAiPlatform *platform);
 UmiStatus umi_studio_ai_platform_refresh_health(

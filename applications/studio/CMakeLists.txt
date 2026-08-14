@@ -111,6 +111,7 @@ add_library(umicom_studio_core STATIC
     src/app/ai_chat.c
     src/app/ai_evaluation.c
     src/app/ai_platform.c
+    src/app/coding_assistant.c
     src/app/ai_retrieval.c
     src/app/ai_sources.c
     src/app/ai_tools.c
@@ -1124,6 +1125,8 @@ if(BUILD_TESTING)
             authorengine_integration_v2
             authorengine_views_v2
             ai_workspace_v2
+            coding_assistant
+            ai_coding_views
             helix
             helix_evidence
             helix_fitness
@@ -1205,6 +1208,8 @@ if(BUILD_TESTING)
         studio.authorengine_integration_v2
         studio.authorengine_views_v2
         studio.ai_workspace_v2
+        studio.coding_assistant
+        studio.ai_coding_views
         studio.helix
         studio.helix_evidence
         studio.helix_fitness
