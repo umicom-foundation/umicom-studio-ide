@@ -87,6 +87,48 @@ static const UmiSettingDefinition STUDIO_SETTINGS_SCHEMA[] = {
         0
     },
     {
+        UMI_STUDIO_SETTING_AUTHORENGINE_EXECUTABLE,
+        UMI_SETTING_STRING,
+        "uaengine",
+        "AuthorEngine executable used by the supervised process adapter.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AUTHORENGINE_WORKSPACE,
+        UMI_SETTING_STRING,
+        ".",
+        "Workspace supplied to AuthorEngine; dot selects Studio's current workspace.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AI_CONTEXT_TOKENS,
+        UMI_SETTING_INTEGER,
+        "32768",
+        "Maximum combined input and reserved output tokens for one AI request.",
+        2048, 1048576, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AI_RESERVED_OUTPUT_TOKENS,
+        UMI_SETTING_INTEGER,
+        "2048",
+        "Tokens reserved for the model response before selecting workspace context.",
+        256, 262144, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AI_ALLOW_REMOTE,
+        UMI_SETTING_BOOLEAN,
+        "false",
+        "Permit configured remote AI runtimes; sensitive sharing still requires policy approval.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_AI_PERSIST_SESSIONS,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Permit explicitly requested AI session persistence under privacy policy.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
         UMI_STUDIO_SETTING_DIAGNOSTIC_CAPACITY,
         UMI_SETTING_INTEGER,
         "512",

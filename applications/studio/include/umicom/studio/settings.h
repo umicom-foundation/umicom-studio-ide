@@ -32,6 +32,18 @@ extern "C" {
 #define UMI_STUDIO_SETTING_BUILD_PARALLEL_JOBS \
     "studio.build.parallel_jobs"
 #define UMI_STUDIO_SETTING_AI_ENABLED "studio.ai.enabled"
+#define UMI_STUDIO_SETTING_AUTHORENGINE_EXECUTABLE \
+    "studio.ai.authorengine.executable"
+#define UMI_STUDIO_SETTING_AUTHORENGINE_WORKSPACE \
+    "studio.ai.authorengine.workspace"
+#define UMI_STUDIO_SETTING_AI_CONTEXT_TOKENS \
+    "studio.ai.context_tokens"
+#define UMI_STUDIO_SETTING_AI_RESERVED_OUTPUT_TOKENS \
+    "studio.ai.reserved_output_tokens"
+#define UMI_STUDIO_SETTING_AI_ALLOW_REMOTE \
+    "studio.ai.allow_remote"
+#define UMI_STUDIO_SETTING_AI_PERSIST_SESSIONS \
+    "studio.ai.persist_sessions"
 #define UMI_STUDIO_SETTING_DIAGNOSTIC_CAPACITY \
     "studio.diagnostics.capacity"
 #define UMI_STUDIO_SETTING_AUTO_SAVE "studio.files.auto_save"

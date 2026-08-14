@@ -48,6 +48,8 @@ static UmiStatus register_studio_identity(UmiStudioOperations *operations)
         "studio.plugins.read",
         "studio.products.read",
         "studio.products.manage",
+        "studio.ai.read",
+        "studio.ai.manage",
         "studio.observability.read",
         "studio.resilience.read"
     };

@@ -32,6 +32,16 @@ typedef struct UmiStudioAiWorkspaceSnapshot {
     char summary[512];
     uint64_t revision;
     size_t item_count;
+    size_t provider_count;
+    size_t runtime_count;
+    size_t healthy_runtime_count;
+    size_t context_source_count;
+    size_t session_count;
+    uint32_t context_limit;
+    uint32_t reserved_output_tokens;
+    int remote_allowed;
+    int persistence_allowed;
+    char active_session_id[UMI_AI_ID_CAPACITY];
     int available;
 } UmiStudioAiWorkspaceSnapshot;
 UmiStatus umi_studio_ai_workspace_snapshot(UmiStudioServices *services, UmiStudioAiWorkspaceSnapshot *out_snapshot);

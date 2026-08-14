@@ -49,6 +49,10 @@
 #define VIEW_APPLICATIONS  "studio.application-hub"
 #define VIEW_FRAMEWORK     "studio.framework"
 #define VIEW_AI            "studio.authorengine"
+#define VIEW_AI_RUNTIMES   "studio.ai-runtimes"
+#define VIEW_AI_CONTEXT    "studio.ai-context"
+#define VIEW_AI_SESSIONS   "studio.ai-sessions"
+#define VIEW_AI_PRIVACY    "studio.ai-privacy"
 #define VIEW_OUTPUT        "studio.output"
 #define VIEW_PROBLEMS      "studio.problems"
 #define VIEW_TERMINAL      "studio.terminal"
@@ -644,32 +648,75 @@ static UmiStatus create_ai(const char *view_id,
                            UmiUiViewModel **out_view)
 {
     UmiStudioServices *services = (UmiStudioServices *)user_data;
-    UmiStudioAiPlatform *platform;
-    const char *provider;
-    UmiStatus status = create_base_view(
-        view_id,
-        VIEW_AI,
-        "AI / AuthorEngine",
-        "Studio AI composition over the reusable Framework AI and Helix runtimes.",
-        out_view);
-
-    if (status != UMI_STATUS_OK) return status;
-    platform = umi_studio_services_ai_platform(services);
-    provider = platform != NULL
-        ? umi_studio_ai_platform_default_provider(platform)
-        : NULL;
-
-    status = property_boolean(*out_view, "available", platform != NULL);
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(services);
+    UmiStatus status;
+    if (platform == NULL) return UMI_STATUS_INVALID_STATE;
+    status = umi_ai_ui_authorengine_overview_view_create(
+        view_id, umi_studio_ai_platform_authorengine(platform), out_view);
+    /* Preserve the original Batch 23 properties for existing adapters while
+     * adding the richer Integration v2 view model around them. */
     if (status == UMI_STATUS_OK) {
-        status = property_string(*out_view, "default-provider",
-                                 provider != NULL ? provider : "not configured");
+        status = property_boolean(*out_view, "available", 1);
     }
     if (status == UMI_STATUS_OK) {
-        status = property_boolean(*out_view, "helix-runtime",
-                                  platform != NULL &&
-                                  umi_studio_ai_platform_helix(platform) != NULL);
+        status = property_string(
+            *out_view, "default-provider",
+            umi_studio_ai_platform_default_provider(platform));
+    }
+    if (status == UMI_STATUS_OK) {
+        status = property_boolean(
+            *out_view, "helix-runtime",
+            umi_studio_ai_platform_helix(platform) != NULL);
     }
     return status;
+}
+
+static UmiStatus create_ai_runtimes(const char *view_id,
+                                    void *user_data,
+                                    UmiUiViewModel **out_view)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    return platform != NULL
+        ? umi_ai_ui_runtime_catalogue_view_create(
+              view_id, umi_studio_ai_platform_authorengine(platform), out_view)
+        : UMI_STATUS_INVALID_STATE;
+}
+
+static UmiStatus create_ai_context(const char *view_id,
+                                   void *user_data,
+                                   UmiUiViewModel **out_view)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    return platform != NULL
+        ? umi_ai_ui_context_view_create(
+              view_id, umi_studio_ai_platform_authorengine(platform), out_view)
+        : UMI_STATUS_INVALID_STATE;
+}
+
+static UmiStatus create_ai_sessions(const char *view_id,
+                                    void *user_data,
+                                    UmiUiViewModel **out_view)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    return platform != NULL
+        ? umi_ai_ui_sessions_view_create(
+              view_id, umi_studio_ai_platform_authorengine(platform), out_view)
+        : UMI_STATUS_INVALID_STATE;
+}
+
+static UmiStatus create_ai_privacy(const char *view_id,
+                                   void *user_data,
+                                   UmiUiViewModel **out_view)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    return platform != NULL
+        ? umi_ai_ui_privacy_view_create(
+              view_id, umi_studio_ai_platform_authorengine(platform), out_view)
+        : UMI_STATUS_INVALID_STATE;
 }
 
 typedef struct StudioViewDefinition {
@@ -691,6 +738,10 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_APPLICATIONS, create_applications },
     { VIEW_FRAMEWORK, create_framework },
     { VIEW_AI, create_ai },
+    { VIEW_AI_RUNTIMES, create_ai_runtimes },
+    { VIEW_AI_CONTEXT, create_ai_context },
+    { VIEW_AI_SESSIONS, create_ai_sessions },
+    { VIEW_AI_PRIVACY, create_ai_privacy },
     { VIEW_OUTPUT, create_output },
     { VIEW_PROBLEMS, create_problems },
     { VIEW_TERMINAL, create_terminal },

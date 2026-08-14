@@ -1121,6 +1121,9 @@ if(BUILD_TESTING)
             ai_retrieval
             ai_tools
             authorengine
+            authorengine_integration_v2
+            authorengine_views_v2
+            ai_workspace_v2
             helix
             helix_evidence
             helix_fitness
@@ -1199,6 +1202,9 @@ if(BUILD_TESTING)
         studio.ai_retrieval
         studio.ai_tools
         studio.authorengine
+        studio.authorengine_integration_v2
+        studio.authorengine_views_v2
+        studio.ai_workspace_v2
         studio.helix
         studio.helix_evidence
         studio.helix_fitness

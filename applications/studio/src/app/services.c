@@ -184,6 +184,10 @@ UmiStatus umi_studio_services_create(
     int session_loaded = 0;
     int64_t diagnostic_capacity = 0;
     int64_t parallel_jobs = 0;
+    int64_t ai_context_tokens = 0;
+    int64_t ai_output_tokens = 0;
+    int ai_allow_remote = 0;
+    int ai_persist_sessions = 0;
     char current_directory[UMI_PATH_CAPACITY];
     UmiFileIndexConfig file_index_config;
     UmiWatcherConfig watcher_config;
@@ -479,7 +483,47 @@ UmiStatus umi_studio_services_create(
         );
     }
     if (status == UMI_STATUS_OK) {
-        status = umi_studio_ai_platform_create(&services->ai_platform);
+        UmiStudioAiPlatformConfig ai_config =
+            umi_studio_ai_platform_config_default();
+        status = umi_settings_get_text(
+            services->settings, UMI_STUDIO_SETTING_AUTHORENGINE_EXECUTABLE,
+            ai_config.authorengine_executable,
+            sizeof(ai_config.authorengine_executable));
+        if (status == UMI_STATUS_OK) {
+            status = umi_settings_get_text(
+                services->settings, UMI_STUDIO_SETTING_AUTHORENGINE_WORKSPACE,
+                ai_config.workspace, sizeof(ai_config.workspace));
+        }
+        if (status == UMI_STATUS_OK && strcmp(ai_config.workspace, ".") == 0) {
+            (void)snprintf(ai_config.workspace, sizeof(ai_config.workspace),
+                           "%s", current_directory);
+        }
+        if (status == UMI_STATUS_OK) status = umi_settings_get_integer(
+            services->settings, UMI_STUDIO_SETTING_AI_CONTEXT_TOKENS,
+            &ai_context_tokens);
+        if (status == UMI_STATUS_OK) status = umi_settings_get_integer(
+            services->settings, UMI_STUDIO_SETTING_AI_RESERVED_OUTPUT_TOKENS,
+            &ai_output_tokens);
+        if (status == UMI_STATUS_OK) status = umi_settings_get_boolean(
+            services->settings, UMI_STUDIO_SETTING_AI_ALLOW_REMOTE,
+            &ai_allow_remote);
+        if (status == UMI_STATUS_OK) status = umi_settings_get_boolean(
+            services->settings, UMI_STUDIO_SETTING_AI_PERSIST_SESSIONS,
+            &ai_persist_sessions);
+        if (status == UMI_STATUS_OK &&
+            (ai_context_tokens <= 0 || ai_context_tokens > UINT32_MAX ||
+             ai_output_tokens <= 0 || ai_output_tokens > UINT32_MAX ||
+             ai_output_tokens >= ai_context_tokens)) {
+            status = UMI_STATUS_INVALID_STATE;
+        }
+        if (status == UMI_STATUS_OK) {
+            ai_config.context_tokens = (uint32_t)ai_context_tokens;
+            ai_config.reserved_output_tokens = (uint32_t)ai_output_tokens;
+            ai_config.allow_remote = ai_allow_remote;
+            ai_config.persist_sessions = ai_persist_sessions;
+            status = umi_studio_ai_platform_create_configured(
+                &ai_config, &services->ai_platform);
+        }
     }
     if (status == UMI_STATUS_OK) {
         status = umi_studio_ai_tools_register_defaults(services->ai_platform);
@@ -673,6 +717,9 @@ UmiStatus umi_studio_services_publish(
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.ai-runtime",
             umi_studio_ai_platform_runtime(services->ai_platform),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.authorengine-integration",
+            umi_studio_ai_platform_authorengine(services->ai_platform),
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.helix",
             umi_studio_ai_platform_helix(services->ai_platform),

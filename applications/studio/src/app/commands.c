@@ -14,6 +14,7 @@
 #include "umicom/studio/commands.h"
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1230,6 +1231,86 @@ static UmiStatus developer_report_handler(void *user_data,
         message_capacity);
 }
 
+static UmiStatus ai_refresh_health_handler(void *user_data,
+                                           const char *argument,
+                                           char *out_message,
+                                           size_t message_capacity)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiClock *clock = umi_studio_services_clock(services);
+    size_t healthy = 0U;
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_ai_platform_refresh_health(
+        umi_studio_services_ai_platform(services),
+        clock->wall_nanoseconds(clock), &healthy);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "AuthorEngine health refreshed: %zu healthy runtime(s)",
+                       healthy);
+    }
+    return status;
+}
+
+static UmiStatus ai_new_session_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiClock *clock = umi_studio_services_clock(services);
+    uint64_t now = clock->wall_nanoseconds(clock);
+    char generated_id[UMI_AI_ID_CAPACITY];
+    const char *session_id = argument;
+    UmiStatus status;
+    if (session_id == NULL || session_id[0] == '\0') {
+        (void)snprintf(generated_id, sizeof(generated_id),
+                       "studio.session.%" PRIu64, now);
+        session_id = generated_id;
+    }
+    status = umi_studio_ai_platform_begin_session(
+        umi_studio_services_ai_platform(services), session_id,
+        "Studio AI conversation", now);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       status == UMI_STATUS_OK
+                           ? "Created AI session %s" : "AI session: %s",
+                       status == UMI_STATUS_OK ? session_id
+                                               : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus ai_save_session_handler(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t message_capacity)
+{
+    UmiStudioAiPlatform *platform = umi_studio_services_ai_platform(
+        (UmiStudioServices *)user_data);
+    UmiAiAuthorEngineServiceSnapshot snapshot;
+    UmiStatus status;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_studio_ai_platform_snapshot(platform, &snapshot);
+    if (status == UMI_STATUS_OK && snapshot.active_session_id[0] == '\0') {
+        status = UMI_STATUS_INVALID_STATE;
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_ai_platform_save_session(
+            platform, snapshot.active_session_id, argument);
+    }
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       status == UMI_STATUS_OK
+                           ? "Saved AI session to %s" : "AI session save: %s",
+                       status == UMI_STATUS_OK ? argument
+                                               : umi_status_text(status));
+    }
+    return status;
+}
+
 static UmiStatus register_command(UmiCommandRegistry *registry,
                                   UmiStudioServices *services,
                                   const char *command_id,
@@ -1431,6 +1512,30 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "studio.products.manage",
                               UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
                               marketplace_plan_update_handler);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_REFRESH_HEALTH,
+                              "Refresh AuthorEngine health", "AI",
+                              "Probe registered AI providers and configured AuthorEngine runtimes.",
+                              "studio.ai.read", UMI_COMMAND_AUDITED,
+                              ai_refresh_health_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_NEW_SESSION,
+                              "New AI session", "AI",
+                              "Create a governed AuthorEngine conversation session.",
+                              "studio.ai.manage",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              ai_new_session_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_AI_SAVE_SESSION,
+                              "Save AI session", "AI",
+                              "Persist the active conversation when privacy policy permits.",
+                              "studio.ai.manage",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              ai_save_session_handler);
     if (status != UMI_STATUS_OK) return status;
 
     status = register_command(registry,

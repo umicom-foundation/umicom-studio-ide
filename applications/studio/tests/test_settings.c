@@ -29,7 +29,7 @@ int main(void)
 
     assert(umi_studio_settings_create(&settings) == UMI_STATUS_OK);
     assert(settings != NULL);
-    assert(umi_settings_count(settings) == 9U);
+    assert(umi_settings_count(settings) == 15U);
 
     assert(umi_settings_get_text(settings,
                                  UMI_STUDIO_SETTING_UI_THEME,
@@ -55,6 +55,19 @@ int main(void)
     assert(umi_settings_set_boolean(settings,
                                     UMI_STUDIO_SETTING_AI_ENABLED,
                                     0) == UMI_STATUS_OK);
+
+    assert(umi_settings_get_text(
+        settings, UMI_STUDIO_SETTING_AUTHORENGINE_EXECUTABLE,
+        text, sizeof(text)) == UMI_STATUS_OK);
+    assert(strcmp(text, "uaengine") == 0);
+    assert(umi_settings_get_integer(
+        settings, UMI_STUDIO_SETTING_AI_CONTEXT_TOKENS,
+        &integer_value) == UMI_STATUS_OK);
+    assert(integer_value == 32768);
+    assert(umi_settings_get_boolean(
+        settings, UMI_STUDIO_SETTING_AI_ALLOW_REMOTE,
+        &boolean_value) == UMI_STATUS_OK);
+    assert(boolean_value == 0);
 
     assert(umi_studio_settings_save(settings, path) == UMI_STATUS_OK);
     assert(umi_studio_settings_create(&loaded) == UMI_STATUS_OK);

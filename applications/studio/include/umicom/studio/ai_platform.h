@@ -25,12 +25,43 @@ extern "C" {
 
 typedef struct UmiStudioAiPlatform UmiStudioAiPlatform;
 
+typedef struct UmiStudioAiPlatformConfig {
+    char authorengine_executable[UMI_AI_TEXT_CAPACITY];
+    char workspace[UMI_AI_TEXT_CAPACITY];
+    uint32_t context_tokens;
+    uint32_t reserved_output_tokens;
+    int allow_remote;
+    int persist_sessions;
+} UmiStudioAiPlatformConfig;
+
+UmiStudioAiPlatformConfig umi_studio_ai_platform_config_default(void);
 UmiStatus umi_studio_ai_platform_create(UmiStudioAiPlatform **out_platform);
+UmiStatus umi_studio_ai_platform_create_configured(
+    const UmiStudioAiPlatformConfig *config,
+    UmiStudioAiPlatform **out_platform);
 void umi_studio_ai_platform_destroy(UmiStudioAiPlatform *platform);
 UmiAiRuntime *umi_studio_ai_platform_runtime(UmiStudioAiPlatform *platform);
 UmiHelixRuntime *umi_studio_ai_platform_helix(UmiStudioAiPlatform *platform);
+UmiAiAuthorEngineService *umi_studio_ai_platform_authorengine(
+    UmiStudioAiPlatform *platform);
 const char *umi_studio_ai_platform_default_provider(
     const UmiStudioAiPlatform *platform);
+UmiStatus umi_studio_ai_platform_refresh_health(
+    UmiStudioAiPlatform *platform,
+    uint64_t timestamp_ns,
+    size_t *out_healthy_runtimes);
+UmiStatus umi_studio_ai_platform_begin_session(
+    UmiStudioAiPlatform *platform,
+    const char *session_id,
+    const char *title,
+    uint64_t timestamp_ns);
+UmiStatus umi_studio_ai_platform_save_session(
+    UmiStudioAiPlatform *platform,
+    const char *session_id,
+    const char *path);
+UmiStatus umi_studio_ai_platform_snapshot(
+    UmiStudioAiPlatform *platform,
+    UmiAiAuthorEngineServiceSnapshot *out_snapshot);
 
 #ifdef __cplusplus
 }
