@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Umicom Batch 58 - Compiler, Polyglot and Umicc Build, Deploy, Install and Usage Guide</title>
+  <style>
+    :root{--ink:#e8eef8;--muted:#a5b1c3;--panel:#111a2a;--panel2:#162238;--line:#2b3b57;--blue:#55a7ff;--cyan:#41d9c7;--gold:#f5c96a;--red:#ff7d8b;--green:#66d99b;--bg:#08101d;--code:#050b14}
+    *{box-sizing:border-box} html{scroll-behaviour:smooth} body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 "Segoe UI",Inter,Arial,sans-serif}
+    a{color:#8dc5ff} a:hover{color:#c7e3ff}.wrap{max-width:1180px;margin:auto;padding:0 28px}.hero{padding:72px 0 52px;background:radial-gradient(circle at 88% 10%,#183d5e 0,transparent 37%),linear-gradient(145deg,#0c1729,#08101d 68%);border-bottom:1px solid var(--line)}
+    .eyebrow{color:var(--cyan);font-weight:700;letter-spacing:.12em;text-transform:uppercase}.hero h1{font-size:clamp(2.25rem,5vw,4.65rem);line-height:1.03;max-width:980px;margin:.3em 0}.lead{font-size:1.22rem;color:#c5d0df;max-width:850px}.badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}.badge{border:1px solid var(--line);background:#101b2d;border-radius:999px;padding:7px 12px;color:#d9e5f6}
+    nav{position:sticky;top:0;z-index:4;background:#08101ded;border-bottom:1px solid var(--line);backdrop-filter:blur(14px)}nav .wrap{display:flex;gap:20px;overflow:auto;padding-top:12px;padding-bottom:12px}nav a{white-space:nowrap;text-decoration:none;color:#b7c3d5;font-size:.91rem}
+    main{padding:38px 0 80px}section{padding:28px 0;scroll-margin-top:62px}h2{font-size:2rem;line-height:1.2;margin:0 0 14px}h3{font-size:1.25rem;margin:28px 0 10px;color:#d9e7fa}p{max-width:920px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}.card{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:20px}.card h3{margin-top:0}.metric{font-size:2.1rem;font-weight:800;color:var(--blue)}
+    .callout{border-left:4px solid var(--blue);background:#10213a;padding:16px 20px;border-radius:8px;margin:18px 0}.callout.warn{border-color:var(--gold);background:#29230f}.callout.good{border-color:var(--green);background:#10271d}.callout.danger{border-color:var(--red);background:#30141b}
+    .diagram{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:stretch;margin:24px 0}.node{border:1px solid #385274;border-radius:12px;background:#111e31;padding:17px;text-align:center}.node strong{display:block;color:var(--cyan);margin-bottom:6px}.arrow{grid-column:1/-1;text-align:center;color:var(--blue);font-size:1.35rem}
+    ol.steps{counter-reset:step;list-style:none;padding:0;max-width:1000px}ol.steps>li{counter-increment:step;position:relative;margin:16px 0;padding:18px 20px 18px 68px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}ol.steps>li:before{content:counter(step);position:absolute;left:18px;top:17px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--blue);color:#06111e;font-weight:800}
+    pre{position:relative;overflow:auto;background:var(--code);border:1px solid #22344e;border-radius:10px;padding:18px;color:#dce9fb;font:14px/1.55 Consolas,"Cascadia Code",monospace;white-space:pre}code{font-family:Consolas,"Cascadia Code",monospace;color:#d8e8ff}.copy{float:right;border:1px solid #46617f;background:#102039;color:#dce9fb;border-radius:6px;padding:5px 9px;cursor:pointer}.copy:hover{background:#1d3659}
+    table{width:100%;border-collapse:collapse;margin:18px 0;background:var(--panel)}th,td{padding:13px 14px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:#182844;color:#eaf3ff}td:first-child{font-weight:600}.checklist{list-style:none;padding:0}.checklist li{margin:8px 0;padding-left:28px}.checklist li:before{content:"□";color:var(--cyan);font-size:1.25rem;margin-left:-28px;margin-right:10px}
+    .kbd{display:inline-block;border:1px solid #53637a;border-bottom-width:3px;border-radius:5px;padding:1px 7px;background:#182235;font:13px Consolas,monospace}.small{color:var(--muted);font-size:.92rem}.footer{border-top:1px solid var(--line);padding:28px 0;color:var(--muted)}
+    @media(max-width:760px){.diagram{grid-template-columns:1fr}.wrap{padding:0 18px}.hero{padding-top:46px}table{display:block;overflow:auto}}
+    @media print{body{background:#fff;color:#111;font-size:10.5pt}nav,.copy{display:none}.hero{background:#fff;color:#111;padding:20px 0}.lead,.small{color:#333}.card,.node,ol.steps>li,table{background:#fff;color:#111;break-inside:avoid}.callout{background:#f3f6fa;color:#111}pre{background:#f2f4f7;color:#111;white-space:pre-wrap}.wrap{max-width:none}.hero h1{font-size:28pt}}
+  </style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Umicom Studio IDE · Delivery Batch 58</div>
+  <h1>Compiler, Polyglot and Umicc Integration</h1>
+  <p class="lead">A practical Windows guide to apply, build, test, deploy, install and use the new compiler platform and Studio Compiler Centre. It also connects the professional, TWS-inspired workspace model delivered in Batch 57 to day-to-day C, C++, Assembly, Rust, Zig and UAI development.</p>
+  <div class="badges"><span class="badge">C23 foundation</span><span class="badge">GCC + Clang + MSVC</span><span class="badge">Rust + Zig + Assembly</span><span class="badge">UAI + Umicc</span><span class="badge">Stable C ABI</span><span class="badge">Windows 11 + MSYS2 UCRT64</span></div>
+</div></header>
+<nav><div class="wrap"><a href="#overview">Overview</a><a href="#architecture">Architecture</a><a href="#ux">Studio UX</a><a href="#prerequisites">Prerequisites</a><a href="#apply">Apply batch</a><a href="#build">Build &amp; test</a><a href="#deploy">Deploy &amp; install</a><a href="#use">Use Studio</a><a href="#troubleshooting">Troubleshooting</a><a href="#acceptance">Acceptance</a><a href="#git">Git commits</a><a href="#future">Future batches</a></div></nav>
+<main class="wrap">
+<section id="overview">
+  <h2>1. Batch outcome</h2>
+  <p>Batch 58 establishes a toolkit-neutral compiler platform in Umicom Framework and a professional Compiler Centre in Umicom Studio. Studio does not implement compiler rules privately: it projects Framework providers, profiles, target triples, requests, plans, diagnostics, build graphs, ABI contracts, compilation databases, lockfiles, sysroots, runtimes and caches.</p>
+  <div class="grid">
+    <article class="card"><div class="metric">8</div><h3>Provider families</h3><p>GCC, Clang/LLVM, MSVC, Rustc, Zig, native Assembler, UAI and future Umicc.</p></article>
+    <article class="card"><div class="metric">6</div><h3>Language identities</h3><p>C, C++, Assembly, Rust, Zig and UAI share one planning and diagnostic model.</p></article>
+    <article class="card"><div class="metric">1</div><h3>Stable boundary</h3><p>A stable C ABI is the default native interoperability seam between languages.</p></article>
+    <article class="card"><div class="metric">2</div><h3>Native Studio tools</h3><p>Compiler Centre inspection and polyglot compilation-database planning commands.</p></article>
+  </div>
+  <div class="callout good"><strong>Author and stewardship.</strong> Created by Sammy Hegab for the Umicom Foundation and supplied under the MIT licence.</div>
+</section>
+
+<section id="architecture">
+  <h2>2. Architecture and implementation map</h2>
+  <div class="diagram">
+    <div class="node"><strong>Studio experience</strong>Compiler Centre, views, commands, templates, diagnostics, workspace binding and Umicc configuration.</div>
+    <div class="node"><strong>Studio composition</strong>Projects Framework snapshots into dockable, searchable and persistable workbench views.</div>
+    <div class="node"><strong>Framework compiler</strong>Providers, targets, plans, graphs, ABI, cache, lockfile, sysroots, runtimes and compilation database.</div>
+    <div class="arrow">Studio action → validated Framework request → provider plan → normalised diagnostics and evidence</div>
+    <div class="node"><strong>Established compilers</strong>GCC, Clang/LLVM and MSVC.</div>
+    <div class="node"><strong>Polyglot compilers</strong>Rustc, Zig and native assembly tools.</div>
+    <div class="node"><strong>Umicom evolution</strong>UAI language provider and future Umicc orchestration.</div>
+  </div>
+  <table><thead><tr><th>Capability</th><th>Framework owns</th><th>Studio owns</th></tr></thead><tbody>
+    <tr><td>Provider model</td><td>Stable provider descriptor, capability flags, registry and provider-specific command planning.</td><td>Provider catalogue, selection, availability presentation and Toolchain Centre synchronisation.</td></tr>
+    <tr><td>Polyglot project</td><td>Manifest, unit identity, target, interoperability graph and ordered build graph.</td><td>Workspace binding, active unit, build-graph view and ABI boundary visualisation.</td></tr>
+    <tr><td>Reproducibility</td><td>Deterministic request/manifest hashes, compiler cache metadata and lockfile encoding.</td><td>Lockfile refresh command, configuration settings and export affordances.</td></tr>
+    <tr><td>Diagnostics</td><td>Compiler-line parsing and severity-normalised diagnostic sets.</td><td>Problems filtering, summary headline, source navigation and output panes.</td></tr>
+    <tr><td>Templates</td><td>Complete C, C++, Assembly, Rust, Zig, UAI and polyglot starters.</td><td>Searchable template catalogue and New Project integration contract.</td></tr>
+  </tbody></table>
+</section>
+
+<section id="ux">
+  <h2>3. Professional Studio experience</h2>
+  <p>The enclosed “Umicom Studio Ideas 2” document asks for Visual Studio familiarity, Beyond Compare-style comparison, comprehensive compile/build/deploy/package workflows, TWS-style subwindows and layouts, saved workspaces, grouped tabs, layout locking and modern themes. Batch 57 supplied the reusable workspace and operations foundations; Batch 58 supplies the compiler vertical slice that occupies those layouts.</p>
+  <div class="grid">
+    <article class="card"><h3>Compiler perspective</h3><p>A ready-made layout with Resource Explorer and compiler providers on the left, editors and build graph in the centre, properties/interoperability on the right, and Problems/Output/Terminal below.</p></article>
+    <article class="card"><h3>Layout edit lock</h3><p>Unlock to add, close, move, dock, split, resize or tab views; lock when finished so normal clicks cannot accidentally damage the workspace.</p></article>
+    <article class="card"><h3>Context-linked groups</h3><p>Colour-labelled window groups can follow the active project, target or compilation unit, inspired by TWS colour-linked Mosaic tools.</p></article>
+    <article class="card"><h3>Layout library</h3><p>Create a blank workspace, add views from a searchable catalogue, or start from Compiler, Debug, Polyglot, Operations and Trading presets.</p></article>
+    <article class="card"><h3>Local persistence and recovery</h3><p>Save named layouts locally, export/import them, retain revision history and restore a known-good layout after accidental changes.</p></article>
+    <article class="card"><h3>Theme and density</h3><p>Light, dark and high-contrast palettes, global font scaling, comfortable/compact density and view-specific configuration.</p></article>
+  </div>
+  <p class="small">TWS inspiration was cross-checked against the official <a href="https://www.ibkrguides.com/traderworkstation/mosaic-layout.htm">Mosaic Layout</a>, <a href="https://www.ibkrguides.com/traderworkstation/mosaic-anchor-window.htm">Mosaic Anchor Window</a>, <a href="https://www.ibkrguides.com/traderworkstation/custom-layouts.htm">Custom Layouts</a> and <a href="https://www.ibkrguides.com/traderworkstation/predefined-layouts.htm">Predefined Layouts</a> guides. Umicom adopts general interaction ideas; it does not copy proprietary source or branding.</p>
+</section>
+
+<section id="prerequisites">
+  <h2>4. Windows prerequisites</h2>
+  <div class="callout warn"><strong>Use one ABI family.</strong> These steps use MSYS2 UCRT64 throughout. Do not mix UCRT64 libraries with MINGW64, standalone LLVM or Visual Studio libraries in the same build directory.</div>
+  <ol class="steps">
+    <li><h3>Install Git, CMake and MSYS2</h3><p>Install Git for Windows and MSYS2. The commands below assume MSYS2 is installed at <code>C:\msys64</code>. Start <strong>MSYS2 UCRT64</strong> from the Start menu and update it:</p><pre><button class="copy">Copy</button>pacman -Syu --noconfirm
+# Close and reopen MSYS2 UCRT64 if the terminal asks, then run:
+pacman -Syu --noconfirm</pre></li>
+    <li><h3>Install the native build and GTK packages</h3><pre><button class="copy">Copy</button>pacman -S --needed --noconfirm \
+  mingw-w64-ucrt-x86_64-toolchain \
+  mingw-w64-ucrt-x86_64-clang \
+  mingw-w64-ucrt-x86_64-cmake \
+  mingw-w64-ucrt-x86_64-ninja \
+  mingw-w64-ucrt-x86_64-pkgconf \
+  mingw-w64-ucrt-x86_64-gtk4 \
+  mingw-w64-ucrt-x86_64-gtksourceview5 \
+  mingw-w64-ucrt-x86_64-json-glib \
+  mingw-w64-ucrt-x86_64-libsoup</pre></li>
+    <li><h3>Optional polyglot tools</h3><p>Install Rust with rustup and add Zig to a dedicated directory such as <code>C:\Tools\zig</code>. UAI/Umicc can remain unconfigured until its executable is available; Studio reports it as an optional provider rather than failing the whole toolchain.</p></li>
+    <li><h3>Verify from PowerShell</h3><pre><button class="copy">Copy</button>$env:Path = "C:\msys64\ucrt64\bin;C:\Tools\zig;$env:USERPROFILE\.cargo\bin;$env:Path"
+where.exe git
+where.exe cmake
+where.exe ninja
+where.exe gcc
+where.exe clang
+where.exe pkg-config
+gcc --version
+clang --version
+rustc --version
+zig version
+pkg-config --modversion gtk4</pre><p>If an optional command is not installed, its <code>where.exe</code> line may fail; continue if you do not need that language yet.</p></li>
+  </ol>
+</section>
+
+<section id="apply">
+  <h2>5. Extract and apply the batch</h2>
+  <p>The download contains two overlays: <code>Framework</code> and <code>Studio</code>. Apply and publish Framework first. Only then update Studio’s Framework submodule, apply the Studio overlay and regenerate the version lock.</p>
+  <ol class="steps">
+    <li><h3>Set your paths</h3><pre><button class="copy">Copy</button>$BatchZip = "$env:USERPROFILE\Downloads\Umicom_Batch_58_Compiler_Polyglot_Umicc.zip"
+$BatchRoot = "C:\Dev\umicom\batch58"
+$FrameworkRoot = "C:\Dev\umicom\umicom-framework"
+$StudioRoot = "C:\Dev\umicom\umicom-studio"
+New-Item -ItemType Directory -Force -Path $BatchRoot | Out-Null
+Expand-Archive -LiteralPath $BatchZip -DestinationPath $BatchRoot -Force</pre></li>
+    <li><h3>Confirm clean repositories</h3><pre><button class="copy">Copy</button>git -C $FrameworkRoot status --short
+git -C $StudioRoot status --short</pre><p>Stop if either command lists work you have not intentionally saved. Commit or back up your own work before continuing.</p></li>
+    <li><h3>Apply the Framework overlay</h3><pre><button class="copy">Copy</button>Copy-Item -Path "$BatchRoot\Framework\*" -Destination $FrameworkRoot -Recurse -Force
+git -C $FrameworkRoot status --short</pre></li>
+  </ol>
+</section>
+
+<section id="build">
+  <h2>6. Build and test</h2>
+  <h3>6.1 Framework - headless compiler platform</h3>
+  <pre><button class="copy">Copy</button>Set-Location $FrameworkRoot
+$env:Path = "C:\msys64\ucrt64\bin;$env:Path"
+$env:CC = "C:\msys64\ucrt64\bin\gcc.exe"
+
+cmake -S . -B build\batch58-ucrt64 -G Ninja `
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo `
+  -DCMAKE_C_COMPILER="$env:CC" `
+  -DUMICOM_ENABLE_STRICT_WARNINGS=ON `
+  -DUMICOM_BUILD_GTK4_ADAPTER=OFF `
+  -DCMAKE_INSTALL_PREFIX="C:\Dev\umicom\sdk\framework"
+
+cmake --build build\batch58-ucrt64 --parallel
+ctest --test-dir build\batch58-ucrt64 --output-on-failure
+cmake --install build\batch58-ucrt64</pre>
+  <div class="callout good">Framework acceptance requires the new <code>framework.compiler.*</code> tests to pass, including provider registry, request planning, diagnostics, ABI graph, lockfile, cache and centre scenarios.</div>
+
+  <h3>6.2 Publish Framework before building Studio</h3>
+  <p>Use the exact first commit in section 12, push it, and then update Studio’s embedded Framework:</p>
+  <pre><button class="copy">Copy</button>Set-Location $StudioRoot
+git -C .\framework fetch origin main
+git -C .\framework checkout origin/main
+git -C .\framework rev-parse HEAD</pre>
+
+  <h3>6.3 Apply and build Studio</h3>
+  <pre><button class="copy">Copy</button>Copy-Item -Path "$BatchRoot\Studio\*" -Destination $StudioRoot -Recurse -Force
+Set-Location $StudioRoot
+. .\scripts\enter-umicom-ucrt64.ps1
+
+cmake -S . -B build\batch58-ucrt64-debug -G Ninja `
+  -DCMAKE_BUILD_TYPE=Debug `
+  -DUMICOM_STUDIO_BUILD_GTK=ON `
+  -DUMICOM_ENABLE_STRICT_WARNINGS=ON `
+  -DCMAKE_INSTALL_PREFIX="C:\Dev\umicom\install\studio"
+
+cmake --build build\batch58-ucrt64-debug --parallel
+ctest --test-dir build\batch58-ucrt64-debug --output-on-failure</pre>
+  <p>For a faster headless verification, repeat with <code>-DUMICOM_STUDIO_BUILD_GTK=OFF</code> in a different build directory.</p>
+</section>
+
+<section id="deploy">
+  <h2>7. Deploy and install</h2>
+  <ol class="steps">
+    <li><h3>Install to a versioned prefix</h3><pre><button class="copy">Copy</button>Set-Location $StudioRoot
+cmake --install build\batch58-ucrt64-debug `
+  --prefix "C:\Dev\umicom\install\studio-b58"</pre></li>
+    <li><h3>Make GTK runtime DLLs available</h3><p>For a developer installation, keep <code>C:\msys64\ucrt64\bin</code> at the front of <code>PATH</code> when launching. A future distribution batch will create a self-contained installer and copy only the audited runtime closure.</p><pre><button class="copy">Copy</button>$env:Path = "C:\msys64\ucrt64\bin;$env:Path"
+& "C:\Dev\umicom\install\studio-b58\bin\umicom-studio-doctor.exe"
+& "C:\Dev\umicom\install\studio-b58\bin\umicom-studio-compiler-centre-v2.exe"</pre></li>
+    <li><h3>Launch the installed desktop application</h3><pre><button class="copy">Copy</button>& "C:\Dev\umicom\install\studio-b58\bin\umicom-studio-ide.exe" --console</pre></li>
+    <li><h3>Optional developer uninstall</h3><p>This repository does not yet provide a production uninstaller. To remove this developer installation, close Studio and remove only the explicit versioned prefix you created:</p><pre><button class="copy">Copy</button>$InstallToRemove = "C:\Dev\umicom\install\studio-b58"
+if ((Test-Path $InstallToRemove) -and ($InstallToRemove -like "C:\Dev\umicom\install\studio-*")) {
+  Remove-Item -LiteralPath $InstallToRemove -Recurse -Force
+}</pre></li>
+  </ol>
+</section>
+
+<section id="use">
+  <h2>8. Use Umicom Studio</h2>
+  <h3>8.1 Create or open a project</h3>
+  <ol class="steps">
+    <li>Launch Studio and select <strong>File → New Project</strong> or <strong>File → Open Workspace</strong>.</li>
+    <li>Choose a starter: C23, C++23, C + Assembly, Rust, Zig, UAI or Polyglot Console.</li>
+    <li>When Studio asks for workspace trust, inspect the project and grant trust before allowing compiler execution.</li>
+  </ol>
+  <h3>8.2 Configure compilers</h3>
+  <ol class="steps">
+    <li>Open <strong>View → Compiler Centre</strong>, or use the Command Palette and run <code>Compiler: Detect Compilers</code>.</li>
+    <li>Review provider availability, executable, family, languages and target triple.</li>
+    <li>Select a profile such as <strong>Host Debug</strong>. The first detected C-capable provider becomes the initial profile; change it explicitly if you prefer Clang or Umicc.</li>
+    <li>For Rust, Zig or UAI units, select their provider in the unit manifest or allow language-based resolution.</li>
+  </ol>
+  <h3>8.3 Build and diagnose</h3>
+  <ol class="steps">
+    <li>Press <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">B</span> or run <code>Compiler: Build Active Project</code>.</li>
+    <li>Open <strong>Build Graph</strong> to inspect ordered compile, assemble and link steps.</li>
+    <li>Open <strong>Interop Boundaries</strong> to confirm that every cross-language edge uses a compatible ABI profile.</li>
+    <li>Use <strong>Compiler Problems</strong> for normalised diagnostics and <strong>Compiler Output</strong> for raw provider output.</li>
+    <li>Export <code>compile_commands.json</code> for editor tooling and refresh the compiler lockfile after intentional provider or target changes.</li>
+  </ol>
+  <h3>8.4 Arrange and save your layout</h3>
+  <ol class="steps">
+    <li>Click the layout padlock to enter <strong>Unlocked/Edit</strong> mode.</li>
+    <li>Use <strong>New Window</strong> to add Compiler Providers, Build Graph, Interop Boundaries, Problems, Output or Terminal.</li>
+    <li>Drag a title bar to dock left, right, top, bottom or centre-as-tab. Drag splitters to resize. Assign a colour group when views should follow the same active project or unit.</li>
+    <li>Click <strong>+</strong> in the workspace tab strip to create another named layout, or open the Layout Library for a preset.</li>
+    <li>Select light/dark theme, density and font scale. Lock the layout when finished, then use <strong>Save Layout As</strong>.</li>
+  </ol>
+  <h3>8.5 Native command examples</h3>
+  <pre><button class="copy">Copy</button># Inspect configured compiler providers
+& .\build\batch58-ucrt64-debug\bin\umicom-studio-compiler-centre-v2.exe `
+  "C:\msys64\ucrt64\bin\gcc.exe" `
+  "C:\msys64\ucrt64\bin\clang.exe"
+
+# Generate and print a polyglot compilation database example
+& .\build\batch58-ucrt64-debug\bin\umicom-studio-polyglot-compiler.exe</pre>
+</section>
+
+<section id="troubleshooting">
+  <h2>9. Troubleshooting</h2>
+  <table><thead><tr><th>Symptom</th><th>Cause</th><th>Resolution</th></tr></thead><tbody>
+    <tr><td><code>gtk/gtk.h</code> not found</td><td>GTK4 package or UCRT64 pkg-config path is missing.</td><td>Re-run the UCRT64 package command, put <code>C:\msys64\ucrt64\bin</code> first on PATH, then verify <code>pkg-config --cflags gtk4</code>.</td></tr>
+    <tr><td>DLL not found at launch</td><td>The developer install does not yet bundle GTK runtime DLLs.</td><td>Launch from the prepared PowerShell environment or prepend the UCRT64 bin directory to PATH.</td></tr>
+    <tr><td>CMake selected the wrong compiler</td><td>An old build directory cached standalone LLVM or MSVC.</td><td>Use a new build directory and pass the absolute UCRT64 compiler path.</td></tr>
+    <tr><td>Compiler provider is “missing”</td><td>The executable path is empty or unavailable.</td><td>Open Compiler Centre settings, select the executable and re-run detection.</td></tr>
+    <tr><td>ABI boundary is incompatible</td><td>Producer and consumer disagree on target, pointer width, object format or ABI kind.</td><td>Align target triples and use an exported <code>extern "C"</code>/<code>extern "C"</code>-equivalent boundary.</td></tr>
+    <tr><td>Framework header not found in Studio</td><td>Studio’s Framework submodule is still on the pre-B58 commit.</td><td>Fetch and check out the Framework commit you published before configuring Studio.</td></tr>
+    <tr><td>Layout panels move accidentally</td><td>The workspace remains unlocked.</td><td>Save the layout and click the padlock to return to Locked mode.</td></tr>
+    <tr><td><code>VERSION_LOCK.json</code> has old versions</td><td>The lock was not regenerated after updating the submodule.</td><td>Run <code>.\scripts\update-version-lock.ps1</code> immediately before the Studio commit.</td></tr>
+  </tbody></table>
+</section>
+
+<section id="acceptance">
+  <h2>10. Acceptance checklist</h2>
+  <ul class="checklist">
+    <li>Framework configures and builds with strict warnings enabled.</li>
+    <li>All Framework tests pass, including every <code>framework.compiler.*</code> test.</li>
+    <li>Framework installs headers, templates, <code>Umicom::compiler</code> and the aggregate <code>Umicom::Framework</code> export.</li>
+    <li>Studio’s Framework submodule points to the published Batch 58 Framework commit.</li>
+    <li>Studio builds both headless tools and the GTK desktop application.</li>
+    <li>All <code>studio.compiler_*</code> and <code>studio.umicc_polyglot_v2</code> tests pass.</li>
+    <li>Compiler Centre lists GCC/Clang plus any installed Rust, Zig and Umicc tools.</li>
+    <li>A template project can be opened, planned and represented in the compilation database.</li>
+    <li>The installed doctor, Compiler Centre tool and IDE launch from the installation prefix.</li>
+    <li>A custom Compiler layout can be unlocked, rearranged, saved and locked.</li>
+    <li><code>VERSION_LOCK.json</code> records the new Framework commit and current CMake versions.</li>
+  </ul>
+</section>
+
+<section id="git">
+  <h2>11. Exact Git sequence</h2>
+  <div class="callout danger"><strong>Required order:</strong> Framework commit and push first. Then update Studio’s Framework submodule, regenerate <code>VERSION_LOCK.json</code>, and commit/push Studio.</div>
+  <h3>Commit 1 - Umicom Framework</h3>
+  <pre><button class="copy">Copy</button>Set-Location $FrameworkRoot
+git status --short
+git add CMakeLists.txt include\umicom\compiler include\umicom\umicom.h `
+  src\compiler tests\test_compiler_* templates\compiler
+git commit -m "feat(compiler): add polyglot and umicc compiler platform"
+git push origin main</pre>
+  <h3>Refresh Studio’s Framework pointer and version lock</h3>
+  <pre><button class="copy">Copy</button>Set-Location $StudioRoot
+git -C .\framework fetch origin main
+git -C .\framework checkout origin/main
+powershell -ExecutionPolicy Bypass -File .\scripts\update-version-lock.ps1
+Get-Content .\VERSION_LOCK.json</pre>
+  <h3>Commit 2 - Umicom Studio</h3>
+  <pre><button class="copy">Copy</button>git status --short
+git add framework VERSION_LOCK.json scripts\update-version-lock.ps1 `
+  applications\studio\CMakeLists.txt `
+  applications\studio\include\umicom\studio\compiler_* `
+  applications\studio\include\umicom\studio\polyglot_workspace_v2.h `
+  applications\studio\include\umicom\studio\umicc_integration_v2.h `
+  applications\studio\src\app\compiler_* `
+  applications\studio\src\app\polyglot_workspace_v2.c `
+  applications\studio\src\app\umicc_integration_v2.c `
+  applications\studio\src\tools\compiler_centre_v2_main.c `
+  applications\studio\src\tools\polyglot_compiler_main.c `
+  applications\studio\tests\test_compiler_* `
+  applications\studio\tests\test_umicc_polyglot_v2.c `
+  applications\studio\docs\batches\Umicom_Batch_58_Compiler_Polyglot_Umicc_Build_Deploy_Install_and_Usage_Guide.html
+git commit -m "feat(studio): add compiler and polyglot centre"
+git push origin main</pre>
+</section>
+
+<section id="future">
+  <h2>12. Future batches</h2>
+  <div class="grid">
+    <article class="card"><div class="metric">59</div><h3>SDK, packaging and distribution</h3><p>Self-contained Windows runtime closure, signed installer/uninstaller, per-user and machine-wide options, upgrade/repair, desktop and Start menu shortcuts, packaged Framework SDK, template packs, release channels and rollback-safe manifests.</p></article>
+    <article class="card"><div class="metric">60</div><h3>Studio 1.0 consolidation</h3><p>Unified navigation and settings, accessibility and keyboard audit, performance and memory hardening, full product smoke matrix, migration/recovery polish, final documentation portal, release evidence and Studio 1.0 candidate.</p></article>
+  </div>
+  <h3>Design backlog carried forward</h3>
+  <p>Beyond Compare-style two- and three-way diff/merge, richer layout-cloud portability, additional role-based layout packs, visual compiler graph editing, remote build agents, signed provider plug-ins and deeper Umicc/UAI language intelligence should continue as post-1.0 vertical slices without weakening the Framework/Studio ownership boundary.</p>
+</section>
+</main>
+<footer class="footer"><div class="wrap">Umicom Batch 58 · Compiler, Polyglot and Umicc Integration · Sammy Hegab · Umicom Foundation · MIT</div></footer>
+<script>
+document.querySelectorAll('.copy').forEach(function(button){button.addEventListener('click',function(){var pre=button.parentElement;var text=pre.innerText.replace(/^Copy\s*/, '');navigator.clipboard.writeText(text).then(function(){button.textContent='Copied';setTimeout(function(){button.textContent='Copy'},1200)})})});
+</script>
+</body>
+</html>

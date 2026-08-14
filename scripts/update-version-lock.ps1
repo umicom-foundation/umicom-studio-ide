@@ -27,16 +27,39 @@ function Get-GitCommit {
     return $commit.Trim()
 }
 
+function Get-CMakeVersion {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$Pattern
+    )
+
+    $content = Get-Content -LiteralPath $Path -Raw
+    $match = [regex]::Match(
+        $content,
+        $Pattern,
+        [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    if (-not $match.Success) {
+        throw "Could not read the CMake version from: $Path"
+    }
+    return $match.Groups[1].Value
+}
+
 $studioRoot = (Resolve-Path $RepositoryRoot).Path
 $frameworkRoot = Join-Path $studioRoot "framework"
 $authorEngineRoot = Join-Path $studioRoot "third_party\umicom\uengine"
 $llamaRoot = Join-Path $authorEngineRoot "third_party\llama.cpp"
+$studioVersion = Get-CMakeVersion `
+    -Path (Join-Path $studioRoot "applications\studio\CMakeLists.txt") `
+    -Pattern 'set\s*\(\s*UMICOM_STUDIO_VERSION\s+"([0-9]+\.[0-9]+\.[0-9]+)"'
+$frameworkVersion = Get-CMakeVersion `
+    -Path (Join-Path $frameworkRoot "CMakeLists.txt") `
+    -Pattern 'project\s*\(\s*UmicomFramework\s+VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)'
 
 $lock = [ordered]@{
     schema = "umicom.version-lock.v1"
-    studio_version = "0.13.0"
+    studio_version = $studioVersion
     studio_parent_base_commit = Get-GitCommit -WorkingDirectory $studioRoot
-    framework_version = "0.4.4"
+    framework_version = $frameworkVersion
     framework_commit = Get-GitCommit -WorkingDirectory $frameworkRoot
     authorengine_commit = Get-GitCommit -WorkingDirectory $authorEngineRoot
     llama_cpp_commit = Get-GitCommit -WorkingDirectory $llamaRoot

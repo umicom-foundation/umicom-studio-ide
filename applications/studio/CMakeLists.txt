@@ -15,7 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.21.0")
+set(UMICOM_STUDIO_VERSION "0.22.0")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
@@ -87,6 +87,18 @@ add_library(umicom_studio_core STATIC
     src/app/workspace_persistence_v2.c
     src/app/workspace_views_v2.c
     src/app/workspace_commands_v2.c
+    src/app/compiler_settings_v2.c
+    src/app/compiler_catalogue_v2.c
+    src/app/compiler_project_binding_v2.c
+    src/app/compiler_templates_v2.c
+    src/app/compiler_views_v2.c
+    src/app/compiler_commands_v2.c
+    src/app/compiler_diagnostics_v2.c
+    src/app/compiler_interop_v2.c
+    src/app/umicc_integration_v2.c
+    src/app/polyglot_workspace_v2.c
+    src/app/compiler_export_v2.c
+    src/app/compiler_centre_v2.c
     src/app/perspectives.c
     src/app/contributions.c
     src/app/view_models.c
@@ -383,6 +395,17 @@ add_executable(umicom-studio-workspace-designer-v2 src/tools/workspace_designer_
 target_link_libraries(umicom-studio-workspace-designer-v2 PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-workspace-designer-v2)
 umicom_apply_sanitizers(umicom-studio-workspace-designer-v2)
+
+# Batch 58 native Compiler Centre and polyglot planning commands.
+add_executable(umicom-studio-compiler-centre-v2 src/tools/compiler_centre_v2_main.c)
+target_link_libraries(umicom-studio-compiler-centre-v2 PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-compiler-centre-v2)
+umicom_apply_sanitizers(umicom-studio-compiler-centre-v2)
+
+add_executable(umicom-studio-polyglot-compiler src/tools/polyglot_compiler_main.c)
+target_link_libraries(umicom-studio-polyglot-compiler PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-polyglot-compiler)
+umicom_apply_sanitizers(umicom-studio-polyglot-compiler)
 
 # Native toolkit-neutral workbench and UI catalogue commands.
 add_executable(umicom-studio-workbench src/tools/workbench_main.c)
@@ -1523,6 +1546,8 @@ install(TARGETS
     umicom-studio-security-centre
     umicom-studio-operations-centre-v2
     umicom-studio-workspace-designer-v2
+    umicom-studio-compiler-centre-v2
+    umicom-studio-polyglot-compiler
     umicom-studio-plugins
     umicom-studio-observability
     umicom-studio-resilience
@@ -1561,6 +1586,14 @@ install(TARGETS
     umicom-studio-conformance
     umicom-studio-architecture
     RUNTIME DESTINATION bin
+)
+
+# Install the Batch 58 operator manual with the application. Documentation for
+# this delivery is intentionally self-contained HTML so it can be opened on a
+# clean Windows workstation without a Markdown renderer.
+install(FILES
+    docs/batches/Umicom_Batch_58_Compiler_Polyglot_Umicc_Build_Deploy_Install_and_Usage_Guide.html
+    DESTINATION share/umicom/docs
 )
 
 # The interactive IDE is optional, so install it only when the GTK product was
@@ -1654,5 +1687,28 @@ foreach(UMICOM_STUDIO_BATCH57_TEST
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test)
     add_test(NAME studio.${UMICOM_STUDIO_BATCH57_TEST}
         COMMAND umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test)
+endforeach()
+endif()
+
+if(BUILD_TESTING)
+foreach(UMICOM_STUDIO_BATCH58_TEST
+        compiler_catalogue_v2
+        compiler_views_commands_v2
+        compiler_templates_v2
+        compiler_settings_binding_v2
+        compiler_diagnostics_v2
+        compiler_interop_v2
+        umicc_polyglot_v2
+        compiler_centre_v2)
+    string(REPLACE "_" "-" UMICOM_STUDIO_BATCH58_TEST_TARGET
+        "${UMICOM_STUDIO_BATCH58_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_BATCH58_TEST}.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_BATCH58_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test)
 endforeach()
 endif()
