@@ -290,6 +290,7 @@ static const UmiUiToolbarSnapshot STUDIO_TOOLBAR[] = {
     { "toolbar.separator", "main", "", "layout", 1, 40 },
     { "toolbar.explorer", "main", "studio.action.pane.explorer", "layout", 0, 50 },
     { "toolbar.output", "main", "studio.action.pane.output", "layout", 0, 60 },
+    { "toolbar.layout-reset", "main", "studio.action.layout.reset", "layout", 0, 65 },
     { "toolbar.run-separator", "main", "", "run", 1, 70 },
     { "toolbar.debug-start", "main", "studio.action.debug.start", "run", 0, 80 },
     { "toolbar.debug-stop", "main", "studio.action.debug.stop", "run", 0, 90 }

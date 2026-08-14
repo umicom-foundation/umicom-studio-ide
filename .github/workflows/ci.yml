@@ -57,8 +57,8 @@ jobs:
 
       - name: Enforce repository cleanliness
         run: |
-          if git ls-files install _CPack_Packages | grep -q .; then
-            echo "Generated installation or CPack output is tracked."
+          if git ls-files deploy install _CPack_Packages | grep -q .; then
+            echo "Generated deployment, installation or CPack output is tracked."
             exit 1
           fi
           if git ls-files applications/studio scripts/tools/lang \
@@ -79,6 +79,54 @@ jobs:
             echo "Framework batch delivery documentation must not be committed."
             exit 1
           fi
+
+          check_public_repository_safety() {
+            local repository="$1"
+            local label="$2"
+            local matches
+
+            matches="$(
+              git -C "$repository" ls-files \
+                | grep -Ei '(^|/)(\.env($|\.)|\.envrc$|\.npmrc$|\.pypirc$|\.netrc$|credentials\.(json|ya?ml|ini|toml|conf)$|secrets?\.(json|ya?ml|ini|toml|conf|env)$|service[-_]?account[^/]*\.json$|oauth[-_]?client[^/]*\.json$|terraform\.tfvars($|\.)|kubeconfig($|\.)|[^/]+\.(pem|key|p12|pfx|jks|keystore)$|id_(rsa|dsa|ecdsa|ed25519)(\.pub)?$)' \
+                | grep -Eiv '(^|/)(examples?|templates?)/|\.(example|sample|template|dist)$' \
+                || true
+            )"
+            if [ -n "$matches" ]; then
+              echo "$label contains files whose names indicate credentials or secrets:"
+              echo "$matches"
+              exit 1
+            fi
+
+            matches="$(
+              git -C "$repository" ls-files \
+                | grep -Ei '(^|/)(private|secrets|local-only|internal-only|scratch|junk-folder)/|(^|/)(tree|links|logs)\.txt$|directory[-_ ]?tree|folder[-_ ]?structure|absolute[-_ ]?paths|workspace[-_ ]?inventory|machine[-_ ]?inventory|environment[-_ ]?report' \
+                | grep -Eiv '(^|/)(examples?|templates?)/|\.(example|sample|template|dist)$' \
+                || true
+            )"
+            if [ -n "$matches" ]; then
+              echo "$label contains private working material or generated structure reports:"
+              echo "$matches"
+              exit 1
+            fi
+
+            if git -C "$repository" grep -nI -E \
+              'AKIA[0-9A-Z]{16}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|sk-(proj-)?[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{20,}|-----BEGIN (RSA |OPENSSH |EC |DSA |PGP )?PRIVATE KEY-----' \
+              -- . ':(exclude)third_party/**'; then
+              echo "$label contains text matching a high-confidence secret signature."
+              exit 1
+            fi
+
+            if git -C "$repository" grep -nI -E \
+              '([A-Za-z]:\\Users\\[^\\[:space:]]+|/home/[^/[:space:]]+|/Users/[^/[:space:]]+|/workspace/scratch/[0-9]+)' \
+              -- '*.md' '*.txt' '*.json' '*.yaml' '*.yml' \
+                 ':(exclude).github/workflows/ci.yml'; then
+              echo "$label documentation exposes a user-specific absolute path."
+              exit 1
+            fi
+          }
+
+          check_public_repository_safety . "Studio"
+          check_public_repository_safety framework "Framework"
 
       - name: Configure Framework and Studio headless build
         run: |

@@ -9,7 +9,7 @@ UmiStatus umi_studio_workspace_seed(UmiStudioProfessionalWorkspace *workspace)
     status = umi_studio_workspace_catalogue_seed(workspace); if (status != UMI_STATUS_OK) return status;
     status = umi_studio_workspace_layouts_seed(workspace); if (status != UMI_STATUS_OK) return status;
     status = umi_studio_workspace_groups_seed(workspace); if (status != UMI_STATUS_OK) return status;
-    return umi_studio_workspace_theme_apply(workspace,UMI_STUDIO_WORKSPACE_THEME_DARK,UMI_UI_DENSITY_COMFORTABLE,1.0);
+    return umi_studio_workspace_theme_apply(workspace,UMI_STUDIO_WORKSPACE_THEME_DARK,UMI_UI_DENSITY_COMPACT,1.0);
 }
 UmiStatus umi_studio_workspace_execute(UmiStudioProfessionalWorkspace *workspace,UmiStudioWorkspaceCommand command)
 {

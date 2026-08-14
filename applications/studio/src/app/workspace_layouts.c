@@ -18,10 +18,35 @@ static UmiStatus develop_layout(UmiUiWorkspaceLayout *layout)
 {
     UmiStatus status = umi_ui_workspace_layout_init(layout,"preset-develop","Develop Template");
     if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,false);
-    if (status == UMI_STATUS_OK) status = add_window(layout,"project-explorer","Project Explorer","project-explorer","project-blue",0.0,0.0,0.20,0.75,false,1);
-    if (status == UMI_STATUS_OK) status = add_window(layout,"editor-main","Editor","editor","project-blue",0.20,0.0,0.55,0.75,true,2);
-    if (status == UMI_STATUS_OK) status = add_window(layout,"authorengine","AI and AuthorEngine","authorengine","project-blue",0.75,0.0,0.25,0.75,true,3);
-    if (status == UMI_STATUS_OK) status = add_window(layout,"output","Output","output","run-green",0.0,0.75,1.0,0.25,true,4);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"project-explorer","Project Explorer","project-explorer","project-blue",0.0,0.0,0.18,0.76,false,1);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"editor-main","Editor","editor","project-blue",0.18,0.0,0.62,0.76,true,2);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"authorengine","AI and AuthorEngine","authorengine","project-blue",0.80,0.0,0.20,0.76,true,3);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"output","Output, Problems and Terminal","output","run-green",0.0,0.76,1.0,0.24,true,4);
+    if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,true);
+    return status;
+}
+
+/* Editor-only focus mode follows the distraction-free layouts offered by
+ * professional IDEs while retaining the same underlying editor tool ID. */
+static UmiStatus focus_layout(UmiUiWorkspaceLayout *layout)
+{
+    UmiStatus status = umi_ui_workspace_layout_init(layout,"preset-focus","Focus Template");
+    if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,false);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"focus-editor","Editor","editor","project-blue",0.0,0.0,1.0,1.0,false,1);
+    if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,true);
+    return status;
+}
+
+/* Debug mode gives execution state the right and bottom tool regions without
+ * allowing those regions to squeeze the central source editor excessively. */
+static UmiStatus debug_layout(UmiUiWorkspaceLayout *layout)
+{
+    UmiStatus status = umi_ui_workspace_layout_init(layout,"preset-debug","Debug Template");
+    if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,false);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"debug-explorer","Project Explorer","project-explorer","debug-orange",0.0,0.0,0.18,0.68,true,1);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"debug-editor","Editor","editor","debug-orange",0.18,0.0,0.58,0.68,false,2);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"debug-state","Variables and Call Stack","debug","debug-orange",0.76,0.0,0.24,0.68,true,3);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"debug-console","Debug Console, Problems and Terminal","terminal","debug-orange",0.0,0.68,1.0,0.32,true,4);
     if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,true);
     return status;
 }
@@ -33,6 +58,21 @@ static UmiStatus operations_layout(UmiUiWorkspaceLayout *layout)
     if (status == UMI_STATUS_OK) status = add_window(layout,"traces","Traces","traces","run-green",0.5,0.0,0.5,0.5,true,2);
     if (status == UMI_STATUS_OK) status = add_window(layout,"profiler","Profiler","profiler","run-green",0.0,0.5,0.5,0.5,true,3);
     if (status == UMI_STATUS_OK) status = add_window(layout,"health","Health and Resilience","health","run-green",0.5,0.5,0.5,0.5,true,4);
+    if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,true);
+    return status;
+}
+
+/* Trading mode adopts the TWS Mosaic principle of named, task-focused tools:
+ * market selection, chart analysis, order entry, portfolio and live activity. */
+static UmiStatus trading_layout(UmiUiWorkspaceLayout *layout)
+{
+    UmiStatus status = umi_ui_workspace_layout_init(layout,"preset-trading","Trading Template");
+    if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,false);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"trading-watchlists","Watchlists","watchlist","trading-teal",0.0,0.0,0.18,0.72,true,1);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"trading-chart","Chart and Analytics","chart","trading-teal",0.18,0.0,0.52,0.72,false,2);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"trading-order-entry","Order Entry","order-entry","trading-teal",0.70,0.0,0.30,0.36,true,3);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"trading-portfolio","Portfolio and Risk","portfolio","trading-teal",0.70,0.36,0.30,0.36,true,4);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"trading-activity","Orders, Executions and Messages","trading-activity","trading-teal",0.0,0.72,1.0,0.28,true,5);
     if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,true);
     return status;
 }
@@ -67,15 +107,24 @@ UmiStatus umi_studio_workspace_layouts_seed(UmiStudioProfessionalWorkspace *work
 {
     UmiUiWorkspaceCustomisation *model = umi_studio_professional_workspace_model(workspace);
     UmiUiWorkspaceLayout develop;
+    UmiUiWorkspaceLayout focus;
+    UmiUiWorkspaceLayout debug;
     UmiUiWorkspaceLayout operations;
+    UmiUiWorkspaceLayout trading;
     UmiUiWorkspaceLayout compare;
     UmiStatus status;
     if (model == NULL) return UMI_STATUS_INVALID_ARGUMENT;
     status = develop_layout(&develop); if (status != UMI_STATUS_OK) return status;
+    status = focus_layout(&focus); if (status != UMI_STATUS_OK) return status;
+    status = debug_layout(&debug); if (status != UMI_STATUS_OK) return status;
     status = operations_layout(&operations); if (status != UMI_STATUS_OK) return status;
+    status = trading_layout(&trading); if (status != UMI_STATUS_OK) return status;
     status = compare_layout(&compare); if (status != UMI_STATUS_OK) return status;
-    status = register_preset(model,"studio-develop","Development","Visual Studio-inspired coding workspace with explorer, editor, AI and output",&develop,"develop","Develop"); if (status != UMI_STATUS_OK) return status;
+    status = register_preset(model,"studio-develop","Development","Editor-first coding workspace with compact project, tool and output regions",&develop,"develop","Develop"); if (status != UMI_STATUS_OK) return status;
+    status = register_preset(model,"studio-focus","Development","Distraction-free editor workspace for concentrated implementation and review",&focus,"focus","Focus"); if (status != UMI_STATUS_OK) return status;
+    status = register_preset(model,"studio-debug","Development","Source, execution state and console workspace for debugging",&debug,"debug","Debug"); if (status != UMI_STATUS_OK) return status;
     status = register_preset(model,"studio-operations","Operations","Metrics, traces, profiler, health and resilience dashboard",&operations,"operations","Operations"); if (status != UMI_STATUS_OK) return status;
+    status = register_preset(model,"studio-trading","Trading","TWS-inspired watchlist, analytics, order, portfolio and activity workspace",&trading,"trading","Trading"); if (status != UMI_STATUS_OK) return status;
     status = register_preset(model,"studio-compare","Comparison","Beyond Compare-inspired side-by-side file comparison workspace",&compare,"compare","Compare"); if (status != UMI_STATUS_OK) return status;
     return umi_ui_workspace_customisation_activate(model,"develop");
 }

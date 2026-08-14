@@ -30,6 +30,30 @@
 #define UMI_STUDIO_WORKBENCH_STATE_SESSION_KEY "studio.ui.workbench-state.v1"
 #define UMI_STUDIO_LEGACY_PERSPECTIVE_SESSION_KEY "studio.ui.active-perspective"
 
+static UmiStatus apply_professional_default_chrome(UmiUiWorkbench *workbench)
+{
+    UmiUiWorkbenchState state;
+    UmiStatus status;
+
+    status = umi_ui_workbench_state_snapshot(workbench, &state);
+    if (status != UMI_STATUS_OK) return status;
+
+    /*
+     * Start with an editor-first composition modelled on mature IDEs: project
+     * tools remain visible, the bottom tool area is available, and the
+     * auxiliary inspector stays collapsed until the user needs it. Splitter
+     * movement is persisted by the Framework GTK adapter through this same
+     * toolkit-neutral state object.
+     */
+    state.sidebar_visible = 1;
+    state.auxiliary_sidebar_visible = 0;
+    state.bottom_panel_visible = 1;
+    state.sidebar_size = 288;
+    state.auxiliary_sidebar_size = 360;
+    state.bottom_panel_size = 240;
+    return umi_ui_workbench_state_apply(workbench, &state);
+}
+
 UmiStatus umi_studio_workbench_reset_layout(UmiUiWorkbench *workbench)
 {
     if (workbench == NULL) return UMI_STATUS_INVALID_ARGUMENT;
@@ -96,7 +120,9 @@ UmiStatus umi_studio_workbench_populate(UmiUiWorkbench *workbench,
     status = umi_ui_document_view_model_upsert(
         umi_ui_workbench_documents(workbench), &welcome);
     if (status != UMI_STATUS_OK) return status;
-    return umi_ui_workbench_activate_document(workbench, welcome.view_id);
+    status = umi_ui_workbench_activate_document(workbench, welcome.view_id);
+    if (status != UMI_STATUS_OK) return status;
+    return apply_professional_default_chrome(workbench);
 }
 
 UmiStatus umi_studio_workbench_restore_session(UmiUiWorkbench *workbench,

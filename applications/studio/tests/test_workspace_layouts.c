@@ -7,7 +7,13 @@ int main(void)
     UmiStudioProfessionalWorkspace *workspace = umi_test_seeded_professional_workspace();
     UmiUiWorkspaceCustomisation *model = umi_studio_professional_workspace_model(workspace);
     UmiUiWorkspaceLayout *active;
-    assert(model->layout_count == 3U && model->library.count == 3U);
+    assert(model->layout_count == 6U && model->library.count == 6U);
+    assert(umi_ui_layout_library_find(&model->library,"studio-focus") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-debug") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-trading") != NULL);
+    assert(umi_ui_workspace_customisation_activate(model,"trading") == UMI_STATUS_OK);
+    active = umi_ui_workspace_customisation_active(model);
+    assert(active != NULL && active->window_count == 5U && active->locked);
     assert(umi_studio_workspace_execute(workspace,UMI_STUDIO_WORKSPACE_COMMAND_ACTIVATE_COMPARE) == UMI_STATUS_OK);
     active = umi_ui_workspace_customisation_active(model);
     assert(active != NULL && strcmp(active->layout_id,"compare") == 0);

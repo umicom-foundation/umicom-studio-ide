@@ -19,5 +19,16 @@ UmiStatus umi_studio_workspace_groups_seed(UmiStudioProfessionalWorkspace *works
     status = umi_ui_window_group_define(&model->groups,"compare-orange","workspace.group.orange",UMI_UI_WINDOW_CONTEXT_FILE); if (status != UMI_STATUS_OK) return status;
     status = join(&model->groups,"compare-orange","compare-original",UMI_UI_WINDOW_GROUP_SOURCE); if (status != UMI_STATUS_OK) return status;
     status = join(&model->groups,"compare-orange","compare-modified",UMI_UI_WINDOW_GROUP_DESTINATION); if (status != UMI_STATUS_OK) return status;
-    return join(&model->groups,"compare-orange","compare-results",UMI_UI_WINDOW_GROUP_DESTINATION);
+    status = join(&model->groups,"compare-orange","compare-results",UMI_UI_WINDOW_GROUP_DESTINATION); if (status != UMI_STATUS_OK) return status;
+    status = umi_ui_window_group_define(&model->groups,"debug-orange","workspace.group.debug",UMI_UI_WINDOW_CONTEXT_RUN); if (status != UMI_STATUS_OK) return status;
+    status = join(&model->groups,"debug-orange","debug-explorer",UMI_UI_WINDOW_GROUP_SOURCE); if (status != UMI_STATUS_OK) return status;
+    status = join(&model->groups,"debug-orange","debug-editor",UMI_UI_WINDOW_GROUP_DESTINATION); if (status != UMI_STATUS_OK) return status;
+    status = join(&model->groups,"debug-orange","debug-state",UMI_UI_WINDOW_GROUP_DESTINATION); if (status != UMI_STATUS_OK) return status;
+    status = join(&model->groups,"debug-orange","debug-console",UMI_UI_WINDOW_GROUP_DESTINATION); if (status != UMI_STATUS_OK) return status;
+    status = umi_ui_window_group_define(&model->groups,"trading-teal","workspace.group.trading",UMI_UI_WINDOW_CONTEXT_ACCOUNT); if (status != UMI_STATUS_OK) return status;
+    status = join(&model->groups,"trading-teal","trading-watchlists",UMI_UI_WINDOW_GROUP_SOURCE); if (status != UMI_STATUS_OK) return status;
+    status = join(&model->groups,"trading-teal","trading-chart",UMI_UI_WINDOW_GROUP_DESTINATION); if (status != UMI_STATUS_OK) return status;
+    status = join(&model->groups,"trading-teal","trading-order-entry",UMI_UI_WINDOW_GROUP_DESTINATION); if (status != UMI_STATUS_OK) return status;
+    status = join(&model->groups,"trading-teal","trading-portfolio",UMI_UI_WINDOW_GROUP_DESTINATION); if (status != UMI_STATUS_OK) return status;
+    return join(&model->groups,"trading-teal","trading-activity",UMI_UI_WINDOW_GROUP_DESTINATION);
 }

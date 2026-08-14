@@ -18,7 +18,9 @@ static const UmiUiWindowDescriptor WINDOWS[] = {
     {"authorengine","AI and AuthorEngine","Context-aware assistant, agents and generation","sparkles",UMI_UI_WINDOW_CATEGORY_AI,false,0.25,0.75},
     {"chart","Chart","Reusable financial and operational chart","chart",UMI_UI_WINDOW_CATEGORY_TRADING,true,0.50,0.50},
     {"watchlist","Watchlist","Linked instruments and alerts","watchlist",UMI_UI_WINDOW_CATEGORY_TRADING,true,0.30,0.60},
-    {"order-entry","Order Entry","Linked trading order ticket","order",UMI_UI_WINDOW_CATEGORY_TRADING,true,0.30,0.50}
+    {"order-entry","Order Entry","Linked trading order ticket","order",UMI_UI_WINDOW_CATEGORY_TRADING,true,0.30,0.50},
+    {"portfolio","Portfolio and Risk","Positions, balances, performance and risk","portfolio",UMI_UI_WINDOW_CATEGORY_TRADING,true,0.30,0.50},
+    {"trading-activity","Trading Activity","Orders, executions and operational messages","activity",UMI_UI_WINDOW_CATEGORY_TRADING,true,1.00,0.28}
 };
 UmiStatus umi_studio_workspace_catalogue_seed(UmiStudioProfessionalWorkspace *workspace)
 {

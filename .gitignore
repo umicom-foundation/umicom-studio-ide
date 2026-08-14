@@ -1,84 +1,165 @@
-﻿/build/
-/out/
-/dist/
-/*.log
-# CMake
-CMakeFiles/
-/CMakeCache.txt
-cmake-build-*/
-# Node (if web assets later)
-/node_modules/
+﻿# =============================================================================
+# Umicom Studio IDE — local, generated and sensitive content
+#
+# Ignore rules are deliberately grouped by purpose. They prevent future local
+# artefacts and secrets from being staged; they do not remove any file that is
+# already tracked. Safe example/template configuration remains commit-able.
+# =============================================================================
 
-# Secrets
-/secrets/*.env
-!/secrets/secrets.env.template
-
-# Build outputs
-/build-*/
-/dist-*/
-# CMake user presets (local-only)
-/CMakeUserPresets.json
-build-ninja/.ninja_deps
-build-ninja/.ninja_log
-build-ninja/build.ninja
-build-ninja/CMakeCache.txt
-build-ninja/CMakeCache.txt
-build-ninja/CMakeCache.txt
-build-ninja/.ninja_deps
-build-ninja/.ninja_log
-build-ninja/.ninja_deps
-build-ninja/.ninja_log
-build-ninja/build.ninja
-build-ninja/CMakeCache.txt
-config/env/*.env
-!/config/env/secrets.env.template
-
-links.txt
-tree.txt
-umicom-studio-ide-project.zip
-Refactoring & Modularization.docx
-logs.txt
-Refactoring & Modularization.pdf
-Refactoring & Modularization2.docx
-Refactoring & Modularization2.pdf
-umicom_build_patch_full_comments.zip
-Umicom_Foundation_Repositories__public_.csv
-umicom_stage2_full_files.zip
-umicom-studio-ide-fixed-part1.zip
-uside_patch_set_01.zip
-uside_stage1_files.zip
-uside_stage1_patch_bundle.zip
-src/src.zip
-junk-folder/error-logs-5-01pm.txt
-junk-folder/error-logs-5pm.txt
-junk-folder/error-logs-6-25pm.txt
-junk-folder/error-logs-6-40pm.txt
-junk-folder/error-logs-6pm.txt
-junk-folder/error-logs-7-10pm.txt
-junk-folder/error-logs-7pm.txt
-junk-folder/error-logs-14-10-2025.txt
-junk-folder/error-logs-14-oct.txt
-junk-folder/error-logs-14-october-2025.txt
-junk-folder/error-logs.txt
-junk-folder/Umicom Framework - Volume 2 - Sammy Hegab (Draft 4).docx
-junk-folder/Umicom Studio Ide — Build Log Issues (14 Oct 2025, Run 2).docx
-junk-folder/Umicom Studio IDE_ Technical and Architectural Review.docx
-junk-folder/Fixed Files – Pass 2 (with Headers & Comments).pdf
-junk-folder/Umicom Studio Ide — Build Log Issues (14 Oct 2025, Run 2).pdf
-junk-folder/Umicom Studio Ide — Build Log Issues (14 Oct).pdf
-.gitignore
-junk-folder/Umicom Studio IDE_ Technical and Architectural Review.pdf
-junk-folder/umicom-studio-ide-project-directory-tree-structure.txt
-
-# Migration build folders
+# CMake, Ninja, test, install, deployment and packaging output
 /build/
+/build-*/
+/build_*/
 /build-baseline/
 /build-ninja/
+/cmake-build-*/
+/out/
+/out-*/
+/dist/
+/dist-*/
+/deploy/
+/install/
+/_CPack_Packages/
 /framework/build/
+/framework/build-*/
+/**/CMakeFiles/
+/**/CMakeCache.txt
+/**/CTestTestfile.cmake
+/**/Testing/
+/**/.ninja_deps
+/**/.ninja_log
+/**/build.ninja
+/**/cmake_install.cmake
+/**/install_manifest.txt
+/CMakeUserPresets.json
+/compile_commands.json
 
-# Generated Gradle caches in documentation examples
+# Compiled binaries, symbols, crash evidence and coverage output
+*.a
+*.dll
+*.dylib
+*.exe
+*.exp
+*.ilk
+*.lib
+*.o
+*.obj
+*.pdb
+*.so
+*.dSYM/
+*.dmp
+*.gcda
+*.gcno
+*.profraw
+*.stackdump
+core
+core.*
+/coverage/
+
+# Package-manager output and generated frontend caches
+/node_modules/
 **/.gradle/
-/docs/examples/templates/**/build/
+/.cache/
+/.pytest_cache/
+/.ruff_cache/
 
-# Local archive and migration packages
+# Logs, temporary files, operating-system state and local editor state
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+/.clangd/
+/.vs/
+/.vscode/*.local.json
+/.idea/workspace.xml
+/.idea/shelf/
+/.idea/httpRequests/
+.DS_Store
+Thumbs.db
+
+# Local archives, migration packages and generated repository reports
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz
 *.zip
+tree.txt
+links.txt
+logs.txt
+*directory-tree*.txt
+*folder-structure*.txt
+*absolute-paths*.txt
+*workspace-inventory*.txt
+*machine-inventory*.txt
+*environment-report*.txt
+
+# Secrets and machine-local configuration
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
+!**/.env.template
+!**/.env.dist
+**/.envrc
+**/.npmrc
+**/.pypirc
+**/.netrc
+**/credentials.json
+**/credentials.yaml
+**/credentials.yml
+**/secrets.json
+**/secrets.yaml
+**/secrets.yml
+**/service-account*.json
+**/oauth-client*.json
+**/terraform.tfvars
+**/terraform.tfvars.*
+**/kubeconfig
+**/kubeconfig.*
+*.key
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+
+# Safe secret placeholders intentionally retained as contributor examples
+!/secrets/
+/secrets/*
+!/secrets/*.example
+!/secrets/*.sample
+!/secrets/*.template
+!/config/env/
+/config/env/*.env
+!/config/env/*.example
+!/config/env/*.sample
+!/config/env/*.template
+
+# Private working areas and documents that are unsuitable for public source
+/private/
+/local-only/
+/internal-only/
+/scratch/
+/junk-folder/
+/docs/private/
+/docs/internal/
+*.private.*
+*.local.*
+
+# Batch delivery bundles are distributed outside the canonical repository
+/Batch */
+/BATCH_*.txt
+/docs/batches/
+/framework/docs/batches/
+
+# Known local-only review/reference material retained on developer machines
+/Refactoring & Modularization*.docx
+/Refactoring & Modularization*.pdf
+/Umicom_Foundation_Repositories__public_.csv

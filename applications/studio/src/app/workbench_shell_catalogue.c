@@ -208,7 +208,22 @@ static UmiStatus register_context(UmiUiWorkbench *workbench)
         status = umi_ui_context_set_boolean(context, "studio.ui.bottom.visible", 1);
     }
     if (status == UMI_STATUS_OK) {
-        status = umi_ui_context_set_boolean(context, "studio.ui.auxiliary.visible", 1);
+        status = umi_ui_context_set_boolean(context, "studio.ui.auxiliary.visible", 0);
+    }
+    if (status == UMI_STATUS_OK) {
+        /*
+         * Presentation adapters consume semantic preferences from the shared
+         * context store. This keeps theme and density choices toolkit-neutral
+         * and leaves room for persisted user settings in a later batch.
+         */
+        status = umi_ui_context_set_string(context,
+                                           "studio.ui.theme",
+                                           "dark");
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_ui_context_set_string(context,
+                                           "studio.ui.density",
+                                           "compact");
     }
     if (status == UMI_STATUS_OK) {
         status = umi_ui_context_set_boolean(context, "studio.designer.available", 1);
