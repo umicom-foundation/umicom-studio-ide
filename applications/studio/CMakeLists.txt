@@ -1616,14 +1616,6 @@ install(TARGETS
     RUNTIME DESTINATION bin
 )
 
-# Install the self-contained HTML operator manuals so they can be opened on a
-# clean Windows workstation without a Markdown renderer.
-install(FILES
-    docs/batches/Umicom_Batch_58_Compiler_Polyglot_Umicc_Build_Deploy_Install_and_Usage_Guide.html
-    docs/batches/Umicom_Batch_60_Naming_and_Build_Stabilisation_Guide.html
-    DESTINATION share/umicom/docs
-)
-
 # The interactive IDE is optional, so install it only when the GTK product was
 # built.  This makes the new Deploy action and documented cmake --install flow
 # produce a launchable Studio application instead of tools alone.
