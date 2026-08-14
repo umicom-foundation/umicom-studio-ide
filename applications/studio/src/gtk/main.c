@@ -247,6 +247,11 @@ static int wants_console(int argc, char **argv)
         (str_eq(environment, "1") || _stricmp(environment, "true") == 0)) {
         return 1;
     }
+
+    /*
+     * Diagnostic UI modes do not automatically need a native console. A
+     * console is created only when the developer requests one explicitly.
+     */
     for (index = 0; index < argc; ++index) {
         if (str_eq(argv[index], "--console") ||
             str_eq(argv[index], "--dev") ||
