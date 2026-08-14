@@ -70,6 +70,16 @@ extern "C" {
     "studio.knowledge.result_limit"
 #define UMI_STUDIO_SETTING_KNOWLEDGE_OFFLINE_ONLY \
     "studio.knowledge.offline_only"
+#define UMI_STUDIO_SETTING_HELIX_MAXIMUM_ATTEMPTS \
+    "studio.helix.v2.maximum_attempts"
+#define UMI_STUDIO_SETTING_HELIX_REQUIRE_APPROVAL \
+    "studio.helix.v2.require_human_approval"
+#define UMI_STUDIO_SETTING_HELIX_ALLOW_FILESYSTEM \
+    "studio.helix.v2.allow_filesystem"
+#define UMI_STUDIO_SETTING_HELIX_ALLOW_BUILD \
+    "studio.helix.v2.allow_build"
+#define UMI_STUDIO_SETTING_HELIX_ALLOW_SOURCE_CONTROL \
+    "studio.helix.v2.allow_source_control"
 #define UMI_STUDIO_SETTING_DIAGNOSTIC_CAPACITY \
     "studio.diagnostics.capacity"
 #define UMI_STUDIO_SETTING_AUTO_SAVE "studio.files.auto_save"

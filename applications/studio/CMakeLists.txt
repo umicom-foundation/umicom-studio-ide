@@ -126,6 +126,14 @@ add_library(umicom_studio_core STATIC
     src/app/helix_evidence.c
     src/app/helix_fitness.c
     src/app/helix_generation.c
+    src/app/helix_agent_adapters.c
+    src/app/helix_agent_centre.c
+    src/app/helix_agent_commands.c
+    src/app/helix_agent_operations.c
+    src/app/helix_agent_views.c
+    src/app/helix_agent_candidates.c
+    src/app/helix_agent_journal.c
+    src/app/helix_agent_settings.c
     src/app/delivery_platform.c
     src/app/compatibility_platform.c
     src/app/sdk.c
@@ -352,7 +360,8 @@ foreach(UMICOM_STUDIO_AI_TOOL
         knowledge
         helix
         helix-evidence
-        helix-generation)
+        helix-generation
+        helix-agent-runtime)
     string(REPLACE "-" "_" UMICOM_STUDIO_AI_SOURCE
         "${UMICOM_STUDIO_AI_TOOL}")
     add_executable(umicom-studio-${UMICOM_STUDIO_AI_TOOL}
@@ -1141,7 +1150,14 @@ if(BUILD_TESTING)
             helix_evidence
             helix_fitness
             helix_generation
-            helix_agents)
+            helix_agents
+            helix_agent_centre
+            helix_agent_commands
+            helix_agent_adapters
+            helix_agent_views
+            helix_agent_candidates
+            helix_agent_journal
+            helix_agent_settings)
         string(REPLACE "_" "-" UMICOM_STUDIO_AI_TEST_TARGET
             "${UMICOM_STUDIO_AI_TEST}")
         add_executable(umicom-studio-${UMICOM_STUDIO_AI_TEST_TARGET}-test
@@ -1230,6 +1246,13 @@ if(BUILD_TESTING)
         studio.helix_fitness
         studio.helix_generation
         studio.helix_agents
+        studio.helix_agent_centre
+        studio.helix_agent_commands
+        studio.helix_agent_adapters
+        studio.helix_agent_views
+        studio.helix_agent_candidates
+        studio.helix_agent_journal
+        studio.helix_agent_settings
         PROPERTIES RESOURCE_LOCK umicom_studio_runtime_state
     )
 

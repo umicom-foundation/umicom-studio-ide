@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 typedef struct UmiStudioAiPlatform UmiStudioAiPlatform;
+typedef struct UmiStudioHelixAgentCentre UmiStudioHelixAgentCentre;
 
 typedef struct UmiStudioAiPlatformConfig {
     char authorengine_executable[UMI_AI_TEXT_CAPACITY];
@@ -45,6 +46,14 @@ typedef struct UmiStudioAiPlatformConfig {
     size_t knowledge_overlap_bytes;
     size_t knowledge_result_limit;
     int knowledge_offline_only;
+    uint32_t helix_maximum_attempts;
+    double helix_minimum_fitness;
+    int helix_require_human_approval;
+    int helix_allow_filesystem;
+    int helix_allow_build;
+    int helix_allow_test;
+    int helix_allow_review;
+    int helix_allow_source_control;
 } UmiStudioAiPlatformConfig;
 
 UmiStudioAiPlatformConfig umi_studio_ai_platform_config_default(void);
@@ -60,6 +69,8 @@ UmiAiAuthorEngineService *umi_studio_ai_platform_authorengine(
 UmiAiCodingAssistantService *umi_studio_ai_platform_coding_assistant(
     UmiStudioAiPlatform *platform);
 UmiKnowledgeService *umi_studio_ai_platform_knowledge(
+    UmiStudioAiPlatform *platform);
+UmiStudioHelixAgentCentre *umi_studio_ai_platform_helix_agent_centre(
     UmiStudioAiPlatform *platform);
 size_t umi_studio_ai_platform_knowledge_result_limit(
     const UmiStudioAiPlatform *platform);

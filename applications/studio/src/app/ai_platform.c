@@ -15,6 +15,7 @@
  */
 
 #include "umicom/studio/ai_platform.h"
+#include "umicom/studio/helix_agent_centre.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@ struct UmiStudioAiPlatform {
     UmiAiAuthorEngineService *authorengine;
     UmiAiCodingAssistantService *coding_assistant;
     UmiKnowledgeService *knowledge;
+    UmiStudioHelixAgentCentre *helix_agent_centre;
     uint32_t coding_context_tokens;
     size_t knowledge_result_limit;
     char knowledge_archive_path[UMI_KNOWLEDGE_URI_CAPACITY];
@@ -115,6 +117,14 @@ UmiStudioAiPlatformConfig umi_studio_ai_platform_config_default(void)
     config.knowledge_overlap_bytes = 200U;
     config.knowledge_result_limit = 12U;
     config.knowledge_offline_only = 1;
+    config.helix_maximum_attempts = 3U;
+    config.helix_minimum_fitness = 0.80;
+    config.helix_require_human_approval = 1;
+    config.helix_allow_filesystem = 1;
+    config.helix_allow_build = 1;
+    config.helix_allow_test = 1;
+    config.helix_allow_review = 1;
+    config.helix_allow_source_control = 0;
     return config;
 }
 
@@ -163,6 +173,24 @@ static UmiStatus create_knowledge_centre(
             platform->knowledge, &collection);
     }
     return status;
+}
+
+static UmiStatus create_helix_agent_centre(
+    UmiStudioAiPlatform *platform,
+    const UmiStudioAiPlatformConfig *config)
+{
+    UmiStudioHelixAgentCentreConfig centre_config =
+        umi_studio_helix_agent_centre_config_default();
+    centre_config.maximum_attempts = config->helix_maximum_attempts;
+    centre_config.minimum_fitness = config->helix_minimum_fitness;
+    centre_config.require_human_approval = config->helix_require_human_approval;
+    centre_config.allow_filesystem = config->helix_allow_filesystem;
+    centre_config.allow_build = config->helix_allow_build;
+    centre_config.allow_test = config->helix_allow_test;
+    centre_config.allow_review = config->helix_allow_review;
+    centre_config.allow_source_control = config->helix_allow_source_control;
+    return umi_studio_helix_agent_centre_create(
+        &centre_config, &platform->helix_agent_centre);
 }
 
 static UmiStatus register_catalogue_runtime(
@@ -289,7 +317,10 @@ UmiStatus umi_studio_ai_platform_create_configured(
         config->knowledge_chunk_bytes >= UMI_KNOWLEDGE_TEXT_CAPACITY ||
         config->knowledge_overlap_bytes >= config->knowledge_chunk_bytes ||
         config->knowledge_result_limit == 0U ||
-        config->knowledge_result_limit > UMI_KNOWLEDGE_QUERY_RESULT_MAX) {
+        config->knowledge_result_limit > UMI_KNOWLEDGE_QUERY_RESULT_MAX ||
+        config->helix_maximum_attempts == 0U ||
+        config->helix_minimum_fitness < 0.0 ||
+        config->helix_minimum_fitness > 1.0) {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
     *out_platform = NULL;
@@ -433,6 +464,9 @@ UmiStatus umi_studio_ai_platform_create_configured(
     if (status == UMI_STATUS_OK) {
         status = create_knowledge_centre(platform, config);
     }
+    if (status == UMI_STATUS_OK) {
+        status = create_helix_agent_centre(platform, config);
+    }
     if (status != UMI_STATUS_OK) {
         umi_studio_ai_platform_destroy(platform);
         return status;
@@ -450,6 +484,7 @@ UmiStatus umi_studio_ai_platform_create(UmiStudioAiPlatform **out_platform)
 void umi_studio_ai_platform_destroy(UmiStudioAiPlatform *platform)
 {
     if (platform == NULL) return;
+    umi_studio_helix_agent_centre_destroy(platform->helix_agent_centre);
     umi_knowledge_service_destroy(platform->knowledge);
     umi_ai_coding_assistant_destroy(platform->coding_assistant);
     umi_ai_authorengine_service_destroy(platform->authorengine);
@@ -482,6 +517,12 @@ UmiKnowledgeService *umi_studio_ai_platform_knowledge(
     UmiStudioAiPlatform *platform)
 {
     return platform != NULL ? platform->knowledge : NULL;
+}
+
+UmiStudioHelixAgentCentre *umi_studio_ai_platform_helix_agent_centre(
+    UmiStudioAiPlatform *platform)
+{
+    return platform != NULL ? platform->helix_agent_centre : NULL;
 }
 
 size_t umi_studio_ai_platform_knowledge_result_limit(

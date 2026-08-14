@@ -220,6 +220,41 @@ static const UmiSettingDefinition STUDIO_SETTINGS_SCHEMA[] = {
         0, 0, 0.0, 0.0, 0, 0
     },
     {
+        UMI_STUDIO_SETTING_HELIX_MAXIMUM_ATTEMPTS,
+        UMI_SETTING_INTEGER,
+        "3",
+        "Maximum bounded attempts for one Helix v2 build, test or review action.",
+        1, 20, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_HELIX_REQUIRE_APPROVAL,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Require an exact human approval ticket before Helix v2 executes an action.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_HELIX_ALLOW_FILESYSTEM,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Allow approved Helix v2 filesystem actions through Studio adapters.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_HELIX_ALLOW_BUILD,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Allow approved Helix v2 build actions through Studio adapters.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_HELIX_ALLOW_SOURCE_CONTROL,
+        UMI_SETTING_BOOLEAN,
+        "false",
+        "Allow separately approved Helix v2 source-control actions.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
         UMI_STUDIO_SETTING_DIAGNOSTIC_CAPACITY,
         UMI_SETTING_INTEGER,
         "512",
