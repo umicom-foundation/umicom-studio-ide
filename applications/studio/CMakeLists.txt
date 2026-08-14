@@ -15,7 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.20.0")
+set(UMICOM_STUDIO_VERSION "0.21.0")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
@@ -61,6 +61,9 @@ add_library(umicom_studio_core STATIC
     src/app/replay.c
     src/app/fabric.c
     src/app/operations.c
+    src/app/operations_centre_v2.c
+    src/app/operations_views_v2.c
+    src/app/operations_commands_v2.c
     src/app/security.c
     src/app/security_centre_v2.c
     src/app/security_identities_v2.c
@@ -76,6 +79,14 @@ add_library(umicom_studio_core STATIC
     src/app/resilience.c
     src/app/ui.c
     src/app/workbench.c
+    src/app/professional_workspace_v2.c
+    src/app/workspace_catalogue_v2.c
+    src/app/workspace_layouts_v2.c
+    src/app/workspace_groups_v2.c
+    src/app/workspace_themes_v2.c
+    src/app/workspace_persistence_v2.c
+    src/app/workspace_views_v2.c
+    src/app/workspace_commands_v2.c
     src/app/perspectives.c
     src/app/contributions.c
     src/app/view_models.c
@@ -361,6 +372,17 @@ add_executable(umicom-studio-security-centre src/tools/security_centre_main.c)
 target_link_libraries(umicom-studio-security-centre PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-security-centre)
 umicom_apply_sanitizers(umicom-studio-security-centre)
+
+# Native Operations Centre and Professional Workspace Designer commands.
+add_executable(umicom-studio-operations-centre-v2 src/tools/operations_centre_v2_main.c)
+target_link_libraries(umicom-studio-operations-centre-v2 PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-operations-centre-v2)
+umicom_apply_sanitizers(umicom-studio-operations-centre-v2)
+
+add_executable(umicom-studio-workspace-designer-v2 src/tools/workspace_designer_v2_main.c)
+target_link_libraries(umicom-studio-workspace-designer-v2 PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-workspace-designer-v2)
+umicom_apply_sanitizers(umicom-studio-workspace-designer-v2)
 
 # Native toolkit-neutral workbench and UI catalogue commands.
 add_executable(umicom-studio-workbench src/tools/workbench_main.c)
@@ -1499,6 +1521,8 @@ install(TARGETS
     umicom-studio-history
     umicom-studio-security
     umicom-studio-security-centre
+    umicom-studio-operations-centre-v2
+    umicom-studio-workspace-designer-v2
     umicom-studio-plugins
     umicom-studio-observability
     umicom-studio-resilience
@@ -1605,5 +1629,30 @@ foreach(UMICOM_STUDIO_SECURITY_V2_TEST
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test)
     add_test(NAME studio.${UMICOM_STUDIO_SECURITY_V2_TEST}
         COMMAND umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test)
+endforeach()
+endif()
+
+if(BUILD_TESTING)
+foreach(UMICOM_STUDIO_BATCH57_TEST
+        operations_centre_v2
+        operations_views_commands_v2
+        workspace_catalogue_v2
+        workspace_layouts_v2
+        workspace_groups_v2
+        workspace_themes_v2
+        workspace_persistence_v2
+        workspace_views_commands_v2)
+    string(REPLACE "_" "-" UMICOM_STUDIO_BATCH57_TEST_TARGET
+        "${UMICOM_STUDIO_BATCH57_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_BATCH57_TEST}.c)
+    target_include_directories(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_BATCH57_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test)
 endforeach()
 endif()
