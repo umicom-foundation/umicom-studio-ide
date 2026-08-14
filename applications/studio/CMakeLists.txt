@@ -15,7 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.17.0")
+set(UMICOM_STUDIO_VERSION "0.18.0")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
@@ -47,6 +47,15 @@ add_library(umicom_studio_core STATIC
     src/app/database_explorer_transfer.c
     src/app/database_explorer_views.c
     src/app/database_explorer_commands.c
+    src/app/integration_designer_centre.c
+    src/app/integration_designer_connections.c
+    src/app/integration_designer_api.c
+    src/app/integration_designer_mapping.c
+    src/app/integration_designer_workflow.c
+    src/app/integration_designer_execution.c
+    src/app/integration_designer_monitoring.c
+    src/app/integration_designer_views.c
+    src/app/integration_designer_commands.c
     src/app/messages.c
     src/app/history.c
     src/app/replay.c
@@ -286,6 +295,15 @@ target_link_libraries(umicom-studio-database-explorer
     PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-database-explorer)
 umicom_apply_sanitizers(umicom-studio-database-explorer)
+
+# Integration Designer composes provider-neutral Framework contracts. The
+# executable performs only deterministic planning and simulation by default.
+add_executable(umicom-studio-integration-designer
+    src/tools/integration_designer_main.c)
+target_link_libraries(umicom-studio-integration-designer
+    PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-integration-designer)
+umicom_apply_sanitizers(umicom-studio-integration-designer)
 
 # Native Integration Fabric inspection and publication command.
 add_executable(umicom-studio-messages src/tools/messages_main.c)
@@ -768,6 +786,26 @@ if(BUILD_TESTING)
         umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_PLATFORM_TEST}-test)
         add_test(NAME studio.platform.${UMICOM_STUDIO_PLATFORM_TEST}
             COMMAND umicom-studio-${UMICOM_STUDIO_PLATFORM_TEST}-test)
+    endforeach()
+
+    foreach(UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST
+            integration_designer_centre
+            integration_designer_connections_api
+            integration_designer_mapping
+            integration_designer_workflow
+            integration_designer_execution
+            integration_designer_monitoring
+            integration_designer_views_commands)
+        string(REPLACE "_" "-" UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST_TARGET
+            "${UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST}")
+        add_executable(umicom-studio-${UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST_TARGET}-test
+            tests/test_${UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST}.c)
+        target_link_libraries(umicom-studio-${UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST_TARGET}-test
+            PRIVATE Umicom::StudioCore)
+        umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST_TARGET}-test)
+        umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST_TARGET}-test)
+        add_test(NAME studio.${UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST}
+            COMMAND umicom-studio-${UMICOM_STUDIO_INTEGRATION_DESIGNER_TEST_TARGET}-test)
     endforeach()
 
     # Filesystem project-import coverage extends the existing platform tests.
@@ -1426,6 +1464,7 @@ install(TARGETS
     umicom-studio-process
     umicom-studio-data
     umicom-studio-database-explorer
+    umicom-studio-integration-designer
     umicom-studio-messages
     umicom-studio-replay
     umicom-studio-history
