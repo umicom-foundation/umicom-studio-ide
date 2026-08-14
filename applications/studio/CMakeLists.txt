@@ -40,6 +40,13 @@ add_library(umicom_studio_core STATIC
     src/app/processes.c
     src/app/watcher.c
     src/app/data.c
+    src/app/database_explorer_centre.c
+    src/app/database_explorer_connections.c
+    src/app/database_explorer_queries.c
+    src/app/database_explorer_migrations.c
+    src/app/database_explorer_transfer.c
+    src/app/database_explorer_views.c
+    src/app/database_explorer_commands.c
     src/app/messages.c
     src/app/history.c
     src/app/replay.c
@@ -270,6 +277,15 @@ add_executable(umicom-studio-data src/tools/data_main.c)
 target_link_libraries(umicom-studio-data PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-data)
 umicom_apply_sanitizers(umicom-studio-data)
+
+# Database Explorer stays a Studio composition over the authoritative
+# Framework Data Server; it never exposes provider connection handles.
+add_executable(umicom-studio-database-explorer
+    src/tools/database_explorer_main.c)
+target_link_libraries(umicom-studio-database-explorer
+    PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-database-explorer)
+umicom_apply_sanitizers(umicom-studio-database-explorer)
 
 # Native Integration Fabric inspection and publication command.
 add_executable(umicom-studio-messages src/tools/messages_main.c)
@@ -1003,6 +1019,26 @@ if(BUILD_TESTING)
     umicom_apply_warnings(umicom-studio-data-test)
     add_test(NAME studio.data COMMAND umicom-studio-data-test)
 
+    foreach(UMICOM_STUDIO_DATABASE_TEST
+            database_explorer_centre
+            database_explorer_connections
+            database_explorer_queries
+            database_explorer_migrations
+            database_explorer_transfer
+            database_explorer_views
+            database_explorer_commands)
+        string(REPLACE "_" "-" UMICOM_STUDIO_DATABASE_TEST_TARGET
+            "${UMICOM_STUDIO_DATABASE_TEST}")
+        add_executable(umicom-studio-${UMICOM_STUDIO_DATABASE_TEST_TARGET}-test
+            tests/test_${UMICOM_STUDIO_DATABASE_TEST}.c)
+        target_link_libraries(umicom-studio-${UMICOM_STUDIO_DATABASE_TEST_TARGET}-test
+            PRIVATE Umicom::StudioCore)
+        umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DATABASE_TEST_TARGET}-test)
+        umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DATABASE_TEST_TARGET}-test)
+        add_test(NAME studio.${UMICOM_STUDIO_DATABASE_TEST}
+            COMMAND umicom-studio-${UMICOM_STUDIO_DATABASE_TEST_TARGET}-test)
+    endforeach()
+
     add_executable(umicom-studio-messages-test tests/test_messages.c)
     target_link_libraries(umicom-studio-messages-test PRIVATE Umicom::StudioCore)
     umicom_apply_warnings(umicom-studio-messages-test)
@@ -1389,6 +1425,7 @@ install(TARGETS
     umicom-studio-workspace
     umicom-studio-process
     umicom-studio-data
+    umicom-studio-database-explorer
     umicom-studio-messages
     umicom-studio-replay
     umicom-studio-history

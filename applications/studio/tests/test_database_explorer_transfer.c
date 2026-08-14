@@ -1,0 +1,5 @@
+/* Umicom Studio IDE Tests | Sammy Hegab | Umicom Foundation | MIT */
+#include <assert.h>
+#include <string.h>
+#include "umicom/studio/database_explorer_transfer.h"
+int main(void){UmiDataServer *server=NULL;UmiStudioServices *services;UmiStudioDatabaseExplorerCentre *c=NULL;UmiDatabaseTransferPlan p;UmiDatabaseBackupRecord b={0};extern UmiStudioServices *umi_test_services_create(UmiDataServer *server);extern void umi_test_services_destroy(UmiStudioServices *services);assert(umi_data_server_create_memory(&server)==UMI_STATUS_OK);services=umi_test_services_create(server);assert(umi_studio_database_explorer_create(services,&c)==UMI_STATUS_OK);assert(umi_database_transfer_plan_init(&p,"export",UMI_DATABASE_TRANSFER_EXPORT,UMI_DATABASE_FORMAT_JSON,"umicom_kv","records.json")==UMI_STATUS_OK);assert(umi_studio_database_transfer_add(c,&p)==UMI_STATUS_OK);(void)strcpy(b.id,"backup-1");(void)strcpy(b.path,"backup/studio.db");assert(umi_studio_database_backup_add(c,&b)==UMI_STATUS_OK);assert(umi_studio_database_backup_verify(c,"backup-1")==UMI_STATUS_OK);umi_studio_database_explorer_destroy(c);umi_test_services_destroy(services);umi_data_server_destroy(server);return 0;}

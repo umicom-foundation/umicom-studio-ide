@@ -1,0 +1,4 @@
+/* Umicom Studio IDE Tests | Sammy Hegab | Umicom Foundation | MIT */
+#include <assert.h>
+#include "umicom/studio/database_explorer_migrations.h"
+int main(void){UmiDataServer *server=NULL;UmiStudioServices *services;UmiStudioDatabaseExplorerCentre *c=NULL;extern UmiStudioServices *umi_test_services_create(UmiDataServer *server);extern void umi_test_services_destroy(UmiStudioServices *services);assert(umi_data_server_create_memory(&server)==UMI_STATUS_OK);services=umi_test_services_create(server);assert(umi_studio_database_explorer_create(services,&c)==UMI_STATUS_OK);assert(umi_studio_database_migration_register(c,1U,"Studio core","sha256:core")==UMI_STATUS_OK);assert(umi_database_migration_catalog_pending(&c->explorer->migrations)==1U);umi_studio_database_explorer_destroy(c);umi_test_services_destroy(services);umi_data_server_destroy(server);return 0;}
