@@ -15,7 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.19.0")
+set(UMICOM_STUDIO_VERSION "0.20.0")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
@@ -62,6 +62,15 @@ add_library(umicom_studio_core STATIC
     src/app/fabric.c
     src/app/operations.c
     src/app/security.c
+    src/app/security_centre_v2.c
+    src/app/security_identities_v2.c
+    src/app/security_roles_v2.c
+    src/app/security_secrets_v2.c
+    src/app/security_approvals_v2.c
+    src/app/security_packages_v2.c
+    src/app/security_audit_view_v2.c
+    src/app/security_views_v2.c
+    src/app/security_commands_v2.c
     src/app/plugins.c
     src/app/observability.c
     src/app/resilience.c
@@ -346,6 +355,12 @@ foreach(UMICOM_STUDIO_OPERATION_TOOL
     umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL})
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_OPERATION_TOOL})
 endforeach()
+
+# Native Security, Identity, Secrets and Policy Centre command.
+add_executable(umicom-studio-security-centre src/tools/security_centre_main.c)
+target_link_libraries(umicom-studio-security-centre PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-security-centre)
+umicom_apply_sanitizers(umicom-studio-security-centre)
 
 # Native toolkit-neutral workbench and UI catalogue commands.
 add_executable(umicom-studio-workbench src/tools/workbench_main.c)
@@ -1483,6 +1498,7 @@ install(TARGETS
     umicom-studio-replay
     umicom-studio-history
     umicom-studio-security
+    umicom-studio-security-centre
     umicom-studio-plugins
     umicom-studio-observability
     umicom-studio-resilience
@@ -1566,5 +1582,28 @@ foreach(UMICOM_STUDIO_QUALITY_V2_TEST
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test)
     add_test(NAME studio.${UMICOM_STUDIO_QUALITY_V2_TEST}
         COMMAND umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test)
+endforeach()
+endif()
+
+if(BUILD_TESTING)
+foreach(UMICOM_STUDIO_SECURITY_V2_TEST
+        security_centre_v2
+        security_identities_roles_v2
+        security_secrets_v2
+        security_approvals_v2
+        security_packages_v2
+        security_audit_view_v2
+        security_views_v2
+        security_commands_v2)
+    string(REPLACE "_" "-" UMICOM_STUDIO_SECURITY_V2_TEST_TARGET
+        "${UMICOM_STUDIO_SECURITY_V2_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_SECURITY_V2_TEST}.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_SECURITY_V2_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test)
 endforeach()
 endif()
