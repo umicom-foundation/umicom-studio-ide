@@ -55,6 +55,31 @@ jobs:
           test -f applications/studio/CMakeLists.txt
           test -f applications/studio/cmake/StudioSources.cmake
 
+      - name: Enforce repository cleanliness
+        run: |
+          if git ls-files install _CPack_Packages | grep -q .; then
+            echo "Generated installation or CPack output is tracked."
+            exit 1
+          fi
+          if git ls-files applications/studio scripts/tools/lang \
+             | grep -E '(^|/)[^/]*(_v[0-9]+|\.v[0-9]+)([_.]|$)'; then
+            echo "Version-suffixed Studio source names are not permitted."
+            exit 1
+          fi
+          if git -C framework ls-files \
+             | grep -E '(^|/)[^/]*(_v[0-9]+|v[0-9]+_)([_.]|$)'; then
+            echo "Version-suffixed Framework source names are not permitted."
+            exit 1
+          fi
+          if git ls-files | grep -E '(^|/)docs/batches/|^BATCH_[0-9]+'; then
+            echo "Batch delivery documentation must not be committed."
+            exit 1
+          fi
+          if git -C framework ls-files | grep -E '(^|/)docs/batches/'; then
+            echo "Framework batch delivery documentation must not be committed."
+            exit 1
+          fi
+
       - name: Configure Framework and Studio headless build
         run: |
           cmake \
@@ -88,3 +113,90 @@ jobs:
 
       - name: Validate typed Studio settings
         run: ./build/ci/bin/umicom-studio-settings --file config/studio.settings validate
+
+  gtk:
+    name: GTK application compile and startup
+    needs: headless
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out Studio and all submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install GTK4 build and startup dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libsqlite3-dev \
+            libgtk-4-dev \
+            libgtksourceview-5-dev \
+            libjson-glib-dev \
+            libsoup-3.0-dev \
+            libcurl4-openssl-dev \
+            xvfb
+
+      - name: Configure GTK application build
+        run: |
+          cmake \
+            -S . \
+            -B build/gtk-ci \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DBUILD_TESTING=ON \
+            -DUMICOM_STUDIO_BUILD_GTK=ON \
+            -DUMICOM_ENABLE_STRICT_WARNINGS=ON
+
+      - name: Compile Framework and GTK Studio application
+        run: cmake --build build/gtk-ci --parallel 2
+
+      - name: Start the real Studio workbench
+        run: xvfb-run --auto-servernum timeout 20s ./build/gtk-ci/bin/umicom-studio-ide --smoke-test
+
+  windows-ucrt64:
+    name: Windows UCRT64 GTK application
+    needs: headless
+    runs-on: windows-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out Studio and all submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install MSYS2 UCRT64 build environment
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-clang
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-binutils
+            mingw-w64-ucrt-x86_64-gtk4
+            mingw-w64-ucrt-x86_64-gtksourceview5
+            mingw-w64-ucrt-x86_64-json-glib
+            mingw-w64-ucrt-x86_64-libsoup3
+            mingw-w64-ucrt-x86_64-curl
+            mingw-w64-ucrt-x86_64-sqlite3
+
+      - name: Configure the canonical Windows GTK build
+        shell: msys2 {0}
+        run: cmake --preset windows-ucrt64-debug
+
+      - name: Compile Framework and GTK Studio application
+        shell: msys2 {0}
+        run: cmake --build --preset windows-ucrt64-debug --parallel 2
