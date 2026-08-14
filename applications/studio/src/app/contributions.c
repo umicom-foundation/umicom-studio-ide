@@ -71,6 +71,11 @@ static const UmiUiPaneSnapshot STUDIO_PANES[] = {
     { UMI_STUDIO_PANE_PRODUCT_UPDATES, "Product Updates", "studio.product-updates", "software-update-available-symbolic", UMI_UI_PLACEMENT_LEFT, 172, 0, 1, 1, { 440, 500 } },
     { UMI_STUDIO_PANE_PRODUCT_TRANSACTIONS, "Distribution Transactions", "studio.product-transactions", "document-open-recent-symbolic", UMI_UI_PLACEMENT_BOTTOM, 173, 0, 1, 1, { 760, 300 } },
     { UMI_STUDIO_PANE_PRODUCT_EVIDENCE, "Supply-chain Evidence", "studio.product-evidence", "security-high-symbolic", UMI_UI_PLACEMENT_BOTTOM, 174, 0, 1, 1, { 760, 300 } }
+    ,{ UMI_STUDIO_PANE_KNOWLEDGE, "Knowledge Centre", "studio.knowledge", "folder-documents-symbolic", UMI_UI_PLACEMENT_LEFT, 180, 0, 1, 1, { 440, 540 } }
+    ,{ UMI_STUDIO_PANE_KNOWLEDGE_COLLECTIONS, "Knowledge Collections", "studio.knowledge-collections", "view-list-tree-symbolic", UMI_UI_PLACEMENT_LEFT, 181, 0, 1, 1, { 440, 540 } }
+    ,{ UMI_STUDIO_PANE_KNOWLEDGE_SOURCES, "Knowledge Sources", "studio.knowledge-sources", "folder-symbolic", UMI_UI_PLACEMENT_LEFT, 182, 0, 1, 1, { 500, 540 } }
+    ,{ UMI_STUDIO_PANE_KNOWLEDGE_SEARCH, "Knowledge Search", "studio.knowledge-search", "system-search-symbolic", UMI_UI_PLACEMENT_RIGHT, 183, 0, 1, 1, { 560, 540 } }
+    ,{ UMI_STUDIO_PANE_KNOWLEDGE_SOURCE, "Knowledge Source Viewer", "studio.knowledge-source", "text-x-generic-symbolic", UMI_UI_PLACEMENT_BOTTOM, 184, 0, 1, 1, { 820, 340 } }
 };
 
 static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
@@ -177,6 +182,15 @@ static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
     { "studio.action.pane.ai-coding", UMI_STUDIO_COMMAND_PANE_TOGGLE, "AI Coding Assistant", "Open AI coding workflows", "applications-development-symbolic", "", 1, 1, 1, 1, 604, UMI_STUDIO_PANE_AI_CODING, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.pane.ai-coding-context", UMI_STUDIO_COMMAND_PANE_TOGGLE, "AI Coding Context", "Inspect repository prompt context", "folder-documents-symbolic", "", 1, 1, 1, 1, 606, UMI_STUDIO_PANE_AI_CODING_CONTEXT, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.pane.ai-patch-review", UMI_STUDIO_COMMAND_PANE_TOGGLE, "AI Patch Review", "Inspect and control the latest coding patch", "document-properties-symbolic", "", 1, 1, 1, 1, 608, UMI_STUDIO_PANE_AI_PATCH_REVIEW, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.knowledge.collection-create", UMI_STUDIO_COMMAND_KNOWLEDGE_COLLECTION_CREATE, "New Knowledge Collection…", "Create an isolated knowledge collection", "document-new-symbolic", "", 1, 1, 0, 0, 610, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.knowledge.ingest", UMI_STUDIO_COMMAND_KNOWLEDGE_INGEST, "Add Knowledge Source…", "Ingest text with source provenance", "document-open-symbolic", "", 1, 1, 0, 0, 612, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.knowledge.refresh", UMI_STUDIO_COMMAND_KNOWLEDGE_REFRESH, "Refresh Knowledge", "Refresh changed knowledge sources", "view-refresh-symbolic", "", 1, 1, 0, 0, 614, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.knowledge.search", UMI_STUDIO_COMMAND_KNOWLEDGE_SEARCH, "Search Knowledge…", "Search indexed project, code and document evidence", "system-search-symbolic", "Ctrl+Alt+K", 1, 1, 0, 0, 616, "", UMI_UI_ACTION_ARGUMENT_TEXT },
+    { "studio.action.pane.knowledge", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Knowledge Centre", "Open the Native RAG overview", "folder-documents-symbolic", "", 1, 1, 1, 1, 618, UMI_STUDIO_PANE_KNOWLEDGE, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.knowledge-collections", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Knowledge Collections", "Inspect retrieval collections", "view-list-tree-symbolic", "", 1, 1, 1, 1, 620, UMI_STUDIO_PANE_KNOWLEDGE_COLLECTIONS, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.knowledge-sources", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Knowledge Sources", "Inspect indexed sources", "folder-symbolic", "", 1, 1, 1, 1, 622, UMI_STUDIO_PANE_KNOWLEDGE_SOURCES, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.knowledge-search", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Knowledge Search", "Open cited search results", "system-search-symbolic", "", 1, 1, 1, 1, 624, UMI_STUDIO_PANE_KNOWLEDGE_SEARCH, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.pane.knowledge-source", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Knowledge Source Viewer", "Open the exact cited source range", "text-x-generic-symbolic", "", 1, 1, 1, 1, 626, UMI_STUDIO_PANE_KNOWLEDGE_SOURCE, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.marketplace.check-updates", UMI_STUDIO_COMMAND_MARKETPLACE_CHECK_UPDATES, "Check for Product Updates", "Evaluate installed products against verified releases", "view-refresh-symbolic", "", 1, 1, 0, 0, 580, "", UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.marketplace.plan-update", UMI_STUDIO_COMMAND_MARKETPLACE_PLAN_UPDATE, "Plan Product Update…", "Create a recoverable update plan for a release ID", "system-software-install-symbolic", "", 1, 1, 0, 0, 590, "", UMI_UI_ACTION_ARGUMENT_TEXT },
     { "studio.action.pane.product-marketplace", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Product Marketplace", "Browse verified application, runtime and template releases", "system-software-install-symbolic", "", 1, 1, 1, 1, 600, UMI_STUDIO_PANE_PRODUCT_MARKETPLACE, UMI_UI_ACTION_ARGUMENT_NONE },
@@ -328,6 +342,11 @@ static const UmiUiContributionSnapshot STUDIO_CONTRIBUTIONS[] = {
     { "studio.contribution.product-updates", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_PRODUCT_UPDATES, 172, 1 },
     { "studio.contribution.product-transactions", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_PRODUCT_TRANSACTIONS, 173, 1 },
     { "studio.contribution.product-evidence", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_PRODUCT_EVIDENCE, 174, 1 }
+    ,{ "studio.contribution.knowledge", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_KNOWLEDGE, 180, 1 }
+    ,{ "studio.contribution.knowledge-collections", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_KNOWLEDGE_COLLECTIONS, 181, 1 }
+    ,{ "studio.contribution.knowledge-sources", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_KNOWLEDGE_SOURCES, 182, 1 }
+    ,{ "studio.contribution.knowledge-search", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_KNOWLEDGE_SEARCH, 183, 1 }
+    ,{ "studio.contribution.knowledge-source", "org.umicom.studio.shell", "umicom.ui.panes", UMI_STUDIO_PANE_KNOWLEDGE_SOURCE, 184, 1 }
 };
 
 UmiStatus umi_studio_contributions_register_layout(UmiUiWorkbench *workbench)

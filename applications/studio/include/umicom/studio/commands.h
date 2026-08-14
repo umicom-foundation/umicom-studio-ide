@@ -45,6 +45,15 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_AI_PATCH_APPROVE "studio.ai.patch-approve"
 #define UMI_STUDIO_COMMAND_AI_PATCH_APPLY "studio.ai.patch-apply"
 #define UMI_STUDIO_COMMAND_AI_PATCH_REVERT "studio.ai.patch-revert"
+#define UMI_STUDIO_COMMAND_KNOWLEDGE_COLLECTION_CREATE \
+    "studio.knowledge.collection-create"
+#define UMI_STUDIO_COMMAND_KNOWLEDGE_INGEST "studio.knowledge.ingest"
+#define UMI_STUDIO_COMMAND_KNOWLEDGE_REFRESH "studio.knowledge.refresh"
+#define UMI_STUDIO_COMMAND_KNOWLEDGE_SEARCH "studio.knowledge.search"
+#define UMI_STUDIO_COMMAND_KNOWLEDGE_ARCHIVE_SAVE \
+    "studio.knowledge.archive-save"
+#define UMI_STUDIO_COMMAND_KNOWLEDGE_ARCHIVE_LOAD \
+    "studio.knowledge.archive-load"
 #define UMI_STUDIO_COMMAND_OBSERVABILITY_REPORT "studio.observability.report"
 #define UMI_STUDIO_COMMAND_RESILIENCE_REPORT "studio.resilience.report"
 #define UMI_STUDIO_COMMAND_BUILD_CONFIGURE "studio.build.configure"
@@ -97,7 +106,7 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_VCS_DIFF "studio.vcs.diff"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 77U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 83U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

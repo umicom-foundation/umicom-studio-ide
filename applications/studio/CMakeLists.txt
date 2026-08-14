@@ -112,6 +112,10 @@ add_library(umicom_studio_core STATIC
     src/app/ai_evaluation.c
     src/app/ai_platform.c
     src/app/coding_assistant.c
+    src/app/knowledge_centre.c
+    src/app/knowledge_settings.c
+    src/app/knowledge_views.c
+    src/app/knowledge_commands.c
     src/app/ai_retrieval.c
     src/app/ai_sources.c
     src/app/ai_tools.c
@@ -345,6 +349,7 @@ foreach(UMICOM_STUDIO_AI_TOOL
         ai
         retrieval
         authorengine
+        knowledge
         helix
         helix-evidence
         helix-generation)
@@ -651,7 +656,7 @@ set(UMICOM_STUDIO_SIMPLE_TOOLS
     doctor diagnostics settings platform state workspace process data messages replay history
     security plugins observability resilience operations workbench ui_catalogue
     build tests terminal language debugger source_control developer template designer designer_catalogue new_project
-    web browser chart frontend web_platform ai retrieval authorengine helix helix_evidence helix_generation
+    web browser chart frontend web_platform ai retrieval authorengine knowledge helix helix_evidence helix_generation
     delivery package release update distribution evidence rollback pipeline abi sdk products compatibility conformance architecture
     codeguard consolidation duplicates quality)
 foreach(tool IN LISTS UMICOM_STUDIO_SIMPLE_TOOLS)
@@ -1127,6 +1132,11 @@ if(BUILD_TESTING)
             ai_workspace_v2
             coding_assistant
             ai_coding_views
+            knowledge_centre
+            knowledge_settings
+            knowledge_views
+            knowledge_archive
+            knowledge_boundary
             helix
             helix_evidence
             helix_fitness
@@ -1210,6 +1220,11 @@ if(BUILD_TESTING)
         studio.ai_workspace_v2
         studio.coding_assistant
         studio.ai_coding_views
+        studio.knowledge_centre
+        studio.knowledge_settings
+        studio.knowledge_views
+        studio.knowledge_archive
+        studio.knowledge_boundary
         studio.helix
         studio.helix_evidence
         studio.helix_fitness
@@ -1334,6 +1349,7 @@ install(TARGETS
     umicom-studio-ai
     umicom-studio-retrieval
     umicom-studio-authorengine
+    umicom-studio-knowledge
     umicom-studio-helix
     umicom-studio-helix-evidence
     umicom-studio-helix-generation

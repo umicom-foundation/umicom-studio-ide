@@ -32,6 +32,7 @@
 #include "umicom/studio/extension_centre.h"
 #include "umicom/studio/product_centre.h"
 #include "umicom/studio/language.h"
+#include "umicom/studio/knowledge_views.h"
 #include "umicom/studio/source_control.h"
 #include "umicom/studio/tests.h"
 #include "umicom/studio/terminal.h"
@@ -56,6 +57,11 @@
 #define VIEW_AI_CODING     "studio.ai-coding"
 #define VIEW_AI_CODING_CONTEXT "studio.ai-coding-context"
 #define VIEW_AI_PATCH_REVIEW "studio.ai-patch-review"
+#define VIEW_KNOWLEDGE "studio.knowledge"
+#define VIEW_KNOWLEDGE_COLLECTIONS "studio.knowledge-collections"
+#define VIEW_KNOWLEDGE_SOURCES "studio.knowledge-sources"
+#define VIEW_KNOWLEDGE_SEARCH "studio.knowledge-search"
+#define VIEW_KNOWLEDGE_SOURCE "studio.knowledge-source"
 #define VIEW_OUTPUT        "studio.output"
 #define VIEW_PROBLEMS      "studio.problems"
 #define VIEW_TERMINAL      "studio.terminal"
@@ -766,6 +772,55 @@ static UmiStatus create_ai_patch_review(const char *view_id,
         : status;
 }
 
+static UmiStatus create_knowledge(const char *view_id,
+                                  void *user_data,
+                                  UmiUiViewModel **out_view)
+{
+    return umi_studio_knowledge_overview_view(
+        umi_studio_services_ai_platform((UmiStudioServices *)user_data),
+        view_id, out_view);
+}
+
+static UmiStatus create_knowledge_collections(
+    const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{
+    return umi_studio_knowledge_collections_view(
+        umi_studio_services_ai_platform((UmiStudioServices *)user_data),
+        view_id, out_view);
+}
+
+static UmiStatus create_knowledge_sources(
+    const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{
+    return umi_studio_knowledge_sources_view(
+        umi_studio_services_ai_platform((UmiStudioServices *)user_data),
+        view_id, out_view);
+}
+
+static UmiStatus create_knowledge_search(
+    const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{
+    return umi_studio_knowledge_search_view(
+        umi_studio_services_ai_platform((UmiStudioServices *)user_data),
+        view_id, "Umicom Framework architecture", out_view);
+}
+
+static UmiStatus create_knowledge_source(
+    const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{
+    UmiKnowledgeMatch match = {0};
+    (void)user_data;
+    (void)snprintf(match.citation.source_id,
+                   sizeof(match.citation.source_id), "%s", "none");
+    (void)snprintf(match.citation.title,
+                   sizeof(match.citation.title), "%s", "Select a search result");
+    (void)snprintf(match.citation.uri,
+                   sizeof(match.citation.uri), "%s", "knowledge://selection");
+    (void)snprintf(match.chunk.text, sizeof(match.chunk.text), "%s",
+                   "The cited source range will appear here.");
+    return umi_studio_knowledge_source_view(view_id, &match, out_view);
+}
+
 typedef struct StudioViewDefinition {
     const char *view_type;
     StudioViewCreateFn create;
@@ -792,6 +847,11 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_AI_CODING, create_ai_coding },
     { VIEW_AI_CODING_CONTEXT, create_ai_coding_context },
     { VIEW_AI_PATCH_REVIEW, create_ai_patch_review },
+    { VIEW_KNOWLEDGE, create_knowledge },
+    { VIEW_KNOWLEDGE_COLLECTIONS, create_knowledge_collections },
+    { VIEW_KNOWLEDGE_SOURCES, create_knowledge_sources },
+    { VIEW_KNOWLEDGE_SEARCH, create_knowledge_search },
+    { VIEW_KNOWLEDGE_SOURCE, create_knowledge_source },
     { VIEW_OUTPUT, create_output },
     { VIEW_PROBLEMS, create_problems },
     { VIEW_TERMINAL, create_terminal },

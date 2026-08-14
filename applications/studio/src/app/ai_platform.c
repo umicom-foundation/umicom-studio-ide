@@ -25,7 +25,10 @@ struct UmiStudioAiPlatform {
     UmiHelixRuntime helix;
     UmiAiAuthorEngineService *authorengine;
     UmiAiCodingAssistantService *coding_assistant;
+    UmiKnowledgeService *knowledge;
     uint32_t coding_context_tokens;
+    size_t knowledge_result_limit;
+    char knowledge_archive_path[UMI_KNOWLEDGE_URI_CAPACITY];
     char default_provider[UMI_AI_ID_CAPACITY];
 };
 
@@ -103,7 +106,63 @@ UmiStudioAiPlatformConfig umi_studio_ai_platform_config_default(void)
     config.allow_patch_create = 1;
     config.allow_patch_delete = 0;
     config.require_patch_approval = 1;
+    (void)copy_text(config.knowledge_archive_path,
+                    sizeof(config.knowledge_archive_path),
+                    ".umicom/knowledge-centre.bin");
+    config.knowledge_source_capacity = 1024U;
+    config.knowledge_vector_capacity = 8192U;
+    config.knowledge_chunk_bytes = 1200U;
+    config.knowledge_overlap_bytes = 200U;
+    config.knowledge_result_limit = 12U;
+    config.knowledge_offline_only = 1;
     return config;
+}
+
+static UmiStatus create_knowledge_centre(
+    UmiStudioAiPlatform *platform,
+    const UmiStudioAiPlatformConfig *config)
+{
+    UmiKnowledgeServiceConfig service_config =
+        umi_knowledge_service_config_default();
+    UmiKnowledgeCollection collection;
+    UmiStatus status;
+    service_config.source_capacity = config->knowledge_source_capacity;
+    service_config.vector_capacity = config->knowledge_vector_capacity;
+    service_config.chunk_policy.target_bytes = config->knowledge_chunk_bytes;
+    service_config.chunk_policy.overlap_bytes = config->knowledge_overlap_bytes;
+    service_config.chunk_policy.minimum_bytes =
+        config->knowledge_chunk_bytes >= 96U ? 96U
+                                             : config->knowledge_chunk_bytes;
+    status = umi_knowledge_service_create(
+        &service_config, &platform->knowledge);
+    if (status == UMI_STATUS_OK) {
+        status = umi_knowledge_collection_init(
+            &collection, "project", "Active Project",
+            "Project metadata, requirements and workspace documents.");
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_knowledge_service_add_collection(
+            platform->knowledge, &collection);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_knowledge_collection_init(
+            &collection, "code", "Project Code",
+            "Repository source code indexed with line provenance.");
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_knowledge_service_add_collection(
+            platform->knowledge, &collection);
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_knowledge_collection_init(
+            &collection, "documents", "Technical Documents",
+            "Offline manuals, architecture records and technical references.");
+    }
+    if (status == UMI_STATUS_OK) {
+        status = umi_knowledge_service_add_collection(
+            platform->knowledge, &collection);
+    }
+    return status;
 }
 
 static UmiStatus register_catalogue_runtime(
@@ -222,13 +281,28 @@ UmiStatus umi_studio_ai_platform_create_configured(
         config->coding_context_tokens == 0U ||
         config->maximum_patch_lines == 0U ||
         config->maximum_patch_files == 0U ||
-        config->maximum_patch_files > UMI_AI_CODING_PATCH_FILE_MAX) {
+        config->maximum_patch_files > UMI_AI_CODING_PATCH_FILE_MAX ||
+        config->knowledge_archive_path[0] == '\0' ||
+        config->knowledge_source_capacity == 0U ||
+        config->knowledge_vector_capacity == 0U ||
+        config->knowledge_chunk_bytes == 0U ||
+        config->knowledge_chunk_bytes >= UMI_KNOWLEDGE_TEXT_CAPACITY ||
+        config->knowledge_overlap_bytes >= config->knowledge_chunk_bytes ||
+        config->knowledge_result_limit == 0U ||
+        config->knowledge_result_limit > UMI_KNOWLEDGE_QUERY_RESULT_MAX) {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
     *out_platform = NULL;
     platform = (UmiStudioAiPlatform *)calloc(1U, sizeof(*platform));
     if (platform == NULL) return UMI_STATUS_OUT_OF_MEMORY;
     platform->coding_context_tokens = config->coding_context_tokens;
+    platform->knowledge_result_limit = config->knowledge_result_limit;
+    if (!copy_text(platform->knowledge_archive_path,
+                   sizeof(platform->knowledge_archive_path),
+                   config->knowledge_archive_path)) {
+        free(platform);
+        return UMI_STATUS_CAPACITY_EXCEEDED;
+    }
 
     umi_ai_runtime_init(&platform->ai);
     platform->ai.policy.allow_tools = 1;
@@ -356,6 +430,9 @@ UmiStatus umi_studio_ai_platform_create_configured(
     if (status == UMI_STATUS_OK) status = register_coding_file(
         platform, "framework/include/umicom/ai/ai.h", "c23",
         "Framework AI public aggregate", 500U, 70U, 0);
+    if (status == UMI_STATUS_OK) {
+        status = create_knowledge_centre(platform, config);
+    }
     if (status != UMI_STATUS_OK) {
         umi_studio_ai_platform_destroy(platform);
         return status;
@@ -373,6 +450,7 @@ UmiStatus umi_studio_ai_platform_create(UmiStudioAiPlatform **out_platform)
 void umi_studio_ai_platform_destroy(UmiStudioAiPlatform *platform)
 {
     if (platform == NULL) return;
+    umi_knowledge_service_destroy(platform->knowledge);
     umi_ai_coding_assistant_destroy(platform->coding_assistant);
     umi_ai_authorengine_service_destroy(platform->authorengine);
     free(platform);
@@ -398,6 +476,24 @@ UmiAiCodingAssistantService *umi_studio_ai_platform_coding_assistant(
     UmiStudioAiPlatform *platform)
 {
     return platform != NULL ? platform->coding_assistant : NULL;
+}
+
+UmiKnowledgeService *umi_studio_ai_platform_knowledge(
+    UmiStudioAiPlatform *platform)
+{
+    return platform != NULL ? platform->knowledge : NULL;
+}
+
+size_t umi_studio_ai_platform_knowledge_result_limit(
+    const UmiStudioAiPlatform *platform)
+{
+    return platform != NULL ? platform->knowledge_result_limit : 0U;
+}
+
+const char *umi_studio_ai_platform_knowledge_archive_path(
+    const UmiStudioAiPlatform *platform)
+{
+    return platform != NULL ? platform->knowledge_archive_path : NULL;
 }
 
 uint32_t umi_studio_ai_platform_coding_context_tokens(

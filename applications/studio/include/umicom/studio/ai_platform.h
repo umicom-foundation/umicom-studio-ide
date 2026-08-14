@@ -38,6 +38,13 @@ typedef struct UmiStudioAiPlatformConfig {
     int allow_patch_create;
     int allow_patch_delete;
     int require_patch_approval;
+    char knowledge_archive_path[UMI_KNOWLEDGE_URI_CAPACITY];
+    size_t knowledge_source_capacity;
+    size_t knowledge_vector_capacity;
+    size_t knowledge_chunk_bytes;
+    size_t knowledge_overlap_bytes;
+    size_t knowledge_result_limit;
+    int knowledge_offline_only;
 } UmiStudioAiPlatformConfig;
 
 UmiStudioAiPlatformConfig umi_studio_ai_platform_config_default(void);
@@ -52,6 +59,12 @@ UmiAiAuthorEngineService *umi_studio_ai_platform_authorengine(
     UmiStudioAiPlatform *platform);
 UmiAiCodingAssistantService *umi_studio_ai_platform_coding_assistant(
     UmiStudioAiPlatform *platform);
+UmiKnowledgeService *umi_studio_ai_platform_knowledge(
+    UmiStudioAiPlatform *platform);
+size_t umi_studio_ai_platform_knowledge_result_limit(
+    const UmiStudioAiPlatform *platform);
+const char *umi_studio_ai_platform_knowledge_archive_path(
+    const UmiStudioAiPlatform *platform);
 uint32_t umi_studio_ai_platform_coding_context_tokens(
     const UmiStudioAiPlatform *platform);
 const char *umi_studio_ai_platform_default_provider(

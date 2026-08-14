@@ -97,6 +97,9 @@ UmiStudioOperations *umi_studio_services_operations(UmiStudioServices *services)
 UmiStudioAiPlatform *umi_studio_services_ai_platform(
     UmiStudioServices *services
 );
+UmiKnowledgeService *umi_studio_services_knowledge(
+    UmiStudioServices *services
+);
 UmiStudioDeveloperPlatform *umi_studio_services_developer_platform(
     UmiStudioServices *services
 );

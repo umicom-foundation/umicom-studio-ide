@@ -20,6 +20,7 @@
 #include "umicom/studio/ai_platform.h"
 #include "umicom/studio/compatibility_platform.h"
 #include "umicom/studio/ai_tools.h"
+#include "umicom/studio/knowledge_settings.h"
 #include "umicom/studio/developer_platform.h"
 #include "umicom/studio/declarative.h"
 #include "umicom/studio/delivery_platform.h"
@@ -534,6 +535,10 @@ UmiStatus umi_studio_services_create(
         if (status == UMI_STATUS_OK) status = umi_settings_get_boolean(
             services->settings, UMI_STUDIO_SETTING_AI_CODING_REQUIRE_APPROVAL,
             &ai_coding_require_approval);
+        if (status == UMI_STATUS_OK) {
+            status = umi_studio_knowledge_settings_apply(
+                services->settings, &ai_config);
+        }
         if (status == UMI_STATUS_OK &&
             (ai_context_tokens <= 0 || ai_context_tokens > UINT32_MAX ||
              ai_output_tokens <= 0 || ai_output_tokens > UINT32_MAX ||
@@ -761,6 +766,9 @@ UmiStatus umi_studio_services_publish(
     PUBLISH("umicom.studio.ai-coding-assistant",
             umi_studio_ai_platform_coding_assistant(services->ai_platform),
             UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.knowledge-centre",
+            umi_studio_ai_platform_knowledge(services->ai_platform),
+            UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.helix",
             umi_studio_ai_platform_helix(services->ai_platform),
             UMI_SERVICE_SINGLETON);
@@ -950,6 +958,13 @@ UmiStudioAiPlatform *umi_studio_services_ai_platform(
     UmiStudioServices *services)
 {
     return services != NULL ? services->ai_platform : NULL;
+}
+
+UmiKnowledgeService *umi_studio_services_knowledge(
+    UmiStudioServices *services)
+{
+    return services != NULL
+        ? umi_studio_ai_platform_knowledge(services->ai_platform) : NULL;
 }
 
 UmiStudioDeveloperPlatform *umi_studio_services_developer_platform(

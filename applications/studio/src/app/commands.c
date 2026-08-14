@@ -12,6 +12,7 @@
  * Licence: MIT
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/commands.h"
+#include "umicom/studio/knowledge_commands.h"
 
 #include <errno.h>
 #include <inttypes.h>
@@ -2115,10 +2116,12 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "Open Diff", "Source Control", "Load a working-tree path diff; prefix with --staged for index diff.",
                               "vcs.read", UMI_COMMAND_NONE, vcs_diff_handler);
     if (status != UMI_STATUS_OK) return status;
-    return register_command(registry, services,
-                            UMI_STUDIO_COMMAND_DEVELOPER_REPORT,
-                            "Developer Platform Report", "Development",
-                            "Report build, tests, terminal, language, debug and Git state.",
-                            "studio.developer.read", UMI_COMMAND_NONE,
-                            developer_report_handler);
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEVELOPER_REPORT,
+                              "Developer Platform Report", "Development",
+                              "Report build, tests, terminal, language, debug and Git state.",
+                              "studio.developer.read", UMI_COMMAND_NONE,
+                              developer_report_handler);
+    return status == UMI_STATUS_OK
+        ? umi_studio_knowledge_commands_register(registry, services) : status;
 }

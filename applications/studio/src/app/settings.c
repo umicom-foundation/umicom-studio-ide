@@ -171,6 +171,55 @@ static const UmiSettingDefinition STUDIO_SETTINGS_SCHEMA[] = {
         0, 0, 0.0, 0.0, 0, 0
     },
     {
+        UMI_STUDIO_SETTING_KNOWLEDGE_ARCHIVE_PATH,
+        UMI_SETTING_STRING,
+        ".umicom/knowledge-centre.bin",
+        "Versioned local archive used by the offline Knowledge Centre.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_KNOWLEDGE_SOURCE_CAPACITY,
+        UMI_SETTING_INTEGER,
+        "1024",
+        "Maximum source records retained by the local knowledge catalogue.",
+        1, 1000000, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_KNOWLEDGE_VECTOR_CAPACITY,
+        UMI_SETTING_INTEGER,
+        "8192",
+        "Maximum chunk embeddings retained by the active local vector index.",
+        1, 10000000, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_KNOWLEDGE_CHUNK_BYTES,
+        UMI_SETTING_INTEGER,
+        "1200",
+        "Target UTF-8 byte window for deterministic source chunking.",
+        64, UMI_KNOWLEDGE_TEXT_CAPACITY - 1, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_KNOWLEDGE_OVERLAP_BYTES,
+        UMI_SETTING_INTEGER,
+        "200",
+        "Byte overlap retained between neighbouring knowledge chunks.",
+        0, UMI_KNOWLEDGE_TEXT_CAPACITY - 2, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_KNOWLEDGE_RESULT_LIMIT,
+        UMI_SETTING_INTEGER,
+        "12",
+        "Maximum cited matches returned by one Knowledge Centre search.",
+        1, UMI_KNOWLEDGE_QUERY_RESULT_MAX, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_KNOWLEDGE_OFFLINE_ONLY,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Keep indexing and embedding on configured local providers.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
         UMI_STUDIO_SETTING_DIAGNOSTIC_CAPACITY,
         UMI_SETTING_INTEGER,
         "512",

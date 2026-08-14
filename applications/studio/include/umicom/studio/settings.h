@@ -56,6 +56,20 @@ extern "C" {
     "studio.ai.coding.allow_file_deletion"
 #define UMI_STUDIO_SETTING_AI_CODING_REQUIRE_APPROVAL \
     "studio.ai.coding.require_patch_approval"
+#define UMI_STUDIO_SETTING_KNOWLEDGE_ARCHIVE_PATH \
+    "studio.knowledge.archive_path"
+#define UMI_STUDIO_SETTING_KNOWLEDGE_SOURCE_CAPACITY \
+    "studio.knowledge.source_capacity"
+#define UMI_STUDIO_SETTING_KNOWLEDGE_VECTOR_CAPACITY \
+    "studio.knowledge.vector_capacity"
+#define UMI_STUDIO_SETTING_KNOWLEDGE_CHUNK_BYTES \
+    "studio.knowledge.chunk_bytes"
+#define UMI_STUDIO_SETTING_KNOWLEDGE_OVERLAP_BYTES \
+    "studio.knowledge.overlap_bytes"
+#define UMI_STUDIO_SETTING_KNOWLEDGE_RESULT_LIMIT \
+    "studio.knowledge.result_limit"
+#define UMI_STUDIO_SETTING_KNOWLEDGE_OFFLINE_ONLY \
+    "studio.knowledge.offline_only"
 #define UMI_STUDIO_SETTING_DIAGNOSTIC_CAPACITY \
     "studio.diagnostics.capacity"
 #define UMI_STUDIO_SETTING_AUTO_SAVE "studio.files.auto_save"

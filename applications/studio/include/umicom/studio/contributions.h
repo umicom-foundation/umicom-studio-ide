@@ -57,6 +57,12 @@ extern "C" {
 #define UMI_STUDIO_PANE_AI_CODING "studio.pane.ai-coding"
 #define UMI_STUDIO_PANE_AI_CODING_CONTEXT "studio.pane.ai-coding-context"
 #define UMI_STUDIO_PANE_AI_PATCH_REVIEW "studio.pane.ai-patch-review"
+#define UMI_STUDIO_PANE_KNOWLEDGE "studio.pane.knowledge"
+#define UMI_STUDIO_PANE_KNOWLEDGE_COLLECTIONS \
+    "studio.pane.knowledge-collections"
+#define UMI_STUDIO_PANE_KNOWLEDGE_SOURCES "studio.pane.knowledge-sources"
+#define UMI_STUDIO_PANE_KNOWLEDGE_SEARCH "studio.pane.knowledge-search"
+#define UMI_STUDIO_PANE_KNOWLEDGE_SOURCE "studio.pane.knowledge-source"
 #define UMI_STUDIO_PANE_EXTENSIONS "studio.pane.extensions"
 #define UMI_STUDIO_PANE_EXTENSION_CATALOGUE "studio.pane.extension-catalogue"
 #define UMI_STUDIO_PANE_EXTENSION_PERMISSIONS "studio.pane.extension-permissions"
