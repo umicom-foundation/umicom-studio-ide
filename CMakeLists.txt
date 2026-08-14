@@ -24,7 +24,7 @@ cmake_minimum_required(VERSION 3.24)
 
 project(
     UmicomStudioIDE
-    VERSION 0.17.0
+    VERSION 0.23.0
     LANGUAGES C
 )
 
@@ -125,6 +125,30 @@ add_subdirectory(applications/studio/workspace-productivity)
 if(UMICOM_BUILD_TRADER_FOUNDATION)
     add_subdirectory(applications/trader)
 endif()
+
+# Install a product licence and generate portable archives on every platform.
+# Windows builds may additionally create an NSIS installer when NSIS is present.
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
+    DESTINATION share/licenses/umicom-studio)
+
+set(CPACK_PACKAGE_NAME "Umicom Studio")
+set(CPACK_PACKAGE_VENDOR "Umicom Foundation")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Professional C23 application development and trading studio")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "Umicom Studio")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_FILE_NAME "umicom-studio-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
+if(WIN32)
+    set(CPACK_GENERATOR "ZIP;NSIS")
+    set(CPACK_NSIS_DISPLAY_NAME "Umicom Studio")
+    set(CPACK_NSIS_PACKAGE_NAME "Umicom Studio")
+    set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+    set(CPACK_NSIS_MODIFY_PATH OFF)
+else()
+    set(CPACK_GENERATOR "TGZ;ZIP")
+endif()
+include(CPack)
 
 message(STATUS "Umicom Studio IDE version: ${PROJECT_VERSION}")
 message(STATUS "GTK application build: ${UMICOM_STUDIO_BUILD_GTK}")

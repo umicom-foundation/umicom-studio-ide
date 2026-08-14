@@ -15,7 +15,7 @@
 # LICENCE:
 #   MIT
 #-----------------------------------------------------------------------------
-set(UMICOM_STUDIO_VERSION "0.22.0")
+set(UMICOM_STUDIO_VERSION "0.23.0")
 
 # -----------------------------------------------------------------------------
 # Studio composition root
@@ -99,6 +99,17 @@ add_library(umicom_studio_core STATIC
     src/app/polyglot_workspace_v2.c
     src/app/compiler_export_v2.c
     src/app/compiler_centre_v2.c
+    src/app/sdk_centre_v2.c
+    src/app/package_project_v2.c
+    src/app/dependency_centre_v2.c
+    src/app/bundle_designer_v2.c
+    src/app/installer_centre_v2.c
+    src/app/supply_chain_v2.c
+    src/app/release_channels_v2.c
+    src/app/upgrade_centre_v2.c
+    src/app/distribution_centre_v2.c
+    src/app/distribution_views_v2.c
+    src/app/distribution_commands_v2.c
     src/app/perspectives.c
     src/app/contributions.c
     src/app/view_models.c
@@ -406,6 +417,21 @@ add_executable(umicom-studio-polyglot-compiler src/tools/polyglot_compiler_main.
 target_link_libraries(umicom-studio-polyglot-compiler PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-polyglot-compiler)
 umicom_apply_sanitizers(umicom-studio-polyglot-compiler)
+
+# Batch 59 native SDK, package, installer and distribution commands.
+add_executable(umicom-studio-distribution-centre-v2
+    src/tools/distribution_centre_v2_main.c)
+target_link_libraries(umicom-studio-distribution-centre-v2
+    PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-distribution-centre-v2)
+umicom_apply_sanitizers(umicom-studio-distribution-centre-v2)
+
+add_executable(umicom-studio-package-inspector-v2
+    src/tools/package_inspector_v2_main.c)
+target_link_libraries(umicom-studio-package-inspector-v2
+    PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-package-inspector-v2)
+umicom_apply_sanitizers(umicom-studio-package-inspector-v2)
 
 # Native toolkit-neutral workbench and UI catalogue commands.
 add_executable(umicom-studio-workbench src/tools/workbench_main.c)
@@ -1548,6 +1574,8 @@ install(TARGETS
     umicom-studio-workspace-designer-v2
     umicom-studio-compiler-centre-v2
     umicom-studio-polyglot-compiler
+    umicom-studio-distribution-centre-v2
+    umicom-studio-package-inspector-v2
     umicom-studio-plugins
     umicom-studio-observability
     umicom-studio-resilience
@@ -1710,5 +1738,28 @@ foreach(UMICOM_STUDIO_BATCH58_TEST
     umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test)
     add_test(NAME studio.${UMICOM_STUDIO_BATCH58_TEST}
         COMMAND umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test)
+endforeach()
+endif()
+
+if(BUILD_TESTING)
+foreach(UMICOM_STUDIO_BATCH59_TEST
+        sdk_centre_v2
+        package_project_v2
+        dependency_bundle_v2
+        installer_centre_v2
+        supply_chain_v2
+        release_upgrade_v2
+        distribution_centre_v2
+        distribution_views_commands_v2)
+    string(REPLACE "_" "-" UMICOM_STUDIO_BATCH59_TEST_TARGET
+        "${UMICOM_STUDIO_BATCH59_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_BATCH59_TEST}.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test
+        PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_BATCH59_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test)
 endforeach()
 endif()
