@@ -2,7 +2,7 @@
 #ifndef UMICOM_STUDIO_TEST_QUALITY_CENTRE_FIXTURE_H
 #define UMICOM_STUDIO_TEST_QUALITY_CENTRE_FIXTURE_H
 #include <assert.h>
-#include "umicom/studio/quality_commands_v2.h"
+#include "umicom/studio/quality_commands.h"
 static inline UmiStudioQualityCentre *umi_test_quality_centre(void)
 {
     static int services_token;

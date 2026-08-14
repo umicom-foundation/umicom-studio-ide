@@ -15,8 +15,8 @@ int main(void)
     UmiStudioHelixAgentCentre *centre = NULL;
     UmiStudioHelixAgentCentreConfig config =
         umi_studio_helix_agent_centre_config_default();
-    UmiHelixActionV2 action;
-    UmiHelixActionV2 compensation;
+    UmiHelixAction action;
+    UmiHelixAction compensation;
     char evidence[256];
     char status[256];
     assert(umi_studio_helix_agent_centre_create(&config, &centre) == UMI_STATUS_OK);

@@ -16,7 +16,7 @@ int main(void)
 {
     UmiStudioAiPlatform *platform = NULL;
     UmiStudioHelixAgentCentre *centre;
-    UmiHelixActionV2 action;
+    UmiHelixAction action;
     char evidence[512];
     char status_text[512];
     UmiStatus status = umi_studio_ai_platform_create(&platform);
@@ -26,7 +26,7 @@ int main(void)
         umi_studio_helix_agent_review_action("workspace://candidate", &action);
     if (status == UMI_STATUS_OK) status = umi_studio_helix_agent_plan(
         centre, "studio.helix.smoke", "Review isolated candidate",
-        "smoke-plan-v2", &action);
+        "smoke-plan", &action);
     if (status == UMI_STATUS_OK) status = umi_studio_helix_agent_approve(
         centre, "studio.user", "Native smoke action approved");
     if (status == UMI_STATUS_OK) status = umi_studio_helix_agent_run(

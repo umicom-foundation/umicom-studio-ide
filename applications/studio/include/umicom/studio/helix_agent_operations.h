@@ -18,15 +18,15 @@ extern "C" {
 #endif
 
 UmiStatus umi_studio_helix_agent_filesystem_action(
-    const char *target, UmiHelixActionV2 *out_action);
+    const char *target, UmiHelixAction *out_action);
 UmiStatus umi_studio_helix_agent_build_action(
-    const char *target, UmiHelixActionV2 *out_action);
+    const char *target, UmiHelixAction *out_action);
 UmiStatus umi_studio_helix_agent_test_action(
-    const char *target, UmiHelixActionV2 *out_action);
+    const char *target, UmiHelixAction *out_action);
 UmiStatus umi_studio_helix_agent_review_action(
-    const char *target, UmiHelixActionV2 *out_action);
+    const char *target, UmiHelixAction *out_action);
 UmiStatus umi_studio_helix_agent_source_control_action(
-    const char *target, UmiHelixActionV2 *out_action);
+    const char *target, UmiHelixAction *out_action);
 
 #ifdef __cplusplus
 }

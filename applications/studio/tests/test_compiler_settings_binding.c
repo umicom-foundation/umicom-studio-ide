@@ -1,0 +1,6 @@
+/* Umicom Studio Batch 58 test | Sammy Hegab | Umicom Foundation | MIT */
+#include "umicom/studio/compiler_project_binding.h"
+#include "umicom/studio/compiler_settings.h"
+#include <assert.h>
+#include <string.h>
+int main(void) { UmiStudioCompilerSettings settings; UmiCompilerProjectManifest manifest; UmiCompilerUnitManifest unit = {0}; UmiStudioCompilerProjectBinding binding; char reason[512]; umi_studio_compiler_settings_defaults(&settings); assert(umi_studio_compiler_settings_validate(&settings,reason,sizeof(reason)) == UMI_STATUS_OK); assert(umi_compiler_manifest_init(&manifest,"p","Project","x86_64-unknown-linux-gnu") == UMI_STATUS_OK); (void)strcpy(unit.unit_id,"main"); (void)strcpy(unit.source,"main.c"); (void)strcpy(unit.output,"main.o"); unit.language = UMI_COMPILER_LANGUAGE_C; assert(umi_compiler_manifest_add_unit(&manifest,&unit) == UMI_STATUS_OK); assert(umi_studio_compiler_project_binding_init(&binding,"w",".","debug",&manifest) == UMI_STATUS_OK); assert(umi_studio_compiler_project_binding_validate(&binding,reason,sizeof(reason)) == UMI_STATUS_PERMISSION_DENIED); binding.trusted = true; assert(umi_studio_compiler_project_binding_validate(&binding,reason,sizeof(reason)) == UMI_STATUS_OK); return 0; }

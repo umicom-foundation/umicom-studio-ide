@@ -21,7 +21,7 @@ UmiStatus umi_studio_helix_agent_plan(UmiStudioHelixAgentCentre *centre,
                                       const char *operation_id,
                                       const char *objective,
                                       const char *plan_hash,
-                                      const UmiHelixActionV2 *action);
+                                      const UmiHelixAction *action);
 UmiStatus umi_studio_helix_agent_approve(UmiStudioHelixAgentCentre *centre,
                                          const char *approver,
                                          const char *reason);
@@ -33,7 +33,7 @@ UmiStatus umi_studio_helix_agent_run(UmiStudioHelixAgentCentre *centre,
                                      size_t capacity);
 UmiStatus umi_studio_helix_agent_add_compensation(
     UmiStudioHelixAgentCentre *centre,
-    const UmiHelixActionV2 *action);
+    const UmiHelixAction *action);
 UmiStatus umi_studio_helix_agent_begin_rollback(
     UmiStudioHelixAgentCentre *centre,
     int human_approved);

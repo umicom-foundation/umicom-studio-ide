@@ -29,7 +29,7 @@ int main(void)
 
     assert(umi_studio_settings_create(&settings) == UMI_STATUS_OK);
     assert(settings != NULL);
-    assert(umi_settings_count(settings) == 21U);
+    assert(umi_settings_count(settings) == UMI_STUDIO_SETTING_COUNT);
 
     assert(umi_settings_get_text(settings,
                                  UMI_STUDIO_SETTING_UI_THEME,

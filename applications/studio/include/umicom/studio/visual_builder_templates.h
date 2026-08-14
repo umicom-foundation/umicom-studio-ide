@@ -9,7 +9,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-UmiStatus umi_studio_visual_builder_template_find(UmiStudioVisualBuilderCentre *centre,const char *template_id,UmiDesignerTemplateV2 *out_template);
+UmiStatus umi_studio_visual_builder_template_find(UmiStudioVisualBuilderCentre *centre,const char *template_id,UmiDesignerTemplate *out_template);
 UmiStatus umi_studio_visual_builder_template_apply(UmiStudioVisualBuilderCentre *centre,const char *template_id,const char *parent_id,const char *id_prefix);
 size_t umi_studio_visual_builder_template_count(UmiStudioVisualBuilderCentre *centre);
 #ifdef __cplusplus

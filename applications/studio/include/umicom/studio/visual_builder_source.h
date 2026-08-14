@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 UmiStatus umi_studio_visual_builder_source_refresh(UmiStudioVisualBuilderCentre *centre);
-const UmiDesignerGeneratedFileV2 *umi_studio_visual_builder_source_find(UmiStudioVisualBuilderCentre *centre,const char *path);
+const UmiDesignerGeneratedFile *umi_studio_visual_builder_source_find(UmiStudioVisualBuilderCentre *centre,const char *path);
 size_t umi_studio_visual_builder_source_count(UmiStudioVisualBuilderCentre *centre);
 #ifdef __cplusplus
 }

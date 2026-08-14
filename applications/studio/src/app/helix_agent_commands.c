@@ -14,28 +14,28 @@ UmiStatus umi_studio_helix_agent_plan(UmiStudioHelixAgentCentre *centre,
                                       const char *operation_id,
                                       const char *objective,
                                       const char *plan_hash,
-                                      const UmiHelixActionV2 *action)
+                                      const UmiHelixAction *action)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
     UmiStatus status;
     if (runtime == NULL) return UMI_STATUS_INVALID_ARGUMENT;
-    status = umi_helix_orchestrator_v2_plan(
+    status = umi_helix_orchestrator_plan(
         runtime, operation_id, objective, plan_hash);
     if (status == UMI_STATUS_OK) status =
-        umi_helix_orchestrator_v2_prepare_action(runtime, action);
+        umi_helix_orchestrator_prepare_action(runtime, action);
     return status;
 }
 
 static UmiStatus decide(UmiStudioHelixAgentCentre *centre,
-                        UmiHelixApprovalDecisionV2 decision,
+                        UmiHelixApprovalDecision decision,
                         const char *approver,
                         const char *reason)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
     return runtime != NULL
-        ? umi_helix_orchestrator_v2_decide(
+        ? umi_helix_orchestrator_decide(
               runtime, decision, approver, reason)
         : UMI_STATUS_INVALID_ARGUMENT;
 }
@@ -58,21 +58,21 @@ UmiStatus umi_studio_helix_agent_run(UmiStudioHelixAgentCentre *centre,
                                      char *out_evidence,
                                      size_t capacity)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
     return runtime != NULL
-        ? umi_helix_orchestrator_v2_execute(runtime, out_evidence, capacity)
+        ? umi_helix_orchestrator_execute(runtime, out_evidence, capacity)
         : UMI_STATUS_INVALID_ARGUMENT;
 }
 
 UmiStatus umi_studio_helix_agent_add_compensation(
     UmiStudioHelixAgentCentre *centre,
-    const UmiHelixActionV2 *action)
+    const UmiHelixAction *action)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
     return runtime != NULL
-        ? umi_helix_rollback_v2_add(&runtime->rollback, action)
+        ? umi_helix_compensation_plan_add(&runtime->rollback, action)
         : UMI_STATUS_INVALID_ARGUMENT;
 }
 
@@ -80,10 +80,10 @@ UmiStatus umi_studio_helix_agent_begin_rollback(
     UmiStudioHelixAgentCentre *centre,
     int human_approved)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
     return runtime != NULL
-        ? umi_helix_orchestrator_v2_begin_rollback(runtime, human_approved)
+        ? umi_helix_orchestrator_begin_rollback(runtime, human_approved)
         : UMI_STATUS_INVALID_ARGUMENT;
 }
 
@@ -92,10 +92,10 @@ UmiStatus umi_studio_helix_agent_run_rollback(
     char *out_evidence,
     size_t capacity)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
     return runtime != NULL
-        ? umi_helix_orchestrator_v2_execute_rollback(
+        ? umi_helix_orchestrator_execute_rollback(
               runtime, out_evidence, capacity)
         : UMI_STATUS_INVALID_ARGUMENT;
 }
@@ -104,7 +104,7 @@ UmiStatus umi_studio_helix_agent_status(UmiStudioHelixAgentCentre *centre,
                                         char *out_text,
                                         size_t capacity)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
     int written;
     if (runtime == NULL || out_text == NULL || capacity == 0U) {
@@ -113,7 +113,7 @@ UmiStatus umi_studio_helix_agent_status(UmiStudioHelixAgentCentre *centre,
     written = snprintf(out_text, capacity,
         "Helix Agent Runtime v2: state=%s agents=%zu approvals=%zu journal=%zu retries=%u",
         runtime->operation_ready
-            ? umi_helix_operation_state_v2_text(runtime->operation.state) : "idle",
+            ? umi_helix_operation_state_text(runtime->operation.state) : "idle",
         runtime->agents.count, runtime->approvals.count, runtime->journal.count,
         runtime->operation.retry_count);
     return written >= 0 && (size_t)written < capacity

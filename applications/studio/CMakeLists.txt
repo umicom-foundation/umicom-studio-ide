@@ -61,55 +61,55 @@ add_library(umicom_studio_core STATIC
     src/app/replay.c
     src/app/fabric.c
     src/app/operations.c
-    src/app/operations_centre_v2.c
-    src/app/operations_views_v2.c
-    src/app/operations_commands_v2.c
+    src/app/operations_centre.c
+    src/app/operations_views.c
+    src/app/operations_commands.c
     src/app/security.c
-    src/app/security_centre_v2.c
-    src/app/security_identities_v2.c
-    src/app/security_roles_v2.c
-    src/app/security_secrets_v2.c
-    src/app/security_approvals_v2.c
-    src/app/security_packages_v2.c
-    src/app/security_audit_view_v2.c
-    src/app/security_views_v2.c
-    src/app/security_commands_v2.c
+    src/app/security_centre.c
+    src/app/security_identities.c
+    src/app/security_roles.c
+    src/app/security_secrets.c
+    src/app/security_approvals.c
+    src/app/security_packages.c
+    src/app/security_audit_view.c
+    src/app/security_views.c
+    src/app/security_commands.c
     src/app/plugins.c
     src/app/observability.c
     src/app/resilience.c
     src/app/ui.c
     src/app/workbench.c
-    src/app/professional_workspace_v2.c
-    src/app/workspace_catalogue_v2.c
-    src/app/workspace_layouts_v2.c
-    src/app/workspace_groups_v2.c
-    src/app/workspace_themes_v2.c
-    src/app/workspace_persistence_v2.c
-    src/app/workspace_views_v2.c
-    src/app/workspace_commands_v2.c
-    src/app/compiler_settings_v2.c
-    src/app/compiler_catalogue_v2.c
-    src/app/compiler_project_binding_v2.c
-    src/app/compiler_templates_v2.c
-    src/app/compiler_views_v2.c
-    src/app/compiler_commands_v2.c
-    src/app/compiler_diagnostics_v2.c
-    src/app/compiler_interop_v2.c
-    src/app/umicc_integration_v2.c
-    src/app/polyglot_workspace_v2.c
-    src/app/compiler_export_v2.c
-    src/app/compiler_centre_v2.c
-    src/app/sdk_centre_v2.c
-    src/app/package_project_v2.c
-    src/app/dependency_centre_v2.c
-    src/app/bundle_designer_v2.c
-    src/app/installer_centre_v2.c
-    src/app/supply_chain_v2.c
-    src/app/release_channels_v2.c
-    src/app/upgrade_centre_v2.c
-    src/app/distribution_centre_v2.c
-    src/app/distribution_views_v2.c
-    src/app/distribution_commands_v2.c
+    src/app/professional_workspace.c
+    src/app/workspace_catalogue.c
+    src/app/workspace_layouts.c
+    src/app/workspace_groups.c
+    src/app/workspace_themes.c
+    src/app/workspace_persistence.c
+    src/app/workspace_views.c
+    src/app/workspace_commands.c
+    src/app/compiler_settings.c
+    src/app/compiler_catalogue.c
+    src/app/compiler_project_binding.c
+    src/app/compiler_templates.c
+    src/app/compiler_views.c
+    src/app/compiler_commands.c
+    src/app/compiler_diagnostics.c
+    src/app/compiler_interop.c
+    src/app/umicc_integration.c
+    src/app/polyglot_workspace.c
+    src/app/compiler_export.c
+    src/app/compiler_centre.c
+    src/app/sdk_centre.c
+    src/app/package_project.c
+    src/app/dependency_centre.c
+    src/app/bundle_designer.c
+    src/app/installer_centre.c
+    src/app/supply_chain.c
+    src/app/release_channels.c
+    src/app/upgrade_centre.c
+    src/app/distribution_centre.c
+    src/app/distribution_views.c
+    src/app/distribution_commands.c
     src/app/perspectives.c
     src/app/contributions.c
     src/app/view_models.c
@@ -216,9 +216,9 @@ add_library(umicom_studio_core STATIC
     src/app/quality_remediation.c
     src/app/quality_duplicates.c
     src/app/quality_compatibility.c
-    src/app/quality_gates_v2.c
-    src/app/quality_views_v2.c
-    src/app/quality_commands_v2.c
+    src/app/quality_gates.c
+    src/app/quality_views.c
+    src/app/quality_commands.c
     src/app/delivery_release.c
     src/app/delivery_package.c
     src/app/delivery_update.c
@@ -397,21 +397,21 @@ umicom_apply_warnings(umicom-studio-security-centre)
 umicom_apply_sanitizers(umicom-studio-security-centre)
 
 # Native Operations Centre and Professional Workspace Designer commands.
-add_executable(umicom-studio-operations-centre-v2 src/tools/operations_centre_v2_main.c)
-target_link_libraries(umicom-studio-operations-centre-v2 PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-operations-centre-v2)
-umicom_apply_sanitizers(umicom-studio-operations-centre-v2)
+add_executable(umicom-studio-operations-centre src/tools/operations_centre_main.c)
+target_link_libraries(umicom-studio-operations-centre PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-operations-centre)
+umicom_apply_sanitizers(umicom-studio-operations-centre)
 
-add_executable(umicom-studio-workspace-designer-v2 src/tools/workspace_designer_v2_main.c)
-target_link_libraries(umicom-studio-workspace-designer-v2 PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-workspace-designer-v2)
-umicom_apply_sanitizers(umicom-studio-workspace-designer-v2)
+add_executable(umicom-studio-workspace-designer src/tools/workspace_designer_main.c)
+target_link_libraries(umicom-studio-workspace-designer PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-workspace-designer)
+umicom_apply_sanitizers(umicom-studio-workspace-designer)
 
 # Batch 58 native Compiler Centre and polyglot planning commands.
-add_executable(umicom-studio-compiler-centre-v2 src/tools/compiler_centre_v2_main.c)
-target_link_libraries(umicom-studio-compiler-centre-v2 PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-compiler-centre-v2)
-umicom_apply_sanitizers(umicom-studio-compiler-centre-v2)
+add_executable(umicom-studio-compiler-centre src/tools/compiler_centre_main.c)
+target_link_libraries(umicom-studio-compiler-centre PRIVATE Umicom::StudioCore)
+umicom_apply_warnings(umicom-studio-compiler-centre)
+umicom_apply_sanitizers(umicom-studio-compiler-centre)
 
 add_executable(umicom-studio-polyglot-compiler src/tools/polyglot_compiler_main.c)
 target_link_libraries(umicom-studio-polyglot-compiler PRIVATE Umicom::StudioCore)
@@ -419,19 +419,19 @@ umicom_apply_warnings(umicom-studio-polyglot-compiler)
 umicom_apply_sanitizers(umicom-studio-polyglot-compiler)
 
 # Batch 59 native SDK, package, installer and distribution commands.
-add_executable(umicom-studio-distribution-centre-v2
-    src/tools/distribution_centre_v2_main.c)
-target_link_libraries(umicom-studio-distribution-centre-v2
+add_executable(umicom-studio-distribution-centre
+    src/tools/distribution_centre_main.c)
+target_link_libraries(umicom-studio-distribution-centre
     PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-distribution-centre-v2)
-umicom_apply_sanitizers(umicom-studio-distribution-centre-v2)
+umicom_apply_warnings(umicom-studio-distribution-centre)
+umicom_apply_sanitizers(umicom-studio-distribution-centre)
 
-add_executable(umicom-studio-package-inspector-v2
-    src/tools/package_inspector_v2_main.c)
-target_link_libraries(umicom-studio-package-inspector-v2
+add_executable(umicom-studio-package-inspector
+    src/tools/package_inspector_main.c)
+target_link_libraries(umicom-studio-package-inspector
     PRIVATE Umicom::StudioCore)
-umicom_apply_warnings(umicom-studio-package-inspector-v2)
-umicom_apply_sanitizers(umicom-studio-package-inspector-v2)
+umicom_apply_warnings(umicom-studio-package-inspector)
+umicom_apply_sanitizers(umicom-studio-package-inspector)
 
 # Native toolkit-neutral workbench and UI catalogue commands.
 add_executable(umicom-studio-workbench src/tools/workbench_main.c)
@@ -1348,9 +1348,9 @@ if(BUILD_TESTING)
             ai_retrieval
             ai_tools
             authorengine
-            authorengine_integration_v2
-            authorengine_views_v2
-            ai_workspace_v2
+            authorengine_integration
+            authorengine_views
+            ai_workspace
             coding_assistant
             ai_coding_views
             knowledge_centre
@@ -1443,9 +1443,9 @@ if(BUILD_TESTING)
         studio.ai_retrieval
         studio.ai_tools
         studio.authorengine
-        studio.authorengine_integration_v2
-        studio.authorengine_views_v2
-        studio.ai_workspace_v2
+        studio.authorengine_integration
+        studio.authorengine_views
+        studio.ai_workspace
         studio.coding_assistant
         studio.ai_coding_views
         studio.knowledge_centre
@@ -1570,12 +1570,12 @@ install(TARGETS
     umicom-studio-history
     umicom-studio-security
     umicom-studio-security-centre
-    umicom-studio-operations-centre-v2
-    umicom-studio-workspace-designer-v2
-    umicom-studio-compiler-centre-v2
+    umicom-studio-operations-centre
+    umicom-studio-workspace-designer
+    umicom-studio-compiler-centre
     umicom-studio-polyglot-compiler
-    umicom-studio-distribution-centre-v2
-    umicom-studio-package-inspector-v2
+    umicom-studio-distribution-centre
+    umicom-studio-package-inspector
     umicom-studio-plugins
     umicom-studio-observability
     umicom-studio-resilience
@@ -1616,11 +1616,11 @@ install(TARGETS
     RUNTIME DESTINATION bin
 )
 
-# Install the Batch 58 operator manual with the application. Documentation for
-# this delivery is intentionally self-contained HTML so it can be opened on a
+# Install the self-contained HTML operator manuals so they can be opened on a
 # clean Windows workstation without a Markdown renderer.
 install(FILES
     docs/batches/Umicom_Batch_58_Compiler_Polyglot_Umicc_Build_Deploy_Install_and_Usage_Guide.html
+    docs/batches/Umicom_Batch_60_Naming_and_Build_Stabilisation_Guide.html
     DESTINATION share/umicom/docs
 )
 
@@ -1648,118 +1648,118 @@ add_executable(umicom-studio-quality-gate-test tests/test_quality_gate.c)
 target_link_libraries(umicom-studio-quality-gate-test PRIVATE Umicom::StudioCore)
 umicom_apply_warnings(umicom-studio-quality-gate-test)
 add_test(NAME studio.quality_gate COMMAND umicom-studio-quality-gate-test)
-foreach(UMICOM_STUDIO_QUALITY_V2_TEST
+foreach(UMICOM_STUDIO_QUALITY_TEST
         quality_centre
         quality_evidence_navigation
         quality_remediation
         quality_duplicates
         quality_compatibility
-        quality_gates_v2
-        quality_views_v2
-        quality_commands_v2)
-    string(REPLACE "_" "-" UMICOM_STUDIO_QUALITY_V2_TEST_TARGET
-        "${UMICOM_STUDIO_QUALITY_V2_TEST}")
-    add_executable(umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test
-        tests/test_${UMICOM_STUDIO_QUALITY_V2_TEST}.c)
-    target_link_libraries(umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test
+        quality_gates
+        quality_views
+        quality_commands)
+    string(REPLACE "_" "-" UMICOM_STUDIO_QUALITY_TEST_TARGET
+        "${UMICOM_STUDIO_QUALITY_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_QUALITY_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_QUALITY_TEST}.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_QUALITY_TEST_TARGET}-test
         PRIVATE Umicom::StudioCore)
-    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test)
-    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test)
-    add_test(NAME studio.${UMICOM_STUDIO_QUALITY_V2_TEST}
-        COMMAND umicom-studio-${UMICOM_STUDIO_QUALITY_V2_TEST_TARGET}-test)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_QUALITY_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_QUALITY_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_QUALITY_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_QUALITY_TEST_TARGET}-test)
 endforeach()
 endif()
 
 if(BUILD_TESTING)
-foreach(UMICOM_STUDIO_SECURITY_V2_TEST
-        security_centre_v2
-        security_identities_roles_v2
-        security_secrets_v2
-        security_approvals_v2
-        security_packages_v2
-        security_audit_view_v2
-        security_views_v2
-        security_commands_v2)
-    string(REPLACE "_" "-" UMICOM_STUDIO_SECURITY_V2_TEST_TARGET
-        "${UMICOM_STUDIO_SECURITY_V2_TEST}")
-    add_executable(umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test
-        tests/test_${UMICOM_STUDIO_SECURITY_V2_TEST}.c)
-    target_link_libraries(umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test
+foreach(UMICOM_STUDIO_SECURITY_TEST
+        security_centre
+        security_identities_roles
+        security_secrets
+        security_approvals
+        security_packages
+        security_audit_view
+        security_views
+        security_commands)
+    string(REPLACE "_" "-" UMICOM_STUDIO_SECURITY_TEST_TARGET
+        "${UMICOM_STUDIO_SECURITY_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_SECURITY_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_SECURITY_TEST}.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_SECURITY_TEST_TARGET}-test
         PRIVATE Umicom::StudioCore)
-    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test)
-    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test)
-    add_test(NAME studio.${UMICOM_STUDIO_SECURITY_V2_TEST}
-        COMMAND umicom-studio-${UMICOM_STUDIO_SECURITY_V2_TEST_TARGET}-test)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_SECURITY_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_SECURITY_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_SECURITY_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_SECURITY_TEST_TARGET}-test)
 endforeach()
 endif()
 
 if(BUILD_TESTING)
-foreach(UMICOM_STUDIO_BATCH57_TEST
-        operations_centre_v2
-        operations_views_commands_v2
-        workspace_catalogue_v2
-        workspace_layouts_v2
-        workspace_groups_v2
-        workspace_themes_v2
-        workspace_persistence_v2
-        workspace_views_commands_v2)
-    string(REPLACE "_" "-" UMICOM_STUDIO_BATCH57_TEST_TARGET
-        "${UMICOM_STUDIO_BATCH57_TEST}")
-    add_executable(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test
-        tests/test_${UMICOM_STUDIO_BATCH57_TEST}.c)
-    target_include_directories(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test
+foreach(UMICOM_STUDIO_WORKSPACE_TEST
+        operations_centre
+        operations_views_commands
+        workspace_catalogue
+        workspace_layouts
+        workspace_groups
+        workspace_themes
+        workspace_persistence
+        workspace_views_commands)
+    string(REPLACE "_" "-" UMICOM_STUDIO_WORKSPACE_TEST_TARGET
+        "${UMICOM_STUDIO_WORKSPACE_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_WORKSPACE_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_WORKSPACE_TEST}.c)
+    target_include_directories(umicom-studio-${UMICOM_STUDIO_WORKSPACE_TEST_TARGET}-test
         PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
-    target_link_libraries(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_WORKSPACE_TEST_TARGET}-test
         PRIVATE Umicom::StudioCore)
-    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test)
-    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test)
-    add_test(NAME studio.${UMICOM_STUDIO_BATCH57_TEST}
-        COMMAND umicom-studio-${UMICOM_STUDIO_BATCH57_TEST_TARGET}-test)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_WORKSPACE_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_WORKSPACE_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_WORKSPACE_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_WORKSPACE_TEST_TARGET}-test)
 endforeach()
 endif()
 
 if(BUILD_TESTING)
-foreach(UMICOM_STUDIO_BATCH58_TEST
-        compiler_catalogue_v2
-        compiler_views_commands_v2
-        compiler_templates_v2
-        compiler_settings_binding_v2
-        compiler_diagnostics_v2
-        compiler_interop_v2
-        umicc_polyglot_v2
-        compiler_centre_v2)
-    string(REPLACE "_" "-" UMICOM_STUDIO_BATCH58_TEST_TARGET
-        "${UMICOM_STUDIO_BATCH58_TEST}")
-    add_executable(umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test
-        tests/test_${UMICOM_STUDIO_BATCH58_TEST}.c)
-    target_link_libraries(umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test
+foreach(UMICOM_STUDIO_COMPILER_TEST
+        compiler_catalogue
+        compiler_views_commands
+        compiler_templates
+        compiler_settings_binding
+        compiler_diagnostics
+        compiler_interop
+        umicc_polyglot
+        compiler_centre)
+    string(REPLACE "_" "-" UMICOM_STUDIO_COMPILER_TEST_TARGET
+        "${UMICOM_STUDIO_COMPILER_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_COMPILER_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_COMPILER_TEST}.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_COMPILER_TEST_TARGET}-test
         PRIVATE Umicom::StudioCore)
-    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test)
-    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test)
-    add_test(NAME studio.${UMICOM_STUDIO_BATCH58_TEST}
-        COMMAND umicom-studio-${UMICOM_STUDIO_BATCH58_TEST_TARGET}-test)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_COMPILER_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_COMPILER_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_COMPILER_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_COMPILER_TEST_TARGET}-test)
 endforeach()
 endif()
 
 if(BUILD_TESTING)
-foreach(UMICOM_STUDIO_BATCH59_TEST
-        sdk_centre_v2
-        package_project_v2
-        dependency_bundle_v2
-        installer_centre_v2
-        supply_chain_v2
-        release_upgrade_v2
-        distribution_centre_v2
-        distribution_views_commands_v2)
-    string(REPLACE "_" "-" UMICOM_STUDIO_BATCH59_TEST_TARGET
-        "${UMICOM_STUDIO_BATCH59_TEST}")
-    add_executable(umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test
-        tests/test_${UMICOM_STUDIO_BATCH59_TEST}.c)
-    target_link_libraries(umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test
+foreach(UMICOM_STUDIO_DISTRIBUTION_TEST
+        sdk_centre
+        package_project
+        dependency_bundle
+        installer_centre
+        supply_chain
+        release_upgrade
+        distribution_centre
+        distribution_views_commands)
+    string(REPLACE "_" "-" UMICOM_STUDIO_DISTRIBUTION_TEST_TARGET
+        "${UMICOM_STUDIO_DISTRIBUTION_TEST}")
+    add_executable(umicom-studio-${UMICOM_STUDIO_DISTRIBUTION_TEST_TARGET}-test
+        tests/test_${UMICOM_STUDIO_DISTRIBUTION_TEST}.c)
+    target_link_libraries(umicom-studio-${UMICOM_STUDIO_DISTRIBUTION_TEST_TARGET}-test
         PRIVATE Umicom::StudioCore)
-    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test)
-    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test)
-    add_test(NAME studio.${UMICOM_STUDIO_BATCH59_TEST}
-        COMMAND umicom-studio-${UMICOM_STUDIO_BATCH59_TEST_TARGET}-test)
+    umicom_apply_warnings(umicom-studio-${UMICOM_STUDIO_DISTRIBUTION_TEST_TARGET}-test)
+    umicom_apply_sanitizers(umicom-studio-${UMICOM_STUDIO_DISTRIBUTION_TEST_TARGET}-test)
+    add_test(NAME studio.${UMICOM_STUDIO_DISTRIBUTION_TEST}
+        COMMAND umicom-studio-${UMICOM_STUDIO_DISTRIBUTION_TEST_TARGET}-test)
 endforeach()
 endif()

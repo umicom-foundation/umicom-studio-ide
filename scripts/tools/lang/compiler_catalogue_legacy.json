@@ -1,0 +1,230 @@
+{
+  "version": "umicom-compiler-manifest-v1",
+  "updated": "2025-10-02",
+  "languages": [
+    {
+      "id": "gcc",
+      "name": "GCC",
+      "kind": "native",
+      "detect": {
+        "cmd": "gcc --version"
+      },
+      "compile": {
+        "cmd": "gcc ${SRC} -O2 -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "clang",
+      "name": "LLVM/Clang",
+      "kind": "native",
+      "detect": {
+        "cmd": "clang --version"
+      },
+      "compile": {
+        "cmd": "clang ${SRC} -O2 -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "rust",
+      "name": "Rust (rustc)",
+      "kind": "native",
+      "detect": {
+        "cmd": "rustc --version"
+      },
+      "compile": {
+        "cmd": "rustc ${MAIN} -O -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "go",
+      "name": "Go (gc)",
+      "kind": "native",
+      "detect": {
+        "cmd": "go version"
+      },
+      "compile": {
+        "cmd": "go build -o ${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "swift",
+      "name": "Swift",
+      "kind": "native",
+      "detect": {
+        "cmd": "swiftc --version"
+      },
+      "compile": {
+        "cmd": "swiftc ${MAIN} -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "zig",
+      "name": "Zig",
+      "kind": "native",
+      "detect": {
+        "cmd": "zig version"
+      },
+      "compile": {
+        "cmd": "zig build-exe ${MAIN} -O ReleaseSafe -femit-bin=${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "d-ldc",
+      "name": "D (LDC)",
+      "kind": "native",
+      "detect": {
+        "cmd": "ldc2 --version"
+      },
+      "compile": {
+        "cmd": "ldc2 -O3 ${MAIN} -of=${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "ocaml",
+      "name": "OCaml (ocamlopt)",
+      "kind": "native",
+      "detect": {
+        "cmd": "ocamlopt -vnum"
+      },
+      "compile": {
+        "cmd": "ocamlopt -O3 -o ${OUT} ${SRC}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "ghc",
+      "name": "Haskell (GHC)",
+      "kind": "native",
+      "detect": {
+        "cmd": "ghc --version"
+      },
+      "compile": {
+        "cmd": "ghc -O2 ${MAIN} -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "csharp",
+      "name": "C# (.NET)",
+      "kind": "native",
+      "detect": {
+        "cmd": "dotnet --version"
+      },
+      "compile": {
+        "cmd": "dotnet build -c Release"
+      },
+      "run": {
+        "cmd": "dotnet run --no-build"
+      }
+    },
+    {
+      "id": "nim",
+      "name": "Nim (C backend)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "nim --version"
+      },
+      "compile": {
+        "cmd": "nim c -d:release --cc:gcc -o:${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "v",
+      "name": "V language (C backend)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "v version"
+      },
+      "compile": {
+        "cmd": "v -prod -o ${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "vala",
+      "name": "Vala (valac\u2192C)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "valac --version"
+      },
+      "compile": {
+        "cmd": "valac ${MAIN} -o ${OUT} ${PKG}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "ats2",
+      "name": "ATS/PostiATS (\u2192C)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "patscc -v"
+      },
+      "compile": {
+        "cmd": "patscc ${MAIN} -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "gambit",
+      "name": "Gambit Scheme (\u2192C)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "gsc -v"
+      },
+      "compile": {
+        "cmd": "gsc -o ${OUT} ${MAIN}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    },
+    {
+      "id": "chicken",
+      "name": "CHICKEN Scheme (\u2192C)",
+      "kind": "c_via",
+      "detect": {
+        "cmd": "csc -version"
+      },
+      "compile": {
+        "cmd": "csc -O3 ${MAIN} -o ${OUT}"
+      },
+      "run": {
+        "cmd": "${OUT}"
+      }
+    }
+  ]
+}

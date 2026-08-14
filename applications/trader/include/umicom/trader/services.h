@@ -28,7 +28,7 @@ typedef struct UmiTraderServices {
     UmiResearchStats research_stats;
     UmiPositionBook positions;
     UmiSimulatedBrokerStorage simulated_broker_storage;
-    UmiBrokerV1 broker;
+    UmiBroker broker;
     int broker_created;
 } UmiTraderServices;
 UmiStatus umi_trader_services_init(UmiTraderServices *services);

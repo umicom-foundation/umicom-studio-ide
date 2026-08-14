@@ -1,7 +1,7 @@
 # Umicom Studio IDE — Compiler Support (Part 32)
 # Created by: Umicom Foundation | Author: Sammy Hegab | Date: 2025-10-02 | MIT
 
-This package adds a manifest (`tools/lang/compilers.v1.json`), generic tasks
+This package adds a manifest (`tools/lang/compiler_catalogue_legacy.json`), generic tasks
 (`tasks/auto_tasks.json`), and small **hello** templates for multiple languages.
 
 - **Native/AOT**: GCC/Clang, Rust, Go, Swift, Zig, D(LDC), OCaml, GHC, C# (.NET)

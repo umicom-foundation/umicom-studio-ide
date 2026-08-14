@@ -112,6 +112,7 @@ static int import_project(UmiStudioPlatformShell *shell, char *root, size_t capa
 
 int main(void)
 {
+    UmiStudioServices *services=NULL;
     UmiStudioPlatformShell *p=NULL;
     UmiStudioPlatformShellSnapshot a;
     UmiUiListModelSnapshot item={0};
@@ -134,7 +135,11 @@ int main(void)
     char imported_root[UMI_PATH_CAPACITY];
     int result;
 
-    if(umi_studio_platform_shell_create(NULL,&p)!=UMI_STATUS_OK)return 1;
+    if(umi_studio_services_create(NULL,NULL,&services)!=UMI_STATUS_OK)return 1;
+    if(umi_studio_platform_shell_create(services,&p)!=UMI_STATUS_OK){
+        umi_studio_services_destroy(services);
+        return 1;
+    }
     strcpy(item.id,"welcome");strcpy(item.label,"Welcome");item.visible=1;item.enabled=1;
     if(umi_ui_list_model_registry_upsert(
         umi_ui_workbench_platform_lists(umi_studio_platform_shell_workbench(p)),
@@ -182,9 +187,10 @@ int main(void)
     if(umi_studio_developer_dashboard_snapshot(NULL,&i)!=UMI_STATUS_OK)return 11;
     if(umi_studio_chart_workspace_snapshot(NULL,&j)!=UMI_STATUS_OK)return 12;
     if(umi_studio_designer_workspace_snapshot(NULL,&k)!=UMI_STATUS_OK)return 13;
-    if(umi_studio_ai_workspace_snapshot(NULL,&l)!=UMI_STATUS_OK)return 14;
+    if(umi_studio_ai_workspace_snapshot(services,&l)!=UMI_STATUS_OK)return 14;
 
     umi_studio_platform_shell_destroy(p);
+    umi_studio_services_destroy(services);
     if(umi_fs_remove_tree(imported_root)!=UMI_STATUS_OK)return 51;
     return 0;
 }

@@ -1,7 +1,7 @@
 /* Umicom Studio IDE | Native Quality Centre command | Sammy Hegab | Umicom Foundation | MIT */
 #include <stdio.h>
 #include "umicom/studio/bootstrap.h"
-#include "umicom/studio/quality_commands_v2.h"
+#include "umicom/studio/quality_commands.h"
 int main(void)
 {
     UmiStudioBootstrap *bootstrap = NULL;

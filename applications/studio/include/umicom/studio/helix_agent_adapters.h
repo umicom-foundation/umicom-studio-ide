@@ -25,14 +25,14 @@ typedef struct UmiStudioHelixAgentAdapterState {
     int allow_review;
     int allow_source_control;
     uint32_t execution_count;
-    UmiHelixActionKindV2 last_kind;
+    UmiHelixActionKind last_kind;
 } UmiStudioHelixAgentAdapterState;
 
 void umi_studio_helix_agent_adapters_init(
     UmiStudioHelixAgentAdapterState *state);
 UmiStatus umi_studio_helix_agent_adapters_create(
     UmiStudioHelixAgentAdapterState *state,
-    UmiHelixExecutionAdapterV2 *out_adapter);
+    UmiHelixExecutionAdapter *out_adapter);
 
 #ifdef __cplusplus
 }

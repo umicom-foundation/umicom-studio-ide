@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static UmiStatus execute_action(void *context, const UmiHelixActionV2 *action,
+static UmiStatus execute_action(void *context, const UmiHelixAction *action,
                                 char *out_evidence, size_t capacity)
 {
     UmiStudioHelixAgentAdapterState *state = context;
@@ -33,7 +33,7 @@ static UmiStatus execute_action(void *context, const UmiHelixActionV2 *action,
     }
     written = snprintf(out_evidence, capacity,
         "Studio %s adapter %s action %s for %s",
-        umi_helix_action_kind_v2_text(action->kind),
+        umi_helix_action_kind_text(action->kind),
         allowed ? "accepted" : "blocked", action->action_id, action->target);
     if (written < 0 || (size_t)written >= capacity) {
         return UMI_STATUS_CAPACITY_EXCEEDED;
@@ -58,7 +58,7 @@ void umi_studio_helix_agent_adapters_init(
 
 UmiStatus umi_studio_helix_agent_adapters_create(
     UmiStudioHelixAgentAdapterState *state,
-    UmiHelixExecutionAdapterV2 *out_adapter)
+    UmiHelixExecutionAdapter *out_adapter)
 {
     if (state == NULL || out_adapter == NULL) return UMI_STATUS_INVALID_ARGUMENT;
     (void)memset(out_adapter, 0, sizeof(*out_adapter));

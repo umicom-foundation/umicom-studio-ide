@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 struct UmiStudioHelixAgentCentre {
-    UmiHelixOrchestratorV2 runtime;
+    UmiHelixOrchestrator runtime;
     UmiStudioHelixAgentAdapterState adapter_state;
 };
 
@@ -34,8 +34,8 @@ UmiStatus umi_studio_helix_agent_centre_create(
     UmiStudioHelixAgentCentre **out_centre)
 {
     UmiStudioHelixAgentCentre *centre;
-    UmiHelixOrchestratorConfigV2 runtime_config;
-    UmiHelixExecutionAdapterV2 adapter;
+    UmiHelixOrchestratorConfig runtime_config;
+    UmiHelixExecutionAdapter adapter;
     UmiStatus status;
     if (config == NULL || out_centre == NULL || config->maximum_attempts == 0U ||
         config->minimum_fitness < 0.0 || config->minimum_fitness > 1.0) {
@@ -44,11 +44,11 @@ UmiStatus umi_studio_helix_agent_centre_create(
     *out_centre = NULL;
     centre = calloc(1U, sizeof(*centre));
     if (centre == NULL) return UMI_STATUS_OUT_OF_MEMORY;
-    runtime_config = umi_helix_orchestrator_v2_config_default();
+    runtime_config = umi_helix_orchestrator_config_default();
     runtime_config.maximum_attempts = config->maximum_attempts;
     runtime_config.minimum_fitness = config->minimum_fitness;
     runtime_config.require_human_approval = config->require_human_approval;
-    status = umi_helix_orchestrator_v2_init(&centre->runtime, &runtime_config);
+    status = umi_helix_orchestrator_init(&centre->runtime, &runtime_config);
     umi_studio_helix_agent_adapters_init(&centre->adapter_state);
     centre->adapter_state.allow_filesystem = config->allow_filesystem;
     centre->adapter_state.allow_build = config->allow_build;
@@ -57,7 +57,7 @@ UmiStatus umi_studio_helix_agent_centre_create(
     centre->adapter_state.allow_source_control = config->allow_source_control;
     if (status == UMI_STATUS_OK) status = umi_studio_helix_agent_adapters_create(
         &centre->adapter_state, &adapter);
-    if (status == UMI_STATUS_OK) status = umi_helix_orchestrator_v2_set_adapter(
+    if (status == UMI_STATUS_OK) status = umi_helix_orchestrator_set_adapter(
         &centre->runtime, &adapter);
     if (status != UMI_STATUS_OK) {
         free(centre);
@@ -72,7 +72,7 @@ void umi_studio_helix_agent_centre_destroy(UmiStudioHelixAgentCentre *centre)
     free(centre);
 }
 
-UmiHelixOrchestratorV2 *umi_studio_helix_agent_centre_runtime(
+UmiHelixOrchestrator *umi_studio_helix_agent_centre_runtime(
     UmiStudioHelixAgentCentre *centre)
 {
     return centre != NULL ? &centre->runtime : NULL;

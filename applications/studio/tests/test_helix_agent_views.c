@@ -17,7 +17,7 @@ int main(void)
     UmiUiViewModel *view = NULL;
     UmiUiValue value;
     assert(strcmp(umi_studio_helix_agent_capability_id(),
-                  "umicom.studio.helix-agent-runtime-v2") == 0);
+                  "umicom.studio.helix-agent-runtime") == 0);
     assert(umi_studio_helix_agent_centre_create(&config, &centre) == UMI_STATUS_OK);
     assert(umi_studio_helix_agent_view_create(
         centre, UMI_STUDIO_HELIX_PANE_OVERVIEW, &view) == UMI_STATUS_OK);

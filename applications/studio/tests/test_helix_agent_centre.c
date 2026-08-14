@@ -13,7 +13,7 @@ int main(void)
     UmiStudioHelixAgentCentre *centre = NULL;
     UmiStudioHelixAgentCentreConfig config =
         umi_studio_helix_agent_centre_config_default();
-    UmiHelixOrchestratorV2 *runtime;
+    UmiHelixOrchestrator *runtime;
     assert(umi_studio_helix_agent_centre_create(&config, &centre) == UMI_STATUS_OK);
     runtime = umi_studio_helix_agent_centre_runtime(centre);
     assert(runtime != NULL && runtime->agents.count == 5U);

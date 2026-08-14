@@ -1,7 +1,7 @@
 /* Umicom Studio IDE | Native Security Centre command | Sammy Hegab | Umicom Foundation | MIT */
 #include <stdio.h>
 #include "umicom/studio/bootstrap.h"
-#include "umicom/studio/security_commands_v2.h"
+#include "umicom/studio/security_commands.h"
 
 int main(void)
 {

@@ -1,0 +1,5 @@
+/* Umicom Studio Batch 58 test | Sammy Hegab | Umicom Foundation | MIT */
+#include "umicom/studio/compiler_interop.h"
+#include <assert.h>
+#include <string.h>
+int main(void) { UmiInteropGraph graph = {0}; UmiInteropNode first = {0},second = {0}; UmiInteropEdge edge = {0}; UmiStudioCompilerInteropSummary summary; UmiCompilerTarget target; assert(umi_compiler_target_host(&target) == UMI_STATUS_OK); (void)strcpy(first.unit_id,"c"); first.language = UMI_COMPILER_LANGUAGE_C; assert(umi_compiler_abi_init(&first.abi,"stable",UMI_COMPILER_ABI_C,&target) == UMI_STATUS_OK); second = first; (void)strcpy(second.unit_id,"rust"); second.language = UMI_COMPILER_LANGUAGE_RUST; (void)strcpy(edge.producer_id,"c"); (void)strcpy(edge.consumer_id,"rust"); edge.required = true; assert(umi_interop_graph_add_node(&graph,&first) == UMI_STATUS_OK); assert(umi_interop_graph_add_node(&graph,&second) == UMI_STATUS_OK); assert(umi_interop_graph_add_edge(&graph,&edge) == UMI_STATUS_OK); assert(umi_studio_compiler_interop_summarise(&graph,&summary) == UMI_STATUS_OK); assert(summary.buildable); return 0; }

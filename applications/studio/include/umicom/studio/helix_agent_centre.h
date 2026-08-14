@@ -35,7 +35,7 @@ UmiStatus umi_studio_helix_agent_centre_create(
     const UmiStudioHelixAgentCentreConfig *config,
     UmiStudioHelixAgentCentre **out_centre);
 void umi_studio_helix_agent_centre_destroy(UmiStudioHelixAgentCentre *centre);
-UmiHelixOrchestratorV2 *umi_studio_helix_agent_centre_runtime(
+UmiHelixOrchestrator *umi_studio_helix_agent_centre_runtime(
     UmiStudioHelixAgentCentre *centre);
 const UmiStudioHelixAgentAdapterState *umi_studio_helix_agent_centre_adapter_state(
     const UmiStudioHelixAgentCentre *centre);

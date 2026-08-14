@@ -14,16 +14,16 @@
 size_t umi_studio_helix_agent_journal_count(
     UmiStudioHelixAgentCentre *centre)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
     return runtime != NULL ? runtime->journal.count : 0U;
 }
 
 int umi_studio_helix_agent_journal_valid(UmiStudioHelixAgentCentre *centre)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
-    return runtime != NULL && umi_helix_journal_v2_verify(&runtime->journal);
+    return runtime != NULL && umi_helix_journal_verify(&runtime->journal);
 }
 
 UmiStatus umi_studio_helix_agent_journal_entry(
@@ -32,14 +32,14 @@ UmiStatus umi_studio_helix_agent_journal_entry(
     char *out_text,
     size_t capacity)
 {
-    UmiHelixOrchestratorV2 *runtime =
+    UmiHelixOrchestrator *runtime =
         umi_studio_helix_agent_centre_runtime(centre);
-    const UmiHelixJournalEntryV2 *entry;
+    const UmiHelixJournalEntry *entry;
     int written;
     if (runtime == NULL || out_text == NULL || capacity == 0U) {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
-    entry = umi_helix_journal_v2_at(&runtime->journal, index);
+    entry = umi_helix_journal_at(&runtime->journal, index);
     if (entry == NULL) return UMI_STATUS_NOT_FOUND;
     written = snprintf(out_text, capacity, "#%" PRIu64 " kind=%d %s",
                        entry->sequence, (int)entry->kind, entry->summary);

@@ -66,7 +66,7 @@ is_loopback_host(const char *host)
 
 /* Check textual host for RFC1918 private IPv4 ranges. */
 static gboolean
-is_private_v4_host(const char *host)
+is_private_ipv4_host(const char *host)
 {
   if (!host)
     return FALSE;
@@ -132,7 +132,7 @@ umi_privacy_allow_url(const char *url, char *errbuf, unsigned errcap)
   }
 
   /* Protect against local/loopback/private endpoints by default. */
-  if (is_loopback_host(host) || is_private_v4_host(host))
+  if (is_loopback_host(host) || is_private_ipv4_host(host))
   {
     write_err(errbuf, errcap, "blocked: local/loopback/private host is not allowed");
     g_uri_unref(uri);

@@ -24,7 +24,7 @@ UmiStatus umi_studio_helix_agent_candidate_add(
     const char *provenance_hash);
 UmiStatus umi_studio_helix_agent_candidate_select(
     UmiStudioHelixAgentCentre *centre,
-    UmiHelixCandidateScoreV2 *out_candidate);
+    UmiHelixCandidateScore *out_candidate);
 
 #ifdef __cplusplus
 }

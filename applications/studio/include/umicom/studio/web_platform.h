@@ -27,7 +27,7 @@ UmiStatus umi_studio_web_platform_create(UmiStudioWebPlatform **out_platform);
 void umi_studio_web_platform_destroy(UmiStudioWebPlatform *platform);
 UmiStatus umi_studio_web_platform_snapshot(const UmiStudioWebPlatform *platform,UmiStudioWebPlatformSnapshot *out_snapshot);
 UmiWebService *umi_studio_web_platform_web(UmiStudioWebPlatform *platform);
-UmiBrowserV1 *umi_studio_web_platform_browser(UmiStudioWebPlatform *platform);
+UmiBrowser *umi_studio_web_platform_browser(UmiStudioWebPlatform *platform);
 UmiChartModel *umi_studio_web_platform_chart(UmiStudioWebPlatform *platform);
 UmiFrontendPlan *umi_studio_web_platform_frontend(UmiStudioWebPlatform *platform);
 UmiFrontendStudio *umi_studio_web_platform_frontend_studio(UmiStudioWebPlatform *platform);

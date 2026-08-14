@@ -9,9 +9,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-UmiStatus umi_studio_visual_builder_binding_upsert(UmiStudioVisualBuilderCentre *centre,const UmiDesignerBindingV2 *binding);
+UmiStatus umi_studio_visual_builder_binding_upsert(UmiStudioVisualBuilderCentre *centre,const UmiDesignerBinding *binding);
 UmiStatus umi_studio_visual_builder_binding_remove(UmiStudioVisualBuilderCentre *centre,const char *binding_id);
-UmiStatus umi_studio_visual_builder_binding_at(UmiStudioVisualBuilderCentre *centre,size_t index,UmiDesignerBindingV2 *out_binding);
+UmiStatus umi_studio_visual_builder_binding_at(UmiStudioVisualBuilderCentre *centre,size_t index,UmiDesignerBinding *out_binding);
 size_t umi_studio_visual_builder_binding_count(UmiStudioVisualBuilderCentre *centre);
 #ifdef __cplusplus
 }

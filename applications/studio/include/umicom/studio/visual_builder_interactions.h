@@ -9,9 +9,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-UmiStatus umi_studio_visual_builder_interaction_upsert(UmiStudioVisualBuilderCentre *centre,const UmiDesignerInteractionV2 *interaction);
+UmiStatus umi_studio_visual_builder_interaction_upsert(UmiStudioVisualBuilderCentre *centre,const UmiDesignerInteraction *interaction);
 UmiStatus umi_studio_visual_builder_interaction_remove(UmiStudioVisualBuilderCentre *centre,const char *interaction_id);
-UmiStatus umi_studio_visual_builder_interaction_at(UmiStudioVisualBuilderCentre *centre,size_t index,UmiDesignerInteractionV2 *out_interaction);
+UmiStatus umi_studio_visual_builder_interaction_at(UmiStudioVisualBuilderCentre *centre,size_t index,UmiDesignerInteraction *out_interaction);
 size_t umi_studio_visual_builder_interaction_count(UmiStudioVisualBuilderCentre *centre);
 #ifdef __cplusplus
 }

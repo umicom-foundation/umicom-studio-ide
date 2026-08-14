@@ -15,5 +15,5 @@
  */
 
 #include "umicom/studio/browser.h"
-UmiStatus umi_studio_browser_open(UmiStudioWebPlatform *p,const char *url){UmiBrowserV1 *b;if(p==NULL||url==NULL)return UMI_STATUS_INVALID_ARGUMENT;b=umi_studio_web_platform_browser(p);return b!=NULL&&b->navigate!=NULL?b->navigate(b->instance,url):UMI_STATUS_INVALID_STATE;}
-const char *umi_studio_browser_current(const UmiStudioWebPlatform *p){UmiBrowserV1 *b=umi_studio_web_platform_browser((UmiStudioWebPlatform*)p);return b!=NULL&&b->current_url!=NULL?b->current_url(b->instance):NULL;}
+UmiStatus umi_studio_browser_open(UmiStudioWebPlatform *p,const char *url){UmiBrowser *b;if(p==NULL||url==NULL)return UMI_STATUS_INVALID_ARGUMENT;b=umi_studio_web_platform_browser(p);return b!=NULL&&b->navigate!=NULL?b->navigate(b->instance,url):UMI_STATUS_INVALID_STATE;}
+const char *umi_studio_browser_current(const UmiStudioWebPlatform *p){UmiBrowser *b=umi_studio_web_platform_browser((UmiStudioWebPlatform*)p);return b!=NULL&&b->current_url!=NULL?b->current_url(b->instance):NULL;}

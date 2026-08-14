@@ -1,0 +1,7 @@
+/* Umicom Studio IDE | Compiler Centre command | Sammy Hegab | Umicom Foundation | MIT */
+#include "umicom/studio/compiler_catalogue.h"
+#include "umicom/studio/compiler_centre.h"
+#include "umicom/studio/compiler_export.h"
+#include <stdio.h>
+int main(int argc,char **argv)
+{ UmiStudioCompilerCentre *centre = NULL; UmiStudioCompilerCentreSnapshot snapshot; UmiStudioCompilerCatalogue catalogue; UmiCompilerCentre *engine; char summary[2048]; size_t index; const char *gcc = argc > 1 ? argv[1] : "gcc"; const char *clang = argc > 2 ? argv[2] : "clang"; const char *umicc = argc > 3 ? argv[3] : ""; if (umi_studio_compiler_centre_create(NULL,&centre) != UMI_STATUS_OK) return 1; if (umi_studio_compiler_centre_register_defaults(centre,gcc,clang,"rustc","zig",umicc,NULL) != UMI_STATUS_OK) { umi_studio_compiler_centre_destroy(centre); return 2; } if (umi_studio_compiler_centre_snapshot(centre,&snapshot) != UMI_STATUS_OK) { umi_studio_compiler_centre_destroy(centre); return 3; } engine = umi_studio_compiler_centre_engine(centre); (void)umi_studio_compiler_catalogue_project(&engine->providers,snapshot.compiler.active_profile_id,&catalogue); (void)umi_studio_compiler_export_summary(&snapshot.compiler,summary,sizeof(summary)); (void)puts(summary); for (index = 0U; index < catalogue.count; ++index) (void)printf("%-10s %-12s %-24s %s\n",catalogue.rows[index].provider_id,catalogue.rows[index].family,catalogue.rows[index].languages,catalogue.rows[index].available ? "available" : "missing"); umi_studio_compiler_centre_destroy(centre); return 0; }

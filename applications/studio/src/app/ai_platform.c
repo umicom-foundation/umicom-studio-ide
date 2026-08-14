@@ -299,7 +299,7 @@ UmiStatus umi_studio_ai_platform_create_configured(
     UmiAiAuthorEngineConfig authorengine_config;
     UmiAiPolicy provider_policy;
     UmiAiPrivacyPolicy privacy_policy;
-    UmiAiProviderV1 provider;
+    UmiAiProvider provider;
     UmiStatus status;
 
     if (config == NULL || out_platform == NULL ||

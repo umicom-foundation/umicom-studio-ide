@@ -14,7 +14,7 @@ int main(void)
     UmiStudioHelixAgentCentre *centre = NULL;
     UmiStudioHelixAgentCentreConfig config =
         umi_studio_helix_agent_centre_config_default();
-    UmiHelixCandidateScoreV2 selected;
+    UmiHelixCandidateScore selected;
     assert(umi_studio_helix_agent_centre_create(&config, &centre) == UMI_STATUS_OK);
     assert(umi_studio_helix_agent_candidate_add(centre, "low", 0.79, "p1")
            == UMI_STATUS_OK);

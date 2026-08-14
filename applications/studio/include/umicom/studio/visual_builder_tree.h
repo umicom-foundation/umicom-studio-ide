@@ -9,7 +9,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-UmiStatus umi_studio_visual_builder_tree_refresh(UmiStudioVisualBuilderCentre *centre,UmiDesignerComponentTreeV2 *out_tree);
+UmiStatus umi_studio_visual_builder_tree_refresh(UmiStudioVisualBuilderCentre *centre,UmiDesignerComponentTree *out_tree);
 UmiStatus umi_studio_visual_builder_tree_select(UmiStudioVisualBuilderCentre *centre,const char *node_id,int extend_selection);
 UmiStatus umi_studio_visual_builder_tree_reparent(UmiStudioVisualBuilderCentre *centre,const char *node_id,const char *parent_id,uint32_t sibling_index);
 #ifdef __cplusplus

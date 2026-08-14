@@ -11,7 +11,7 @@ extern "C" {
 #endif
 UmiStatus umi_studio_visual_builder_preview_refresh(UmiStudioVisualBuilderCentre *centre);
 UmiStatus umi_studio_visual_builder_preview_profile(UmiStudioVisualBuilderCentre *centre,UmiDesignerPreviewProfile profile);
-const UmiDesignerLivePreviewV2 *umi_studio_visual_builder_preview_state(UmiStudioVisualBuilderCentre *centre);
+const UmiDesignerLivePreview *umi_studio_visual_builder_preview_state(UmiStudioVisualBuilderCentre *centre);
 #ifdef __cplusplus
 }
 #endif

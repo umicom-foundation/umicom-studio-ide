@@ -9,10 +9,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-UmiStatus umi_studio_visual_builder_drag_palette(UmiDesignerDragDropV2 *drag,const char *component_type,const char *node_id);
-UmiStatus umi_studio_visual_builder_drag_node(UmiDesignerDragDropV2 *drag,const char *node_id);
-UmiStatus umi_studio_visual_builder_drag_target(UmiDesignerDragDropV2 *drag,const char *target_id,UmiDesignerDropPositionV2 position);
-UmiStatus umi_studio_visual_builder_drop(UmiStudioVisualBuilderCentre *centre,UmiDesignerDragDropV2 *drag);
+UmiStatus umi_studio_visual_builder_drag_palette(UmiDesignerDragDrop *drag,const char *component_type,const char *node_id);
+UmiStatus umi_studio_visual_builder_drag_node(UmiDesignerDragDrop *drag,const char *node_id);
+UmiStatus umi_studio_visual_builder_drag_target(UmiDesignerDragDrop *drag,const char *target_id,UmiDesignerDropPosition position);
+UmiStatus umi_studio_visual_builder_drop(UmiStudioVisualBuilderCentre *centre,UmiDesignerDragDrop *drag);
 #ifdef __cplusplus
 }
 #endif
