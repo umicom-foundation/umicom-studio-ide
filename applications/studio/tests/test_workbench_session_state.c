@@ -25,6 +25,9 @@ int main(void)
     state.bottom_panel_size = 280;
     (void)snprintf(state.active_activity, sizeof(state.active_activity),
                    "%s", "studio.activity.framework");
+    (void)snprintf(state.active_workspace_profile,
+                   sizeof(state.active_workspace_profile),
+                   "%s", "focus");
     assert(umi_ui_workbench_state_encode(&state, encoded,
                                          sizeof(encoded)) == UMI_STATUS_OK);
     assert(umi_ui_workbench_state_decode(encoded, &decoded) == UMI_STATUS_OK);
@@ -32,5 +35,6 @@ int main(void)
     assert(decoded.bottom_panel_size == 280);
     assert(strcmp(decoded.active_activity,
                   "studio.activity.framework") == 0);
+    assert(strcmp(decoded.active_workspace_profile, "focus") == 0);
     return 0;
 }

@@ -82,6 +82,7 @@ add_library(umicom_studio_core STATIC
     src/app/professional_workspace.c
     src/app/workspace_catalogue.c
     src/app/workspace_layouts.c
+    src/app/workspace_profiles.c
     src/app/workspace_groups.c
     src/app/workspace_themes.c
     src/app/workspace_persistence.c
@@ -1691,6 +1692,7 @@ foreach(UMICOM_STUDIO_WORKSPACE_TEST
         operations_views_commands
         workspace_catalogue
         workspace_layouts
+        workspace_profiles
         workspace_groups
         workspace_themes
         workspace_persistence

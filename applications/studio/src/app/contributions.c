@@ -25,6 +25,7 @@
 #include "umicom/studio/commands.h"
 #include "umicom/studio/perspectives.h"
 #include "umicom/studio/workbench_commands.h"
+#include "umicom/studio/workspace_profiles.h"
 
 static const UmiUiPaneSnapshot STUDIO_PANES[] = {
     { UMI_STUDIO_PANE_EXPLORER, "Project Explorer", "studio.project-explorer", "folder-symbolic", UMI_UI_PLACEMENT_LEFT, 10, 1, 1, 1, { 280, 500 } },
@@ -86,6 +87,12 @@ static const UmiUiActionSnapshot STUDIO_ACTIONS[] = {
     { "studio.action.pane.output", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Output", "Show or hide Output", "utilities-terminal-symbolic", "Ctrl+J", 1, 1, 1, 1, 50, UMI_STUDIO_PANE_OUTPUT, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.pane.problems", UMI_STUDIO_COMMAND_PANE_TOGGLE, "Problems", "Show or hide Problems", "dialog-warning-symbolic", "Ctrl+Shift+M", 1, 1, 1, 1, 60, UMI_STUDIO_PANE_PROBLEMS, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.layout.reset", UMI_STUDIO_COMMAND_LAYOUT_RESET, "Reset Layout", "Restore the default Studio layout", "view-restore-symbolic", "", 1, 1, 0, 0, 70, "", UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.workspace-profile.develop", UMI_STUDIO_COMMAND_WORKSPACE_PROFILE_ACTIVATE, "Develop Layout", "Editor-first coding workspace", "applications-development-symbolic", "", 1, 1, 0, 0, 71, UMI_STUDIO_WORKSPACE_PROFILE_DEVELOP, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.workspace-profile.focus", UMI_STUDIO_COMMAND_WORKSPACE_PROFILE_ACTIVATE, "Focus Layout", "Hide tool regions for distraction-free editing", "view-fullscreen-symbolic", "Ctrl+Shift+F12", 1, 1, 0, 0, 72, UMI_STUDIO_WORKSPACE_PROFILE_FOCUS, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.workspace-profile.debug", UMI_STUDIO_COMMAND_WORKSPACE_PROFILE_ACTIVATE, "Debug Layout", "Show source, execution state and debugging tools", "applications-engineering-symbolic", "", 1, 1, 0, 0, 73, UMI_STUDIO_WORKSPACE_PROFILE_DEBUG, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.workspace-profile.review", UMI_STUDIO_COMMAND_WORKSPACE_PROFILE_ACTIVATE, "Review Layout", "Show comparison and review context", "document-properties-symbolic", "", 1, 1, 0, 0, 74, UMI_STUDIO_WORKSPACE_PROFILE_REVIEW, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.workspace-profile.operations", UMI_STUDIO_COMMAND_WORKSPACE_PROFILE_ACTIVATE, "Operations Layout", "Show monitoring and operational tools", "utilities-system-monitor-symbolic", "", 1, 1, 0, 0, 75, UMI_STUDIO_WORKSPACE_PROFILE_OPERATIONS, UMI_UI_ACTION_ARGUMENT_NONE },
+    { "studio.action.workspace-profile.trading", UMI_STUDIO_COMMAND_WORKSPACE_PROFILE_ACTIVATE, "Trading Layout", "Show market, analytics, order and risk tools", "view-statistics-symbolic", "", 1, 1, 0, 0, 76, UMI_STUDIO_WORKSPACE_PROFILE_TRADING, UMI_UI_ACTION_ARGUMENT_NONE },
     { "studio.action.notification.info", UMI_STUDIO_COMMAND_NOTIFICATION_INFO, "About This Workbench", "Show Framework workbench information", "dialog-information-symbolic", "", 1, 1, 0, 0, 80, "Umicom Studio 0.17 uses the Framework-owned workbench and Editor Core v2.", UMI_UI_ACTION_ARGUMENT_NONE },
 
     /* Batch 39 binds the visible IDE vocabulary to canonical Framework
@@ -222,6 +229,14 @@ static const UmiUiMenuSnapshot STUDIO_MENUS[] = {
     { "menu.view.clear-output", "view", "diagnostics", "studio.action.output.clear", "", 0, 50 },
     { "menu.view.clear-problems", "view", "diagnostics", "studio.action.problems.clear", "", 0, 60 },
     { "menu.view.reset", "view", "layout", "studio.action.layout.reset", "", 0, 70 },
+    { "menu.window.develop", "window", "workspace-profiles", "studio.action.workspace-profile.develop", "", 0, 10 },
+    { "menu.window.focus", "window", "workspace-profiles", "studio.action.workspace-profile.focus", "", 0, 20 },
+    { "menu.window.debug", "window", "workspace-profiles", "studio.action.workspace-profile.debug", "", 0, 30 },
+    { "menu.window.review", "window", "workspace-profiles", "studio.action.workspace-profile.review", "", 0, 40 },
+    { "menu.window.operations", "window", "workspace-profiles", "studio.action.workspace-profile.operations", "", 0, 50 },
+    { "menu.window.trading", "window", "workspace-profiles", "studio.action.workspace-profile.trading", "", 0, 60 },
+    { "menu.window.separator", "window", "workspace-profiles", "", "", 1, 70 },
+    { "menu.window.reset", "window", "workspace-profiles", "studio.action.layout.reset", "", 0, 80 },
     { "menu.go.line", "go", "navigation", "studio.action.go.line", "", 0, 10 },
     { "menu.go.workspace-symbols", "go", "navigation", "studio.action.language.workspace-symbols", "", 0, 20 },
     { "menu.run.configure", "run", "build", "studio.action.build.configure", "", 0, 10 },

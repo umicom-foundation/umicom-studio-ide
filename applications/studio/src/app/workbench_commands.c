@@ -205,6 +205,38 @@ static UmiStatus layout_reset(void *user_data,
     return status;
 }
 
+static UmiStatus workspace_profile_activate(void *user_data,
+                                            const char *argument,
+                                            char *out_message,
+                                            size_t capacity)
+{
+    UmiStudioUi *ui = (UmiStudioUi *)user_data;
+    UmiUiWorkbench *workbench;
+    UmiStatus status;
+
+    if (ui == NULL || argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    workbench = umi_studio_ui_workbench(ui);
+    status = umi_ui_workbench_activate_workspace_profile(workbench, argument);
+    if (status == UMI_STATUS_OK) {
+        (void)umi_ui_context_set_string(
+            umi_ui_workbench_context(workbench),
+            "studio.ui.workspace-profile",
+            argument);
+    }
+    if (out_message != NULL && capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message, capacity,
+                           "Workspace profile: %s", argument);
+        } else {
+            (void)snprintf(out_message, capacity, "%s",
+                           umi_status_text(status));
+        }
+    }
+    return status;
+}
+
 static UmiStatus notification_info(void *user_data,
                                    const char *argument,
                                    char *out_message,
@@ -265,6 +297,10 @@ UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
         { UMI_STUDIO_COMMAND_LAYOUT_RESET,
           "Reset Layout", "Restore the default Studio workbench layout",
           layout_reset, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_WORKSPACE_PROFILE_ACTIVATE,
+          "Activate Workspace Profile",
+          "Switch the visible Studio tool regions to a named workspace profile",
+          workspace_profile_activate, UMI_COMMAND_MUTATES_STATE },
         { UMI_STUDIO_COMMAND_NOTIFICATION_INFO,
           "Show Notification", "Publish an information notification",
           notification_info, UMI_COMMAND_MUTATES_STATE }

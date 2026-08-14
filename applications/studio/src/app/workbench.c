@@ -26,38 +26,21 @@
 #include "umicom/studio/perspectives.h"
 #include "umicom/studio/workbench_shell_catalogue.h"
 #include "umicom/studio/workbench_views.h"
+#include "umicom/studio/workspace_profiles.h"
 
-#define UMI_STUDIO_WORKBENCH_STATE_SESSION_KEY "studio.ui.workbench-state.v1"
+#define UMI_STUDIO_WORKBENCH_STATE_SESSION_KEY "studio.ui.workbench-state.v2"
+#define UMI_STUDIO_LEGACY_WORKBENCH_STATE_SESSION_KEY \
+    "studio.ui.workbench-state.v1"
 #define UMI_STUDIO_LEGACY_PERSPECTIVE_SESSION_KEY "studio.ui.active-perspective"
-
-static UmiStatus apply_professional_default_chrome(UmiUiWorkbench *workbench)
-{
-    UmiUiWorkbenchState state;
-    UmiStatus status;
-
-    status = umi_ui_workbench_state_snapshot(workbench, &state);
-    if (status != UMI_STATUS_OK) return status;
-
-    /*
-     * Start with an editor-first composition modelled on mature IDEs: project
-     * tools remain visible, the bottom tool area is available, and the
-     * auxiliary inspector stays collapsed until the user needs it. Splitter
-     * movement is persisted by the Framework GTK adapter through this same
-     * toolkit-neutral state object.
-     */
-    state.sidebar_visible = 1;
-    state.auxiliary_sidebar_visible = 0;
-    state.bottom_panel_visible = 1;
-    state.sidebar_size = 288;
-    state.auxiliary_sidebar_size = 360;
-    state.bottom_panel_size = 240;
-    return umi_ui_workbench_state_apply(workbench, &state);
-}
 
 UmiStatus umi_studio_workbench_reset_layout(UmiUiWorkbench *workbench)
 {
+    UmiStatus status;
     if (workbench == NULL) return UMI_STATUS_INVALID_ARGUMENT;
-    return umi_studio_contributions_register_layout(workbench);
+    status = umi_studio_contributions_register_layout(workbench);
+    if (status != UMI_STATUS_OK) return status;
+    return umi_ui_workbench_activate_workspace_profile(
+        workbench, UMI_STUDIO_WORKSPACE_PROFILE_DEVELOP);
 }
 
 UmiStatus umi_studio_workbench_populate(UmiUiWorkbench *workbench,
@@ -82,6 +65,8 @@ UmiStatus umi_studio_workbench_populate(UmiUiWorkbench *workbench,
     status = umi_studio_perspectives_register(workbench);
     if (status != UMI_STATUS_OK) return status;
     status = umi_studio_contributions_register(workbench);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_studio_workspace_profiles_register(workbench);
     if (status != UMI_STATUS_OK) return status;
 
     /*
@@ -122,7 +107,7 @@ UmiStatus umi_studio_workbench_populate(UmiUiWorkbench *workbench,
     if (status != UMI_STATUS_OK) return status;
     status = umi_ui_workbench_activate_document(workbench, welcome.view_id);
     if (status != UMI_STATUS_OK) return status;
-    return apply_professional_default_chrome(workbench);
+    return UMI_STATUS_OK;
 }
 
 UmiStatus umi_studio_workbench_restore_session(UmiUiWorkbench *workbench,
@@ -138,6 +123,14 @@ UmiStatus umi_studio_workbench_restore_session(UmiUiWorkbench *workbench,
                                    UMI_STUDIO_WORKBENCH_STATE_SESSION_KEY,
                                    encoded,
                                    sizeof(encoded));
+    if (status == UMI_STATUS_NOT_FOUND) {
+        /* Read the Batch 23 key once; the next save migrates it to Version 2. */
+        status = umi_session_store_get(
+            session,
+            UMI_STUDIO_LEGACY_WORKBENCH_STATE_SESSION_KEY,
+            encoded,
+            sizeof(encoded));
+    }
     if (status == UMI_STATUS_OK) {
         status = umi_ui_workbench_state_decode(encoded, &state);
         if (status != UMI_STATUS_OK) return status;

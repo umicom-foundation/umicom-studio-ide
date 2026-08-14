@@ -19,7 +19,10 @@ UmiStatus umi_studio_workspace_execute(UmiStudioProfessionalWorkspace *workspace
     switch (command) {
         case UMI_STUDIO_WORKSPACE_COMMAND_SEED: return umi_studio_workspace_seed(workspace);
         case UMI_STUDIO_WORKSPACE_COMMAND_ACTIVATE_DEVELOP: return umi_ui_workspace_customisation_activate(model,"develop");
+        case UMI_STUDIO_WORKSPACE_COMMAND_ACTIVATE_FOCUS: return umi_ui_workspace_customisation_activate(model,"focus");
+        case UMI_STUDIO_WORKSPACE_COMMAND_ACTIVATE_DEBUG: return umi_ui_workspace_customisation_activate(model,"debug");
         case UMI_STUDIO_WORKSPACE_COMMAND_ACTIVATE_OPERATIONS: return umi_ui_workspace_customisation_activate(model,"operations");
+        case UMI_STUDIO_WORKSPACE_COMMAND_ACTIVATE_TRADING: return umi_ui_workspace_customisation_activate(model,"trading");
         case UMI_STUDIO_WORKSPACE_COMMAND_ACTIVATE_COMPARE: return umi_ui_workspace_customisation_activate(model,"compare");
         case UMI_STUDIO_WORKSPACE_COMMAND_UNLOCK:
         case UMI_STUDIO_WORKSPACE_COMMAND_LOCK:

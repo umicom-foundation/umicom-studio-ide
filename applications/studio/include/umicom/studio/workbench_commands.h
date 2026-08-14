@@ -30,9 +30,11 @@ typedef struct UmiStudioUi UmiStudioUi;
 #define UMI_STUDIO_COMMAND_AUXILIARY_TOGGLE "studio.ui.auxiliary-sidebar.toggle"
 #define UMI_STUDIO_COMMAND_STATUS_SET "studio.ui.status.set"
 #define UMI_STUDIO_COMMAND_LAYOUT_RESET "studio.ui.layout.reset"
+#define UMI_STUDIO_COMMAND_WORKSPACE_PROFILE_ACTIVATE \
+    "studio.ui.workspace-profile.activate"
 #define UMI_STUDIO_COMMAND_NOTIFICATION_INFO "studio.ui.notification.info"
 
-#define UMI_STUDIO_WORKBENCH_COMMAND_COUNT 9U
+#define UMI_STUDIO_WORKBENCH_COMMAND_COUNT 10U
 
 UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
                                                   UmiStudioUi *ui);
