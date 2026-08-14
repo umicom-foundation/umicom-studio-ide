@@ -289,6 +289,41 @@ static const UmiSettingDefinition STUDIO_SETTINGS_SCHEMA[] = {
         0.0,
         1,
         0
+    },
+    {
+        UMI_STUDIO_SETTING_VISUAL_BUILDER_GRID_SIZE,
+        UMI_SETTING_INTEGER,
+        "8",
+        "Visual Builder v2 semantic layout grid size in pixels.",
+        1, 256, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_VISUAL_BUILDER_SNAP,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Snap Visual Builder v2 geometry to the configured grid.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_VISUAL_BUILDER_PREVIEW_PROFILE,
+        UMI_SETTING_INTEGER,
+        "0",
+        "Preview profile: 0 desktop through 5 phone portrait.",
+        0, 5, 0.0, 0.0, 1, 0
+    },
+    {
+        UMI_STUDIO_SETTING_VISUAL_BUILDER_SHOW_SOURCE,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Keep generated declarative, C23 and CMake source visible.",
+        0, 0, 0.0, 0.0, 0, 0
+    },
+    {
+        UMI_STUDIO_SETTING_VISUAL_BUILDER_AUTO_PREVIEW,
+        UMI_SETTING_BOOLEAN,
+        "true",
+        "Refresh the live preview after semantic authoring changes.",
+        0, 0, 0.0, 0.0, 0, 0
     }
 };
 

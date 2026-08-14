@@ -85,6 +85,16 @@ extern "C" {
 #define UMI_STUDIO_SETTING_AUTO_SAVE "studio.files.auto_save"
 #define UMI_STUDIO_SETTING_AUTO_SAVE_SECONDS \
     "studio.files.auto_save_seconds"
+#define UMI_STUDIO_SETTING_VISUAL_BUILDER_GRID_SIZE \
+    "studio.visual_builder.v2.grid_size"
+#define UMI_STUDIO_SETTING_VISUAL_BUILDER_SNAP \
+    "studio.visual_builder.v2.snap_to_grid"
+#define UMI_STUDIO_SETTING_VISUAL_BUILDER_PREVIEW_PROFILE \
+    "studio.visual_builder.v2.preview_profile"
+#define UMI_STUDIO_SETTING_VISUAL_BUILDER_SHOW_SOURCE \
+    "studio.visual_builder.v2.show_generated_source"
+#define UMI_STUDIO_SETTING_VISUAL_BUILDER_AUTO_PREVIEW \
+    "studio.visual_builder.v2.auto_refresh_preview"
 
 UmiStatus umi_studio_settings_create(UmiSettings **out_settings);
 

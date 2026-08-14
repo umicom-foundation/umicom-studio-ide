@@ -151,6 +151,20 @@ add_library(umicom_studio_core STATIC
     src/app/delivery_report.c
     src/app/delivery_distribution.c
     src/app/delivery_evidence.c
+    src/app/visual_builder_centre.c
+    src/app/visual_builder_tree.c
+    src/app/visual_builder_properties.c
+    src/app/visual_builder_bindings.c
+    src/app/visual_builder_interactions.c
+    src/app/visual_builder_drag_drop.c
+    src/app/visual_builder_clipboard.c
+    src/app/visual_builder_templates.c
+    src/app/visual_builder_layout.c
+    src/app/visual_builder_preview.c
+    src/app/visual_builder_source.c
+    src/app/visual_builder_views.c
+    src/app/visual_builder_commands.c
+    src/app/visual_builder_settings.c
 )
 add_library(Umicom::StudioCore ALIAS umicom_studio_core)
 
@@ -322,6 +336,7 @@ foreach(UMICOM_STUDIO_DESIGNER_TOOL
         template
         designer
         designer-catalogue
+        visual-builder
         new-project)
     string(REPLACE "-" "_" UMICOM_STUDIO_DESIGNER_SOURCE
         "${UMICOM_STUDIO_DESIGNER_TOOL}")
@@ -1092,7 +1107,17 @@ if(BUILD_TESTING)
             designer_preview
             new_project
             designer_state
-            designer_project)
+            designer_project
+            visual_builder_centre
+            visual_builder_tree
+            visual_builder_properties
+            visual_builder_bindings
+            visual_builder_interactions
+            visual_builder_drag_drop
+            visual_builder_clipboard
+            visual_builder_templates
+            visual_builder_preview_source
+            visual_builder_settings_views)
         string(REPLACE "_" "-" UMICOM_STUDIO_DESIGNER_TEST_TARGET
             "${UMICOM_STUDIO_DESIGNER_TEST}")
         add_executable(umicom-studio-${UMICOM_STUDIO_DESIGNER_TEST_TARGET}-test
@@ -1369,6 +1394,7 @@ install(TARGETS
     umicom-studio-developer
     umicom-studio-developer-pipeline
     umicom-studio-developer-state
+    umicom-studio-visual-builder
     umicom-studio-ai
     umicom-studio-retrieval
     umicom-studio-authorengine

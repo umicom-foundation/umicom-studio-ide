@@ -1,0 +1,9 @@
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE - Visual Builder v2 signal/action/event/command editor
+ * Created by: Sammy Hegab | Organisation: Umicom Foundation | Licence: MIT
+ *---------------------------------------------------------------------------*/
+#include "umicom/studio/visual_builder_interactions.h"
+UmiStatus umi_studio_visual_builder_interaction_upsert(UmiStudioVisualBuilderCentre *centre,const UmiDesignerInteractionV2 *interaction){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);if(session==NULL)return UMI_STATUS_INVALID_ARGUMENT;return umi_designer_interaction_editor_v2_upsert(umi_designer_builder_session_v2_interactions(session),umi_designer_builder_session_v2_document(session),interaction);}
+UmiStatus umi_studio_visual_builder_interaction_remove(UmiStudioVisualBuilderCentre *centre,const char *interaction_id){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);return session!=NULL?umi_designer_interaction_editor_v2_remove(umi_designer_builder_session_v2_interactions(session),interaction_id):UMI_STATUS_INVALID_ARGUMENT;}
+UmiStatus umi_studio_visual_builder_interaction_at(UmiStudioVisualBuilderCentre *centre,size_t index,UmiDesignerInteractionV2 *out_interaction){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);return session!=NULL?umi_designer_interaction_editor_v2_at(umi_designer_builder_session_v2_interactions(session),index,out_interaction):UMI_STATUS_INVALID_ARGUMENT;}
+size_t umi_studio_visual_builder_interaction_count(UmiStudioVisualBuilderCentre *centre){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);return session!=NULL?umi_designer_interaction_editor_v2_count(umi_designer_builder_session_v2_interactions(session)):0U;}

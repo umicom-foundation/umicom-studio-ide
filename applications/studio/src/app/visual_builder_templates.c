@@ -1,0 +1,8 @@
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE - Visual Builder v2 template palette coordinator
+ * Created by: Sammy Hegab | Organisation: Umicom Foundation | Licence: MIT
+ *---------------------------------------------------------------------------*/
+#include "umicom/studio/visual_builder_templates.h"
+UmiStatus umi_studio_visual_builder_template_find(UmiStudioVisualBuilderCentre *centre,const char *template_id,UmiDesignerTemplateV2 *out_template){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);return session!=NULL?umi_designer_template_registry_v2_find(umi_designer_builder_session_v2_templates(session),template_id,out_template):UMI_STATUS_INVALID_ARGUMENT;}
+UmiStatus umi_studio_visual_builder_template_apply(UmiStudioVisualBuilderCentre *centre,const char *template_id,const char *parent_id,const char *id_prefix){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);UmiDesignerTemplateV2 item;UmiStatus status;if(session==NULL)return UMI_STATUS_INVALID_ARGUMENT;status=umi_designer_template_registry_v2_find(umi_designer_builder_session_v2_templates(session),template_id,&item);if(status==UMI_STATUS_OK)status=umi_designer_template_v2_instantiate(&item,umi_designer_builder_session_v2_transactions(session),parent_id,id_prefix);return status;}
+size_t umi_studio_visual_builder_template_count(UmiStudioVisualBuilderCentre *centre){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);return session!=NULL?umi_designer_template_registry_v2_count(umi_designer_builder_session_v2_templates(session)):0U;}

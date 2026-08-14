@@ -1,0 +1,8 @@
+/*-----------------------------------------------------------------------------
+ * Umicom Studio IDE - Visual Builder v2 layout command adapter
+ * Created by: Sammy Hegab | Organisation: Umicom Foundation | Licence: MIT
+ *---------------------------------------------------------------------------*/
+#include "umicom/studio/visual_builder_layout.h"
+UmiStatus umi_studio_visual_builder_align(UmiStudioVisualBuilderCentre *centre,UmiDesignerAlignment alignment){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);if(session==NULL)return UMI_STATUS_INVALID_ARGUMENT;return umi_designer_layout_v2_align(umi_designer_builder_session_v2_document(session),umi_designer_builder_session_v2_transactions(session),umi_designer_builder_session_v2_selection(session),alignment);}
+UmiStatus umi_studio_visual_builder_distribute(UmiStudioVisualBuilderCentre *centre,UmiDesignerDistribution distribution){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);if(session==NULL)return UMI_STATUS_INVALID_ARGUMENT;return umi_designer_layout_v2_distribute(umi_designer_builder_session_v2_document(session),umi_designer_builder_session_v2_transactions(session),umi_designer_builder_session_v2_selection(session),distribution);}
+UmiStatus umi_studio_visual_builder_snap(UmiStudioVisualBuilderCentre *centre,const UmiDesignerSurfaceOptions *options){UmiDesignerBuilderSessionV2 *session=umi_studio_visual_builder_centre_session(centre);if(session==NULL)return UMI_STATUS_INVALID_ARGUMENT;return umi_designer_layout_v2_snap(umi_designer_builder_session_v2_document(session),umi_designer_builder_session_v2_transactions(session),umi_designer_builder_session_v2_selection(session),options);}
