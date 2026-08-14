@@ -108,6 +108,12 @@ add_library(umicom_studio_core STATIC
     src/app/browser.c
     src/app/charting.c
     src/app/frontend.c
+    src/app/frontend_studio_settings.c
+    src/app/frontend_studio_preview.c
+    src/app/frontend_studio_inspector.c
+    src/app/frontend_studio_centre.c
+    src/app/frontend_studio_views.c
+    src/app/frontend_studio_commands.c
     src/app/ai_chat.c
     src/app/ai_evaluation.c
     src/app/ai_platform.c
@@ -355,6 +361,7 @@ foreach(UMICOM_STUDIO_WEB_TOOL
         browser
         chart
         frontend
+        frontend-studio
         web-platform)
     string(REPLACE "-" "_" UMICOM_STUDIO_WEB_SOURCE
         "${UMICOM_STUDIO_WEB_TOOL}")
@@ -1141,7 +1148,14 @@ if(BUILD_TESTING)
             frontend_manifest
             web_metrics
             web_not_found
-            web_service_accessor)
+            web_service_accessor
+            frontend_studio_centre
+            frontend_studio_settings
+            frontend_studio_preview
+            frontend_studio_inspector
+            frontend_studio_views
+            frontend_studio_commands
+            frontend_studio_quality)
         string(REPLACE "_" "-" UMICOM_STUDIO_WEB_TEST_TARGET
             "${UMICOM_STUDIO_WEB_TEST}")
         add_executable(umicom-studio-${UMICOM_STUDIO_WEB_TEST_TARGET}-test

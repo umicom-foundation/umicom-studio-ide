@@ -1,0 +1,8 @@
+/* Umicom Studio IDE | Sammy Hegab | Umicom Foundation | MIT */
+#include "umicom/studio/frontend_studio_inspector.h"
+static UmiFrontendStudio *service(UmiStudioWebPlatform *p){return umi_studio_web_platform_frontend_studio(p);}
+UmiStatus umi_studio_frontend_inspector_capture_node(UmiStudioWebPlatform *p,const UmiFrontendDomNode *n){UmiFrontendStudio *s=service(p);UmiStatus st;if(s==NULL)return UMI_STATUS_INVALID_ARGUMENT;st=umi_frontend_dom_inspector_upsert(&s->dom,n);if(st==UMI_STATUS_OK)s->revision+=1U;return st;}
+UmiStatus umi_studio_frontend_inspector_select_node(UmiStudioWebPlatform *p,const char *id,UmiFrontendDomNode *out){UmiFrontendStudio *s=service(p);UmiStatus st;if(s==NULL)return UMI_STATUS_INVALID_ARGUMENT;st=umi_frontend_dom_inspector_select(&s->dom,id);return st==UMI_STATUS_OK?umi_frontend_dom_inspector_selected(&s->dom,out):st;}
+UmiStatus umi_studio_frontend_inspector_record_network(UmiStudioWebPlatform *p,const UmiFrontendNetworkEntry *e){UmiFrontendStudio *s=service(p);UmiStatus st;if(s==NULL)return UMI_STATUS_INVALID_ARGUMENT;st=umi_frontend_network_log_append(&s->network,e);if(st==UMI_STATUS_OK)s->revision+=1U;return st;}
+UmiStatus umi_studio_frontend_inspector_record_console(UmiStudioWebPlatform *p,const UmiFrontendConsoleEntry *e){UmiFrontendStudio *s=service(p);UmiStatus st;if(s==NULL)return UMI_STATUS_INVALID_ARGUMENT;st=umi_frontend_console_log_append(&s->console,e);if(st==UMI_STATUS_OK)s->revision+=1U;return st;}
+void umi_studio_frontend_inspector_clear(UmiStudioWebPlatform *p){UmiFrontendStudio *s=service(p);if(s==NULL)return;umi_frontend_network_log_clear(&s->network);umi_frontend_console_log_clear(&s->console);s->revision+=1U;}

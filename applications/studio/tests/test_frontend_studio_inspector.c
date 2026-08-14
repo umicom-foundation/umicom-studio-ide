@@ -1,0 +1,5 @@
+/* Umicom Studio IDE Tests | Sammy Hegab | Umicom Foundation | MIT */
+#include <assert.h>
+#include <string.h>
+#include "umicom/studio/frontend_studio_inspector.h"
+int main(void){UmiStudioWebPlatform *p=NULL;UmiFrontendDomNode n={0},out;UmiFrontendNetworkEntry r={0};UmiFrontendConsoleEntry c={0};(void)strcpy(n.id,"root");(void)strcpy(n.tag,"main");(void)strcpy(r.method,"GET");(void)strcpy(r.url,"http://localhost/app.css");r.kind=UMI_FRONTEND_RESOURCE_STYLESHEET;(void)strcpy(c.message,"mounted");c.level=UMI_FRONTEND_CONSOLE_INFO;assert(umi_studio_web_platform_create(&p)==UMI_STATUS_OK);assert(umi_studio_frontend_inspector_capture_node(p,&n)==UMI_STATUS_OK);assert(umi_studio_frontend_inspector_select_node(p,"root",&out)==UMI_STATUS_OK);assert(umi_studio_frontend_inspector_record_network(p,&r)==UMI_STATUS_OK);assert(umi_studio_frontend_inspector_record_console(p,&c)==UMI_STATUS_OK);assert(strcmp(out.tag,"main")==0);umi_studio_frontend_inspector_clear(p);umi_studio_web_platform_destroy(p);return 0;}

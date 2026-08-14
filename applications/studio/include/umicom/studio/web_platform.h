@@ -17,6 +17,7 @@
 #ifndef UMICOM_STUDIO_WEB_PLATFORM_H
 #define UMICOM_STUDIO_WEB_PLATFORM_H
 #include "umicom/umicom.h"
+#include "umicom/frontend/frontend_studio.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,6 +30,7 @@ UmiWebService *umi_studio_web_platform_web(UmiStudioWebPlatform *platform);
 UmiBrowserV1 *umi_studio_web_platform_browser(UmiStudioWebPlatform *platform);
 UmiChartModel *umi_studio_web_platform_chart(UmiStudioWebPlatform *platform);
 UmiFrontendPlan *umi_studio_web_platform_frontend(UmiStudioWebPlatform *platform);
+UmiFrontendStudio *umi_studio_web_platform_frontend_studio(UmiStudioWebPlatform *platform);
 #ifdef __cplusplus
 }
 #endif
