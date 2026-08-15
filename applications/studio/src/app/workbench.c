@@ -26,6 +26,7 @@
 #include "umicom/studio/perspectives.h"
 #include "umicom/studio/workbench_shell_catalogue.h"
 #include "umicom/studio/workbench_views.h"
+#include "umicom/studio/workspace_profile_session.h"
 #include "umicom/studio/workspace_profiles.h"
 
 #define UMI_STUDIO_WORKBENCH_STATE_SESSION_KEY "studio.ui.workbench-state.v2"
@@ -119,6 +120,12 @@ UmiStatus umi_studio_workbench_restore_session(UmiUiWorkbench *workbench,
 
     if (workbench == NULL || session == NULL) return UMI_STATUS_INVALID_ARGUMENT;
 
+    /* Custom profiles must exist before the general workbench-state decoder
+     * tries to reactivate one by ID. Built-in defaults are already registered
+     * during workbench population. */
+    status = umi_studio_workspace_profile_session_restore(workbench, session);
+    if (status != UMI_STATUS_OK) return status;
+
     status = umi_session_store_get(session,
                                    UMI_STUDIO_WORKBENCH_STATE_SESSION_KEY,
                                    encoded,
@@ -172,6 +179,8 @@ UmiStatus umi_studio_workbench_save_session(UmiUiWorkbench *workbench,
     status = umi_session_store_set(session,
                                    UMI_STUDIO_WORKBENCH_STATE_SESSION_KEY,
                                    encoded);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_studio_workspace_profile_session_save(workbench, session);
     if (status != UMI_STATUS_OK) return status;
 
     /* Keep the old key during the migration window for older tooling. */

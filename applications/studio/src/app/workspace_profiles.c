@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static UmiStatus register_profile(UmiUiWorkspaceProfileModel *model,
+static UmiStatus register_profile(UmiUiWorkbench *workbench,
                                   const char *profile_id,
                                   const char *label,
                                   const char *description,
@@ -37,7 +37,11 @@ static UmiStatus register_profile(UmiUiWorkspaceProfileModel *model,
                                   int32_t order)
 {
     UmiUiWorkspaceProfileSnapshot profile;
+    UmiUiWorkspaceProfileModel *model;
+    size_t pane_index;
     (void)memset(&profile, 0, sizeof(profile));
+    if (workbench == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    model = umi_ui_workbench_workspace_profiles(workbench);
     (void)snprintf(profile.profile_id, sizeof(profile.profile_id), "%s",
                    profile_id);
     (void)snprintf(profile.label, sizeof(profile.label), "%s", label);
@@ -53,44 +57,71 @@ static UmiStatus register_profile(UmiUiWorkspaceProfileModel *model,
     profile.bottom_panel_size = bottom_size;
     profile.order = order;
     profile.built_in = 1;
+    profile.locked = 1;
+
+    /* Built-in layouts remember Studio's original tool-tab positions. This
+     * makes Reset useful after a drag operation while still preserving every
+     * pane and source file. Optional panes that are added later remain
+     * untouched because Framework ignores unknown IDs during activation. */
+    for (pane_index = 0U;
+         pane_index < umi_ui_pane_model_count(
+             umi_ui_workbench_panes(workbench));
+         ++pane_index) {
+        UmiUiPaneSnapshot pane;
+        UmiUiWorkspacePanePlacement *saved;
+        UmiStatus status = umi_ui_pane_model_at(
+            umi_ui_workbench_panes(workbench), pane_index, &pane);
+        if (status != UMI_STATUS_OK) return status;
+        if (!pane.visible || pane.placement == UMI_UI_PLACEMENT_CENTRE ||
+            pane.placement == UMI_UI_PLACEMENT_FLOATING) {
+            continue;
+        }
+        if (profile.pane_count >= UMI_UI_WORKSPACE_PROFILE_MAX_PANES) {
+            return UMI_STATUS_CAPACITY_EXCEEDED;
+        }
+        saved = &profile.panes[profile.pane_count++];
+        (void)snprintf(saved->pane_id, sizeof(saved->pane_id), "%s",
+                       pane.pane_id);
+        saved->placement = pane.placement;
+        saved->order = pane.order;
+        saved->visible = pane.visible;
+    }
     return umi_ui_workspace_profile_model_upsert(model, &profile);
 }
 
 UmiStatus umi_studio_workspace_profiles_register(UmiUiWorkbench *workbench)
 {
-    UmiUiWorkspaceProfileModel *model;
     UmiStatus status;
 
     if (workbench == NULL) return UMI_STATUS_INVALID_ARGUMENT;
-    model = umi_ui_workbench_workspace_profiles(workbench);
 
     status = register_profile(
-        model, UMI_STUDIO_WORKSPACE_PROFILE_DEVELOP, "Develop",
+        workbench, UMI_STUDIO_WORKSPACE_PROFILE_DEVELOP, "Develop",
         "Editor-first coding with project tools and a compact bottom panel",
         "applications-development-symbolic", 1, 0, 1, 288, 360, 240, 10);
     if (status != UMI_STATUS_OK) return status;
     status = register_profile(
-        model, UMI_STUDIO_WORKSPACE_PROFILE_FOCUS, "Focus",
+        workbench, UMI_STUDIO_WORKSPACE_PROFILE_FOCUS, "Focus",
         "Distraction-free editor with all tool regions temporarily hidden",
         "view-fullscreen-symbolic", 0, 0, 0, 288, 360, 240, 20);
     if (status != UMI_STATUS_OK) return status;
     status = register_profile(
-        model, UMI_STUDIO_WORKSPACE_PROFILE_DEBUG, "Debug",
+        workbench, UMI_STUDIO_WORKSPACE_PROFILE_DEBUG, "Debug",
         "Source, variables, call stack and an expanded debugging console",
         "applications-engineering-symbolic", 1, 1, 1, 300, 380, 300, 30);
     if (status != UMI_STATUS_OK) return status;
     status = register_profile(
-        model, UMI_STUDIO_WORKSPACE_PROFILE_REVIEW, "Review",
+        workbench, UMI_STUDIO_WORKSPACE_PROFILE_REVIEW, "Review",
         "Code review and comparison with navigation and auxiliary context",
         "document-properties-symbolic", 1, 1, 1, 260, 420, 260, 40);
     if (status != UMI_STATUS_OK) return status;
     status = register_profile(
-        model, UMI_STUDIO_WORKSPACE_PROFILE_OPERATIONS, "Operations",
+        workbench, UMI_STUDIO_WORKSPACE_PROFILE_OPERATIONS, "Operations",
         "Monitoring, diagnostics, tasks and operational evidence",
         "utilities-system-monitor-symbolic", 1, 1, 1, 280, 420, 320, 50);
     if (status != UMI_STATUS_OK) return status;
     status = register_profile(
-        model, UMI_STUDIO_WORKSPACE_PROFILE_TRADING, "Trading",
+        workbench, UMI_STUDIO_WORKSPACE_PROFILE_TRADING, "Trading",
         "TWS-inspired market, chart, order, risk and activity workspace",
         "view-statistics-symbolic", 1, 1, 1, 260, 390, 300, 60);
     if (status != UMI_STATUS_OK) return status;

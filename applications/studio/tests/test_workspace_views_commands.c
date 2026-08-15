@@ -10,7 +10,10 @@ int main(void)
     UmiStudioProfessionalWorkspaceSnapshot snapshot;
     assert(umi_studio_workspace_view_count() == 6U);
     assert(umi_studio_workspace_view_resolve(workspace,"new-window",&view) == UMI_STATUS_OK);
-    assert(view.item_count == 18U);
+    /* The catalogue now includes twenty professional tools after the trading
+     * workspace additions. Keep this assertion aligned with the public
+     * catalogue test so a new tool cannot silently invalidate this view. */
+    assert(view.item_count == 20U);
     assert(umi_studio_workspace_execute(workspace,UMI_STUDIO_WORKSPACE_COMMAND_THEME_LIGHT) == UMI_STATUS_OK);
     assert(umi_studio_workspace_execute(workspace,UMI_STUDIO_WORKSPACE_COMMAND_ACTIVATE_OPERATIONS) == UMI_STATUS_OK);
     assert(umi_studio_professional_workspace_snapshot(workspace,&snapshot) == UMI_STATUS_OK);
