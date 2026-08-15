@@ -34,6 +34,8 @@ int main(void)
     UmiUiViewModel *test_results = NULL;
     UmiUiViewModel *build_dashboard = NULL;
     UmiUiViewModel *build_graph = NULL;
+    UmiUiViewModel *trading_watchlist = NULL;
+    UmiUiViewModel *trading_ticket = NULL;
     UmiUiCommandViewAction action;
 
     assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
@@ -133,6 +135,28 @@ int main(void)
     assert(strcmp(action.action_id, "studio.action.build.run-next") == 0);
     umi_ui_view_model_destroy(build_graph);
     umi_ui_view_model_destroy(build_dashboard);
+
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench),
+               "studio.trading-watchlist",
+               UMI_STUDIO_PANE_TRADING_WATCHLIST,
+               &trading_watchlist) == UMI_STATUS_OK);
+    assert(umi_ui_command_view_action_at(trading_watchlist, 0U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id,
+                  "studio.action.trading.filter-instruments") == 0);
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench),
+               "studio.trading-order-ticket",
+               UMI_STUDIO_PANE_TRADING_ORDER_TICKET,
+               &trading_ticket) == UMI_STATUS_OK);
+    assert(umi_ui_command_view_action_at(trading_ticket, 5U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id,
+                  "studio.action.trading.submit-order") == 0);
+    assert(action.enabled);
+    umi_ui_view_model_destroy(trading_ticket);
+    umi_ui_view_model_destroy(trading_watchlist);
 
     umi_studio_bootstrap_destroy(bootstrap);
     return 0;

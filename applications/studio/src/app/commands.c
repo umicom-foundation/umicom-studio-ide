@@ -16,6 +16,7 @@
 
 #include <errno.h>
 #include <inttypes.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,6 +39,7 @@
 #include "umicom/studio/source_control.h"
 #include "umicom/studio/terminal.h"
 #include "umicom/studio/tests.h"
+#include "umicom/studio/trading.h"
 #include "umicom/studio/replay.h"
 #include "umicom/studio/session.h"
 #include "umicom/studio/watcher.h"
@@ -2039,6 +2041,358 @@ DEFINE_VCS_WORKSPACE_HANDLER(vcs_diff_selected_staged_handler,
                              STUDIO_VCS_WORKSPACE_DIFF_SELECTED_STAGED)
 #undef DEFINE_VCS_WORKSPACE_HANDLER
 
+/* Trading commands operate only on the Framework workspace owned by Studio.
+ * There is deliberately no broker adapter or command that arms live trading. */
+static UmiTradingWorkspace *trading_workspace(void *user_data)
+{
+    UmiStudioTradingService *service = umi_studio_services_trading(
+        (UmiStudioServices *)user_data);
+    return umi_studio_trading_service_workspace(service);
+}
+
+static int has_argument(const char *argument)
+{
+    return argument != NULL && argument[0] != '\0';
+}
+
+static UmiStatus parse_real_argument(const char *argument, double *out_value)
+{
+    char *end = NULL;
+    double value;
+
+    if (!has_argument(argument) || out_value == NULL)
+        return UMI_STATUS_INVALID_ARGUMENT;
+    errno = 0;
+    value = strtod(argument, &end);
+    if (errno != 0 || end == argument || *end != '\0' || !isfinite(value))
+        return UMI_STATUS_INVALID_ARGUMENT;
+    *out_value = value;
+    return UMI_STATUS_OK;
+}
+
+static void trading_message(char *out_message, size_t message_capacity,
+                            const char *success_text, UmiStatus status)
+{
+    if (out_message == NULL || message_capacity == 0U) return;
+    (void)snprintf(out_message, message_capacity, "%s",
+        status == UMI_STATUS_OK ? success_text : umi_status_text(status));
+}
+
+static UmiStatus trading_refresh_handler(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t message_capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_trading_workspace_refresh(trading_workspace(user_data));
+    trading_message(out_message, message_capacity,
+                    "Trading workspace refreshed", status);
+    return status;
+}
+
+static UmiStatus trading_filter_instruments_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    UmiStatus status = umi_trading_workspace_set_instrument_filter(
+        trading_workspace(user_data), argument != NULL ? argument : "");
+    trading_message(out_message, message_capacity,
+                    "Trading instrument filter updated", status);
+    return status;
+}
+
+static UmiStatus trading_select_instrument_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    UmiStatus status = has_argument(argument)
+        ? umi_trading_workspace_select_instrument(
+              trading_workspace(user_data), argument)
+        : UMI_STATUS_INVALID_ARGUMENT;
+    trading_message(out_message, message_capacity,
+                    "Trading instrument selected", status);
+    return status;
+}
+
+static UmiStatus trading_set_environment_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    UmiTradingEnvironment environment;
+    UmiStatus status;
+
+    if (argument != NULL && strcmp(argument, "simulation") == 0)
+        environment = UMI_TRADING_SIMULATION;
+    else if (argument != NULL && strcmp(argument, "paper") == 0)
+        environment = UMI_TRADING_PAPER;
+    else if (argument != NULL && strcmp(argument, "live") == 0)
+        environment = UMI_TRADING_LIVE;
+    else
+        return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_trading_workspace_set_environment(
+        trading_workspace(user_data), environment);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+            status == UMI_STATUS_OK
+                ? "Trading environment set to %s; safety gates remain active"
+                : "Trading environment: %s",
+            status == UMI_STATUS_OK ? umi_trading_environment_text(environment)
+                                    : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus trading_set_side_handler(void *user_data,
+                                          const char *argument,
+                                          char *out_message,
+                                          size_t message_capacity)
+{
+    UmiSide side;
+    UmiStatus status;
+
+    if (argument != NULL && strcmp(argument, "buy") == 0)
+        side = UMI_SIDE_BUY;
+    else if (argument != NULL && strcmp(argument, "sell") == 0)
+        side = UMI_SIDE_SELL;
+    else
+        return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_trading_workspace_set_draft_side(
+        trading_workspace(user_data), side);
+    trading_message(out_message, message_capacity,
+                    "Draft order side updated", status);
+    return status;
+}
+
+static UmiStatus parse_order_type_argument(const char *argument,
+                                           UmiOrderType *out_type,
+                                           UmiTimeInForce *out_tif)
+{
+    char buffer[64];
+    char *separator;
+    const char *tif_text;
+    size_t length;
+
+    if (!has_argument(argument) || out_type == NULL || out_tif == NULL)
+        return UMI_STATUS_INVALID_ARGUMENT;
+    length = strlen(argument);
+    if (length >= sizeof(buffer)) return UMI_STATUS_CAPACITY_EXCEEDED;
+    (void)memcpy(buffer, argument, length + 1U);
+    separator = strchr(buffer, ':');
+    if (separator != NULL) {
+        *separator = '\0';
+        tif_text = separator + 1;
+    } else {
+        tif_text = "day";
+    }
+    if (strcmp(buffer, "market") == 0) *out_type = UMI_ORDER_MARKET;
+    else if (strcmp(buffer, "limit") == 0) *out_type = UMI_ORDER_LIMIT;
+    else if (strcmp(buffer, "stop") == 0) *out_type = UMI_ORDER_STOP;
+    else if (strcmp(buffer, "stop-limit") == 0)
+        *out_type = UMI_ORDER_STOP_LIMIT;
+    else return UMI_STATUS_INVALID_ARGUMENT;
+
+    if (strcmp(tif_text, "day") == 0) *out_tif = UMI_TIF_DAY;
+    else if (strcmp(tif_text, "gtc") == 0) *out_tif = UMI_TIF_GTC;
+    else if (strcmp(tif_text, "ioc") == 0) *out_tif = UMI_TIF_IOC;
+    else if (strcmp(tif_text, "fok") == 0) *out_tif = UMI_TIF_FOK;
+    else return UMI_STATUS_INVALID_ARGUMENT;
+    return UMI_STATUS_OK;
+}
+
+static UmiStatus trading_set_type_handler(void *user_data,
+                                          const char *argument,
+                                          char *out_message,
+                                          size_t message_capacity)
+{
+    UmiOrderType type;
+    UmiTimeInForce tif;
+    UmiStatus status = parse_order_type_argument(argument, &type, &tif);
+    if (status == UMI_STATUS_OK) {
+        status = umi_trading_workspace_set_draft_type(
+            trading_workspace(user_data), type, tif);
+    }
+    trading_message(out_message, message_capacity,
+                    "Draft order type updated", status);
+    return status;
+}
+
+static UmiStatus trading_set_quantity_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    double quantity = 0.0;
+    UmiStatus status = parse_real_argument(argument, &quantity);
+    if (status == UMI_STATUS_OK) {
+        status = umi_trading_workspace_set_draft_quantity(
+            trading_workspace(user_data), quantity);
+    }
+    trading_message(out_message, message_capacity,
+                    "Draft order quantity updated", status);
+    return status;
+}
+
+static UmiStatus trading_set_prices_handler(void *user_data,
+                                            const char *argument,
+                                            char *out_message,
+                                            size_t message_capacity)
+{
+    char buffer[96];
+    char *separator;
+    double limit_price = 0.0;
+    double stop_price = 0.0;
+    size_t length;
+    UmiStatus status;
+
+    if (!has_argument(argument)) return UMI_STATUS_INVALID_ARGUMENT;
+    length = strlen(argument);
+    if (length >= sizeof(buffer)) return UMI_STATUS_CAPACITY_EXCEEDED;
+    (void)memcpy(buffer, argument, length + 1U);
+    separator = strchr(buffer, ':');
+    if (separator != NULL) *separator = '\0';
+    status = parse_real_argument(buffer, &limit_price);
+    if (status == UMI_STATUS_OK && separator != NULL)
+        status = parse_real_argument(separator + 1, &stop_price);
+    if (status == UMI_STATUS_OK) {
+        status = umi_trading_workspace_set_draft_prices(
+            trading_workspace(user_data), limit_price, stop_price);
+    }
+    trading_message(out_message, message_capacity,
+                    "Draft order prices updated", status);
+    return status;
+}
+
+static UmiStatus trading_preview_order_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    UmiRiskDecision decision = {0};
+    UmiStatus status;
+    (void)argument;
+    status = umi_trading_workspace_preview_order(
+        trading_workspace(user_data), &decision);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+            "Pre-trade risk: %s%s%s",
+            decision.allowed ? "allowed" : "denied",
+            decision.reason[0] != '\0' ? " — " : "",
+            decision.reason);
+    }
+    return status;
+}
+
+static UmiStatus trading_submit_order_handler(void *user_data,
+                                              const char *argument,
+                                              char *out_message,
+                                              size_t message_capacity)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiClock *clock = umi_studio_services_clock(services);
+    UmiTradingWorkspace *workspace = trading_workspace(user_data);
+    UmiTradingWorkspaceSnapshot snapshot;
+    UmiRiskDecision decision = {0};
+    uint64_t now_ns;
+    int64_t now_ms;
+    UmiStatus status;
+    (void)argument;
+
+    now_ns = clock->wall_nanoseconds(clock);
+    if (now_ns / UINT64_C(1000000) > (uint64_t)INT64_MAX)
+        return UMI_STATUS_CAPACITY_EXCEEDED;
+    now_ms = (int64_t)(now_ns / UINT64_C(1000000));
+    status = umi_trading_workspace_submit_order(workspace, now_ms, &decision);
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK &&
+            umi_trading_workspace_snapshot(workspace, &snapshot) ==
+                UMI_STATUS_OK) {
+            (void)snprintf(out_message, message_capacity,
+                "Submitted simulation order %s",
+                snapshot.selected_order_id);
+        } else {
+            (void)snprintf(out_message, message_capacity,
+                "Order not submitted: %s",
+                decision.reason[0] != '\0' ? decision.reason
+                                            : umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus trading_filter_orders_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    UmiTradingWorkspaceOrderFilter filter;
+    UmiStatus status;
+
+    if (argument != NULL && strcmp(argument, "all") == 0)
+        filter = UMI_TRADING_WORKSPACE_ORDERS_ALL;
+    else if (argument != NULL && strcmp(argument, "open") == 0)
+        filter = UMI_TRADING_WORKSPACE_ORDERS_OPEN;
+    else if (argument != NULL && strcmp(argument, "filled") == 0)
+        filter = UMI_TRADING_WORKSPACE_ORDERS_FILLED;
+    else if (argument != NULL && strcmp(argument, "cancelled") == 0)
+        filter = UMI_TRADING_WORKSPACE_ORDERS_CANCELLED;
+    else if (argument != NULL && strcmp(argument, "rejected") == 0)
+        filter = UMI_TRADING_WORKSPACE_ORDERS_REJECTED;
+    else
+        return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_trading_workspace_set_order_filter(
+        trading_workspace(user_data), filter);
+    trading_message(out_message, message_capacity,
+                    "Trading order filter updated", status);
+    return status;
+}
+
+static UmiStatus trading_select_order_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    UmiStatus status = has_argument(argument)
+        ? umi_trading_workspace_select_order(
+              trading_workspace(user_data), argument)
+        : UMI_STATUS_INVALID_ARGUMENT;
+    trading_message(out_message, message_capacity,
+                    "Trading order selected", status);
+    return status;
+}
+
+static UmiStatus trading_cancel_order_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_trading_workspace_cancel_selected_order(
+        trading_workspace(user_data));
+    trading_message(out_message, message_capacity,
+                    "Selected trading order cancelled", status);
+    return status;
+}
+
+static UmiStatus trading_engage_kill_switch_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    umi_trading_workspace_engage_kill_switch(
+        trading_workspace(user_data),
+        has_argument(argument) ? argument : "Studio operator request");
+    trading_message(out_message, message_capacity,
+                    "Trading kill switch engaged", UMI_STATUS_OK);
+    return UMI_STATUS_OK;
+}
+
+static UmiStatus trading_reset_kill_switch_handler(
+    void *user_data, const char *argument,
+    char *out_message, size_t message_capacity)
+{
+    (void)argument;
+    umi_trading_workspace_reset_kill_switch(trading_workspace(user_data));
+    trading_message(out_message, message_capacity,
+                    "Trading kill switch reset", UMI_STATUS_OK);
+    return UMI_STATUS_OK;
+}
+
 static UmiStatus developer_report_handler(void *user_data,
                                           const char *argument,
                                           char *out_message,
@@ -3207,6 +3561,121 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "Open Selected Staged Diff", "Source Control",
                               "Load the selected index path diff.",
                               "vcs.read", UMI_COMMAND_NONE, vcs_diff_selected_staged_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_REFRESH,
+                              "Refresh Trading Workspace", "Trading",
+                              "Reconcile trading selections, derived metrics and capabilities.",
+                              "studio.trading.read", UMI_COMMAND_NONE,
+                              trading_refresh_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_FILTER_INSTRUMENTS,
+                              "Filter Trading Instruments", "Trading",
+                              "Filter the watchlist by symbol, venue, currency or identifier.",
+                              "studio.trading.read", UMI_COMMAND_NONE,
+                              trading_filter_instruments_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_SELECT_INSTRUMENT,
+                              "Select Trading Instrument", "Trading",
+                              "Select the instrument shared by depth, charts and order entry.",
+                              "studio.trading.read", UMI_COMMAND_NONE,
+                              trading_select_instrument_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_SET_ENVIRONMENT,
+                              "Set Trading Environment", "Trading",
+                              "Select simulation, paper or live while retaining readiness gates.",
+                              "studio.trading.use", UMI_COMMAND_MUTATES_STATE,
+                              trading_set_environment_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_SET_SIDE,
+                              "Set Draft Order Side", "Trading",
+                              "Set the draft order to buy or sell.",
+                              "studio.trading.use", UMI_COMMAND_MUTATES_STATE,
+                              trading_set_side_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_SET_TYPE,
+                              "Set Draft Order Type", "Trading",
+                              "Set type and time in force using type[:tif].",
+                              "studio.trading.use", UMI_COMMAND_MUTATES_STATE,
+                              trading_set_type_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_SET_QUANTITY,
+                              "Set Draft Order Quantity", "Trading",
+                              "Set a positive draft order quantity.",
+                              "studio.trading.use", UMI_COMMAND_MUTATES_STATE,
+                              trading_set_quantity_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_SET_PRICES,
+                              "Set Draft Order Prices", "Trading",
+                              "Set limit[:stop] prices for the draft order.",
+                              "studio.trading.use", UMI_COMMAND_MUTATES_STATE,
+                              trading_set_prices_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_PREVIEW_ORDER,
+                              "Preview Order Risk", "Trading",
+                              "Evaluate pre-trade limits without submitting an order.",
+                              "studio.trading.read", UMI_COMMAND_NONE,
+                              trading_preview_order_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_SUBMIT_ORDER,
+                              "Submit Draft Order", "Trading",
+                              "Submit only when environment, health, risk and kill-switch gates permit.",
+                              "studio.trading.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              trading_submit_order_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_FILTER_ORDERS,
+                              "Filter Trading Orders", "Trading",
+                              "Show all, open, filled, cancelled or rejected orders.",
+                              "studio.trading.read", UMI_COMMAND_NONE,
+                              trading_filter_orders_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_SELECT_ORDER,
+                              "Select Trading Order", "Trading",
+                              "Select an order by its stable client order identifier.",
+                              "studio.trading.read", UMI_COMMAND_NONE,
+                              trading_select_order_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_CANCEL_ORDER,
+                              "Cancel Selected Order", "Trading",
+                              "Cancel the selected non-terminal order.",
+                              "studio.trading.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              trading_cancel_order_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_ENGAGE_KILL_SWITCH,
+                              "Engage Trading Kill Switch", "Trading",
+                              "Reject new orders immediately and retain the operator reason.",
+                              "studio.trading.execute",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              trading_engage_kill_switch_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TRADING_RESET_KILL_SWITCH,
+                              "Reset Trading Kill Switch", "Trading",
+                              "Reset the emergency stop after its cause has been reviewed.",
+                              "studio.trading.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              trading_reset_kill_switch_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_DEVELOPER_REPORT,

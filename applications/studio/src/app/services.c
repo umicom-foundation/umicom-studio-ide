@@ -30,6 +30,7 @@
 #include "umicom/studio/fabric.h"
 #include "umicom/studio/operations.h"
 #include "umicom/studio/session.h"
+#include "umicom/studio/trading.h"
 #include "umicom/studio/version.h"
 #include "umicom/studio/web_platform.h"
 
@@ -60,6 +61,7 @@ struct UmiStudioServices {
     UmiStudioOperations *operations;
     UmiStudioAiPlatform *ai_platform;
     UmiStudioDeveloperPlatform *developer_platform;
+    UmiStudioTradingService *trading;
     UmiTerminalController *terminal_controller;
     UmiStudioDeclarative *declarative;
     UmiStudioDesigner *designer;
@@ -122,6 +124,8 @@ static void destroy_partial(UmiStudioServices *services)
     services->ai_platform = NULL;
     umi_terminal_controller_destroy(services->terminal_controller);
     services->terminal_controller = NULL;
+    umi_studio_trading_service_destroy(services->trading);
+    services->trading = NULL;
     umi_studio_developer_platform_destroy(services->developer_platform);
     services->developer_platform = NULL;
     umi_studio_operations_destroy(services->operations);
@@ -475,6 +479,12 @@ UmiStatus umi_studio_services_create(
         return status;
     }
 
+    status = umi_studio_trading_service_create(&services->trading);
+    if (status != UMI_STATUS_OK) {
+        destroy_partial(services);
+        return status;
+    }
+
     status = umi_studio_declarative_create(&services->declarative);
     if (status == UMI_STATUS_OK) {
         status = umi_studio_designer_create(services->declarative,
@@ -741,6 +751,12 @@ UmiStatus umi_studio_services_publish(
             umi_studio_source_control_service_workspace(
                 umi_studio_developer_platform_source_control(
                     services->developer_platform)),
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.trading",
+            services->trading,
+            UMI_SERVICE_SINGLETON);
+    PUBLISH("umicom.studio.trading-workspace",
+            umi_studio_trading_service_workspace(services->trading),
             UMI_SERVICE_SINGLETON);
     PUBLISH("umicom.studio.declarative",
             services->declarative,
@@ -1030,6 +1046,12 @@ UmiStudioSourceControlService *umi_studio_services_source_control(
         ? umi_studio_developer_platform_source_control(
               services->developer_platform)
         : NULL;
+}
+
+UmiStudioTradingService *umi_studio_services_trading(
+    UmiStudioServices *services)
+{
+    return services != NULL ? services->trading : NULL;
 }
 
 UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,

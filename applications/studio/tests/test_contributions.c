@@ -88,6 +88,22 @@ int main(void)
                UMI_STUDIO_PANE_BUILD_ARTIFACTS, &pane) == UMI_STATUS_OK);
     assert(pane.visible && pane.placement == UMI_UI_PLACEMENT_RIGHT);
 
+    assert(umi_ui_workbench_activate_workspace_profile(
+               workbench, UMI_STUDIO_WORKSPACE_PROFILE_TRADING) ==
+           UMI_STATUS_OK);
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench),
+               UMI_STUDIO_PANE_TRADING_WATCHLIST, &pane) == UMI_STATUS_OK);
+    assert(pane.visible && pane.placement == UMI_UI_PLACEMENT_LEFT);
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench),
+               UMI_STUDIO_PANE_TRADING_ORDER_TICKET, &pane) == UMI_STATUS_OK);
+    assert(pane.visible && pane.placement == UMI_UI_PLACEMENT_RIGHT);
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench),
+               UMI_STUDIO_PANE_TRADING_ORDERS, &pane) == UMI_STATUS_OK);
+    assert(pane.visible && pane.placement == UMI_UI_PLACEMENT_BOTTOM);
+
     umi_studio_bootstrap_destroy(bootstrap);
     return 0;
 }

@@ -67,6 +67,7 @@ int main(void)
     assert(umi_studio_services_language(services) != NULL);
     assert(umi_studio_services_debugger(services) != NULL);
     assert(umi_studio_services_source_control(services) != NULL);
+    assert(umi_studio_services_trading(services) != NULL);
     assert(umi_studio_services_web_platform(services) != NULL);
 
     assert(umi_studio_services_add_diagnostic_sink(services,

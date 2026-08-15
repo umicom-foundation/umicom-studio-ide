@@ -28,6 +28,7 @@
 #include "umicom/studio/extension_platform.h"
 #include "umicom/studio/product_centre.h"
 #include "umicom/studio/settings.h"
+#include "umicom/studio/trading.h"
 #include "umicom/studio/web_platform.h"
 
 #ifdef __cplusplus
@@ -132,6 +133,9 @@ UmiStudioDebuggerService *umi_studio_services_debugger(
     UmiStudioServices *services
 );
 UmiStudioSourceControlService *umi_studio_services_source_control(
+    UmiStudioServices *services
+);
+UmiStudioTradingService *umi_studio_services_trading(
     UmiStudioServices *services
 );
 UmiStatus umi_studio_services_open_workspace(UmiStudioServices *services,

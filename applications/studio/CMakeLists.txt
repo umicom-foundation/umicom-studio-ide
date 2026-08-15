@@ -23,6 +23,7 @@ set(UMICOM_STUDIO_VERSION "0.23.0")
 add_library(umicom_studio_core STATIC
     src/app/bootstrap.c
     src/app/services.c
+    src/app/trading.c
     src/app/version.c
     src/app/doctor.c
     src/app/diagnostics.c
@@ -1299,6 +1300,8 @@ if(BUILD_TESTING)
             debug_workspace_views
             source_control_service
             source_control_workspace
+            trading_service
+            trading_workspace_views
             developer_platform)
         string(REPLACE "_" "-" UMICOM_STUDIO_DEVELOPER_TEST_TARGET
             "${UMICOM_STUDIO_DEVELOPER_TEST}")
@@ -1463,6 +1466,8 @@ if(BUILD_TESTING)
         studio.ui_actions
         studio.extension_centre
         studio.product_centre_views
+        studio.trading_service
+        studio.trading_workspace_views
         studio.build_service
         studio.build_workbench
         studio.build_workspace_views

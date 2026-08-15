@@ -65,6 +65,16 @@ extern "C" {
 #define UMI_STUDIO_PANE_BUILD_OUTPUT "studio.pane.build-output"
 #define UMI_STUDIO_PANE_BUILD_ARTIFACTS "studio.pane.build-artifacts"
 #define UMI_STUDIO_PANE_BUILD_TASKS "studio.pane.build-tasks"
+#define UMI_STUDIO_PANE_TRADING_DASHBOARD "studio.pane.trading-dashboard"
+#define UMI_STUDIO_PANE_TRADING_WATCHLIST "studio.pane.trading-watchlist"
+#define UMI_STUDIO_PANE_TRADING_DEPTH "studio.pane.trading-depth"
+#define UMI_STUDIO_PANE_TRADING_CHART "studio.pane.trading-chart"
+#define UMI_STUDIO_PANE_TRADING_ORDER_TICKET \
+    "studio.pane.trading-order-ticket"
+#define UMI_STUDIO_PANE_TRADING_ORDERS "studio.pane.trading-orders"
+#define UMI_STUDIO_PANE_TRADING_EXECUTIONS "studio.pane.trading-executions"
+#define UMI_STUDIO_PANE_TRADING_PORTFOLIO_RISK \
+    "studio.pane.trading-portfolio-risk"
 #define UMI_STUDIO_PANE_DESIGNER "studio.pane.designer"
 #define UMI_STUDIO_PANE_APPLICATIONS "studio.pane.applications"
 #define UMI_STUDIO_PANE_FRAMEWORK "studio.pane.framework"

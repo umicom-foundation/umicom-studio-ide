@@ -230,6 +230,21 @@ int main(void)
                registry, UMI_STUDIO_COMMAND_VCS_COMMIT_COMPOSED, &snapshot) ==
            UMI_STATUS_OK);
 
+    assert(umi_command_registry_snapshot(
+               registry, UMI_STUDIO_COMMAND_TRADING_REFRESH, &snapshot) ==
+           UMI_STATUS_OK);
+    assert(strcmp(snapshot.category, "Trading") == 0);
+    assert(umi_command_registry_execute(
+               registry, UMI_STUDIO_COMMAND_TRADING_FILTER_INSTRUMENTS,
+               "CME", message, sizeof(message)) == UMI_STATUS_OK);
+    assert(umi_command_registry_execute(
+               registry, UMI_STUDIO_COMMAND_TRADING_SELECT_INSTRUMENT,
+               "CME.ES.REFERENCE", message, sizeof(message)) == UMI_STATUS_OK);
+    assert(umi_command_registry_execute(
+               registry, UMI_STUDIO_COMMAND_TRADING_PREVIEW_ORDER,
+               "", message, sizeof(message)) == UMI_STATUS_OK);
+    assert(strstr(message, "allowed") != NULL);
+
     {
         UmiTestPlatformItemSnapshot item = {0};
         UmiStudioTestService *tests = umi_studio_services_tests(

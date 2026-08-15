@@ -67,6 +67,18 @@ static int is_build_workspace_pane(const char *pane_id)
            strcmp(pane_id, UMI_STUDIO_PANE_BUILD_TASKS) == 0;
 }
 
+static int is_trading_workspace_pane(const char *pane_id)
+{
+    return strcmp(pane_id, UMI_STUDIO_PANE_TRADING_DASHBOARD) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_TRADING_WATCHLIST) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_TRADING_DEPTH) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_TRADING_CHART) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_TRADING_ORDER_TICKET) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_TRADING_ORDERS) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_TRADING_EXECUTIONS) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_TRADING_PORTFOLIO_RISK) == 0;
+}
+
 static UmiStatus register_profile(UmiUiWorkbench *workbench,
                                   const char *profile_id,
                                   const char *label,
@@ -129,8 +141,11 @@ static UmiStatus register_profile(UmiUiWorkbench *workbench,
         int build_pane =
             strcmp(profile_id, UMI_STUDIO_WORKSPACE_PROFILE_BUILD) == 0 &&
             is_build_workspace_pane(pane.pane_id);
+        int trading_pane =
+            strcmp(profile_id, UMI_STUDIO_WORKSPACE_PROFILE_TRADING) == 0 &&
+            is_trading_workspace_pane(pane.pane_id);
         int profile_pane = debug_pane || source_control_pane || testing_pane ||
-                           build_pane;
+                           build_pane || trading_pane;
         if ((!pane.visible && !profile_pane) ||
             pane.placement == UMI_UI_PLACEMENT_CENTRE ||
             pane.placement == UMI_UI_PLACEMENT_FLOATING) {

@@ -151,9 +151,35 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_VCS_DIFF_SELECTED "studio.vcs.diff-selected"
 #define UMI_STUDIO_COMMAND_VCS_DIFF_SELECTED_STAGED \
     "studio.vcs.diff-selected-staged"
+#define UMI_STUDIO_COMMAND_TRADING_REFRESH "studio.trading.refresh"
+#define UMI_STUDIO_COMMAND_TRADING_FILTER_INSTRUMENTS \
+    "studio.trading.filter-instruments"
+#define UMI_STUDIO_COMMAND_TRADING_SELECT_INSTRUMENT \
+    "studio.trading.select-instrument"
+#define UMI_STUDIO_COMMAND_TRADING_SET_ENVIRONMENT \
+    "studio.trading.set-environment"
+#define UMI_STUDIO_COMMAND_TRADING_SET_SIDE "studio.trading.set-side"
+#define UMI_STUDIO_COMMAND_TRADING_SET_TYPE "studio.trading.set-type"
+#define UMI_STUDIO_COMMAND_TRADING_SET_QUANTITY \
+    "studio.trading.set-quantity"
+#define UMI_STUDIO_COMMAND_TRADING_SET_PRICES "studio.trading.set-prices"
+#define UMI_STUDIO_COMMAND_TRADING_PREVIEW_ORDER \
+    "studio.trading.preview-order"
+#define UMI_STUDIO_COMMAND_TRADING_SUBMIT_ORDER \
+    "studio.trading.submit-order"
+#define UMI_STUDIO_COMMAND_TRADING_FILTER_ORDERS \
+    "studio.trading.filter-orders"
+#define UMI_STUDIO_COMMAND_TRADING_SELECT_ORDER \
+    "studio.trading.select-order"
+#define UMI_STUDIO_COMMAND_TRADING_CANCEL_ORDER \
+    "studio.trading.cancel-order"
+#define UMI_STUDIO_COMMAND_TRADING_ENGAGE_KILL_SWITCH \
+    "studio.trading.engage-kill-switch"
+#define UMI_STUDIO_COMMAND_TRADING_RESET_KILL_SWITCH \
+    "studio.trading.reset-kill-switch"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 124U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 139U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

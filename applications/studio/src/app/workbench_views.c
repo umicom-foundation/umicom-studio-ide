@@ -37,8 +37,10 @@
 #include "umicom/studio/source_control.h"
 #include "umicom/studio/tests.h"
 #include "umicom/studio/terminal.h"
+#include "umicom/studio/trading.h"
 #include "umicom/build_ui/build_ui.h"
 #include "umicom/test_ui/test_ui.h"
+#include "umicom/trading_ui/trading_ui.h"
 
 #define VIEW_EXPLORER      "studio.project-explorer"
 #define VIEW_SEARCH        "studio.search"
@@ -68,6 +70,14 @@
 #define VIEW_BUILD_OUTPUT "studio.build-output"
 #define VIEW_BUILD_ARTIFACTS "studio.build-artifacts"
 #define VIEW_BUILD_TASKS "studio.build-tasks"
+#define VIEW_TRADING_DASHBOARD "studio.trading-dashboard"
+#define VIEW_TRADING_WATCHLIST "studio.trading-watchlist"
+#define VIEW_TRADING_DEPTH "studio.trading-depth"
+#define VIEW_TRADING_CHART "studio.trading-chart"
+#define VIEW_TRADING_ORDER_TICKET "studio.trading-order-ticket"
+#define VIEW_TRADING_ORDERS "studio.trading-orders"
+#define VIEW_TRADING_EXECUTIONS "studio.trading-executions"
+#define VIEW_TRADING_PORTFOLIO_RISK "studio.trading-portfolio-risk"
 #define VIEW_DESIGNER      "studio.designer"
 #define VIEW_APPLICATIONS  "studio.application-hub"
 #define VIEW_FRAMEWORK     "studio.framework"
@@ -661,6 +671,43 @@ DEFINE_BUILD_VIEW_FACTORY(create_build_tasks,
                           umi_build_ui_tasks_view_create)
 #undef DEFINE_BUILD_VIEW_FACTORY
 
+static UmiTradingWorkspace *trading_workspace_for_view(void *user_data)
+{
+    UmiStudioTradingService *service = umi_studio_services_trading(
+        (UmiStudioServices *)user_data);
+    return service != NULL
+        ? umi_studio_trading_service_workspace(service) : NULL;
+}
+
+#define DEFINE_TRADING_VIEW_FACTORY(name_, framework_factory_)              \
+    static UmiStatus name_(const char *view_id, void *user_data,             \
+                           UmiUiViewModel **out_view)                        \
+    {                                                                        \
+        UmiTradingWorkspace *workspace =                                     \
+            trading_workspace_for_view(user_data);                           \
+        return workspace != NULL                                             \
+            ? framework_factory_(view_id, workspace, out_view)               \
+            : UMI_STATUS_UNAVAILABLE;                                        \
+    }
+
+DEFINE_TRADING_VIEW_FACTORY(create_trading_dashboard,
+                            umi_trading_ui_dashboard_view_create)
+DEFINE_TRADING_VIEW_FACTORY(create_trading_watchlist,
+                            umi_trading_ui_watchlist_view_create)
+DEFINE_TRADING_VIEW_FACTORY(create_trading_depth,
+                            umi_trading_ui_depth_view_create)
+DEFINE_TRADING_VIEW_FACTORY(create_trading_chart,
+                            umi_trading_ui_chart_view_create)
+DEFINE_TRADING_VIEW_FACTORY(create_trading_order_ticket,
+                            umi_trading_ui_order_ticket_view_create)
+DEFINE_TRADING_VIEW_FACTORY(create_trading_orders,
+                            umi_trading_ui_orders_view_create)
+DEFINE_TRADING_VIEW_FACTORY(create_trading_executions,
+                            umi_trading_ui_executions_view_create)
+DEFINE_TRADING_VIEW_FACTORY(create_trading_portfolio_risk,
+                            umi_trading_ui_portfolio_risk_view_create)
+#undef DEFINE_TRADING_VIEW_FACTORY
+
 static UmiStatus create_output(const char *view_id,
                                void *user_data,
                                UmiUiViewModel **out_view)
@@ -1017,6 +1064,14 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_BUILD_OUTPUT, create_build_output },
     { VIEW_BUILD_ARTIFACTS, create_build_artifacts },
     { VIEW_BUILD_TASKS, create_build_tasks },
+    { VIEW_TRADING_DASHBOARD, create_trading_dashboard },
+    { VIEW_TRADING_WATCHLIST, create_trading_watchlist },
+    { VIEW_TRADING_DEPTH, create_trading_depth },
+    { VIEW_TRADING_CHART, create_trading_chart },
+    { VIEW_TRADING_ORDER_TICKET, create_trading_order_ticket },
+    { VIEW_TRADING_ORDERS, create_trading_orders },
+    { VIEW_TRADING_EXECUTIONS, create_trading_executions },
+    { VIEW_TRADING_PORTFOLIO_RISK, create_trading_portfolio_risk },
     { VIEW_DESIGNER, create_designer },
     { VIEW_APPLICATIONS, create_applications },
     { VIEW_FRAMEWORK, create_framework },
