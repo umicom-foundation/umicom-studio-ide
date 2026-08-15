@@ -191,6 +191,22 @@ int main(void)
         sizeof(message)
     ) == UMI_STATUS_OK);
 
+    assert(umi_command_registry_snapshot(
+               registry, UMI_STUDIO_COMMAND_VCS_FILTER, &snapshot) ==
+           UMI_STATUS_OK);
+    assert(strcmp(snapshot.category, "Source Control") == 0);
+    assert(umi_command_registry_execute(
+               registry, UMI_STUDIO_COMMAND_VCS_FILTER, "conflicts",
+               message, sizeof(message)) == UMI_STATUS_OK);
+    assert(strstr(message, "conflicts") != NULL);
+    assert(umi_command_registry_execute(
+               registry, UMI_STUDIO_COMMAND_VCS_SET_COMMIT_MESSAGE,
+               "feat: professional source control", message,
+               sizeof(message)) == UMI_STATUS_OK);
+    assert(umi_command_registry_snapshot(
+               registry, UMI_STUDIO_COMMAND_VCS_COMMIT_COMPOSED, &snapshot) ==
+           UMI_STATUS_OK);
+
     assert(umi_command_registry_execute(
         registry,
         UMI_STUDIO_COMMAND_SECURITY_REPORT,

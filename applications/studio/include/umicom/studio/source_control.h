@@ -87,6 +87,9 @@ const UmiVcsHistory *umi_studio_source_control_service_history(
     const UmiStudioSourceControlService *service
 );
 UmiVcsWorkspace *umi_studio_source_control_service_workspace(UmiStudioSourceControlService *service);
+UmiVcsWorkspaceCoordinator *umi_studio_source_control_service_coordinator(
+    UmiStudioSourceControlService *service
+);
 
 #ifdef __cplusplus
 }

@@ -49,6 +49,14 @@ int main(void)
            state.bottom_panel_visible);
     assert(state.bottom_panel_size == 300);
 
+    assert(umi_ui_workbench_activate_workspace_profile(
+               workbench, UMI_STUDIO_WORKSPACE_PROFILE_SOURCE_CONTROL) ==
+           UMI_STATUS_OK);
+    assert(umi_ui_workbench_state_snapshot(workbench, &state) == UMI_STATUS_OK);
+    assert(state.sidebar_visible && state.auxiliary_sidebar_visible &&
+           state.bottom_panel_visible);
+    assert(state.bottom_panel_size == 320);
+
     umi_ui_workbench_destroy(workbench);
     umi_command_registry_destroy(commands);
     return EXIT_SUCCESS;

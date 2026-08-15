@@ -19,10 +19,13 @@ int main(void)
     UmiStudioBootstrap *bootstrap = NULL; UmiUiWorkbench *workbench;
     assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
     workbench = umi_studio_ui_workbench(umi_studio_bootstrap_ui(bootstrap)); assert(workbench != NULL);
-    verify_kind(workbench, "studio.source-control", UMI_STUDIO_PANE_SOURCE_CONTROL, "source-control");
-    verify_kind(workbench, "studio.vcs-history", UMI_STUDIO_PANE_VCS_HISTORY, "vcs-history");
-    verify_kind(workbench, "studio.vcs-branches", UMI_STUDIO_PANE_VCS_BRANCHES, "vcs-branches");
-    verify_kind(workbench, "studio.vcs-remotes", UMI_STUDIO_PANE_VCS_REMOTES, "vcs-remotes");
-    verify_kind(workbench, "studio.vcs-diff", UMI_STUDIO_PANE_VCS_DIFF, "vcs-diff");
+    verify_kind(workbench, "studio.source-control", UMI_STUDIO_PANE_SOURCE_CONTROL, "source-control-changes");
+    verify_kind(workbench, "studio.vcs-commit", UMI_STUDIO_PANE_VCS_COMMIT, "source-control-commit");
+    verify_kind(workbench, "studio.vcs-history", UMI_STUDIO_PANE_VCS_HISTORY, "source-control-history");
+    verify_kind(workbench, "studio.vcs-branches", UMI_STUDIO_PANE_VCS_BRANCHES, "source-control-branches");
+    verify_kind(workbench, "studio.vcs-remotes", UMI_STUDIO_PANE_VCS_REMOTES, "source-control-remotes");
+    verify_kind(workbench, "studio.vcs-conflicts", UMI_STUDIO_PANE_VCS_CONFLICTS, "source-control-conflicts");
+    verify_kind(workbench, "studio.vcs-diff", UMI_STUDIO_PANE_VCS_DIFF, "source-control-diff");
+    verify_kind(workbench, "studio.vcs-operations", UMI_STUDIO_PANE_VCS_OPERATIONS, "source-control-operations");
     umi_studio_bootstrap_destroy(bootstrap); return 0;
 }

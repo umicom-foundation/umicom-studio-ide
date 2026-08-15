@@ -1361,6 +1361,166 @@ DEFINE_VCS_HANDLER(vcs_branch_delete_handler, STUDIO_VCS_BRANCH_DELETE)
 DEFINE_VCS_HANDLER(vcs_diff_handler, STUDIO_VCS_DIFF)
 #undef DEFINE_VCS_HANDLER
 
+typedef enum StudioVcsWorkspaceOperation {
+    STUDIO_VCS_WORKSPACE_FILTER,
+    STUDIO_VCS_WORKSPACE_SELECT_CHANGE,
+    STUDIO_VCS_WORKSPACE_SELECT_COMMIT,
+    STUDIO_VCS_WORKSPACE_SELECT_BRANCH,
+    STUDIO_VCS_WORKSPACE_SELECT_REMOTE,
+    STUDIO_VCS_WORKSPACE_SET_COMMIT_MESSAGE,
+    STUDIO_VCS_WORKSPACE_STAGE_SELECTED,
+    STUDIO_VCS_WORKSPACE_UNSTAGE_SELECTED,
+    STUDIO_VCS_WORKSPACE_DISCARD_SELECTED,
+    STUDIO_VCS_WORKSPACE_COMMIT_COMPOSED,
+    STUDIO_VCS_WORKSPACE_DIFF_SELECTED,
+    STUDIO_VCS_WORKSPACE_DIFF_SELECTED_STAGED
+} StudioVcsWorkspaceOperation;
+
+static UmiVcsWorkspaceCoordinator *vcs_workspace_coordinator(void *user_data)
+{
+    UmiStudioSourceControlService *service =
+        umi_studio_services_source_control((UmiStudioServices *)user_data);
+    return service != NULL
+        ? umi_studio_source_control_service_coordinator(service) : NULL;
+}
+
+static UmiStatus vcs_workspace_operation_execute(
+    void *user_data,
+    const char *argument,
+    char *out_message,
+    size_t capacity,
+    StudioVcsWorkspaceOperation operation)
+{
+    UmiVcsWorkspaceCoordinator *coordinator =
+        vcs_workspace_coordinator(user_data);
+    UmiStatus status = UMI_STATUS_INVALID_ARGUMENT;
+    int needs_argument =
+        operation == STUDIO_VCS_WORKSPACE_FILTER ||
+        operation == STUDIO_VCS_WORKSPACE_SELECT_CHANGE ||
+        operation == STUDIO_VCS_WORKSPACE_SELECT_COMMIT ||
+        operation == STUDIO_VCS_WORKSPACE_SELECT_BRANCH ||
+        operation == STUDIO_VCS_WORKSPACE_SELECT_REMOTE ||
+        operation == STUDIO_VCS_WORKSPACE_SET_COMMIT_MESSAGE;
+
+    if (coordinator == NULL) return UMI_STATUS_UNAVAILABLE;
+    if (needs_argument && (argument == NULL || argument[0] == '\0')) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    switch (operation) {
+        case STUDIO_VCS_WORKSPACE_FILTER: {
+            UmiVcsChangeFilter filter;
+            if (strcmp(argument, "all") == 0 ||
+                strcmp(argument, "all changes") == 0) {
+                filter = UMI_VCS_CHANGE_FILTER_ALL;
+            } else if (strcmp(argument, "staged") == 0) {
+                filter = UMI_VCS_CHANGE_FILTER_STAGED;
+            } else if (strcmp(argument, "unstaged") == 0) {
+                filter = UMI_VCS_CHANGE_FILTER_UNSTAGED;
+            } else if (strcmp(argument, "conflicts") == 0) {
+                filter = UMI_VCS_CHANGE_FILTER_CONFLICTS;
+            } else {
+                return UMI_STATUS_INVALID_ARGUMENT;
+            }
+            status = umi_vcs_workspace_coordinator_set_change_filter(
+                coordinator, filter);
+            break;
+        }
+        case STUDIO_VCS_WORKSPACE_SELECT_CHANGE:
+            status = umi_vcs_workspace_coordinator_select_change(
+                coordinator, argument);
+            break;
+        case STUDIO_VCS_WORKSPACE_SELECT_COMMIT:
+            status = umi_vcs_workspace_coordinator_select_commit(
+                coordinator, argument);
+            break;
+        case STUDIO_VCS_WORKSPACE_SELECT_BRANCH:
+            status = umi_vcs_workspace_coordinator_select_branch(
+                coordinator, argument);
+            break;
+        case STUDIO_VCS_WORKSPACE_SELECT_REMOTE:
+            status = umi_vcs_workspace_coordinator_select_remote(
+                coordinator, argument);
+            break;
+        case STUDIO_VCS_WORKSPACE_SET_COMMIT_MESSAGE:
+            status = umi_vcs_workspace_coordinator_set_commit_message(
+                coordinator, argument);
+            break;
+        case STUDIO_VCS_WORKSPACE_STAGE_SELECTED:
+            status = umi_vcs_workspace_coordinator_stage_selected(coordinator);
+            break;
+        case STUDIO_VCS_WORKSPACE_UNSTAGE_SELECTED:
+            status = umi_vcs_workspace_coordinator_unstage_selected(
+                coordinator);
+            break;
+        case STUDIO_VCS_WORKSPACE_DISCARD_SELECTED:
+            status = umi_vcs_workspace_coordinator_discard_selected(
+                coordinator);
+            break;
+        case STUDIO_VCS_WORKSPACE_COMMIT_COMPOSED:
+            status = umi_vcs_workspace_coordinator_commit(
+                coordinator, NULL, 0U);
+            break;
+        case STUDIO_VCS_WORKSPACE_DIFF_SELECTED:
+            status = umi_vcs_workspace_coordinator_open_selected_diff(
+                coordinator, 0);
+            break;
+        case STUDIO_VCS_WORKSPACE_DIFF_SELECTED_STAGED:
+            status = umi_vcs_workspace_coordinator_open_selected_diff(
+                coordinator, 1);
+            break;
+        default:
+            break;
+    }
+    if (out_message != NULL && capacity > 0U) {
+        UmiVcsWorkspaceCoordinatorSnapshot snapshot;
+        if (status == UMI_STATUS_OK &&
+            umi_vcs_workspace_coordinator_snapshot(
+                coordinator, &snapshot) == UMI_STATUS_OK) {
+            (void)snprintf(out_message, capacity,
+                           "Source control workspace: %s; %zu visible change(s)",
+                           snapshot.change_filter_label,
+                           snapshot.visible_change_count);
+        } else {
+            (void)snprintf(out_message, capacity,
+                           "Source control workspace: %s",
+                           umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+#define DEFINE_VCS_WORKSPACE_HANDLER(name_, operation_) \
+    static UmiStatus name_(void *user_data, const char *argument, \
+                           char *out_message, size_t capacity) \
+    { return vcs_workspace_operation_execute(user_data, argument, \
+                                              out_message, capacity, \
+                                              operation_); }
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_filter_handler,
+                             STUDIO_VCS_WORKSPACE_FILTER)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_select_change_handler,
+                             STUDIO_VCS_WORKSPACE_SELECT_CHANGE)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_select_commit_handler,
+                             STUDIO_VCS_WORKSPACE_SELECT_COMMIT)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_select_branch_handler,
+                             STUDIO_VCS_WORKSPACE_SELECT_BRANCH)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_select_remote_handler,
+                             STUDIO_VCS_WORKSPACE_SELECT_REMOTE)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_set_commit_message_handler,
+                             STUDIO_VCS_WORKSPACE_SET_COMMIT_MESSAGE)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_stage_selected_handler,
+                             STUDIO_VCS_WORKSPACE_STAGE_SELECTED)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_unstage_selected_handler,
+                             STUDIO_VCS_WORKSPACE_UNSTAGE_SELECTED)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_discard_selected_handler,
+                             STUDIO_VCS_WORKSPACE_DISCARD_SELECTED)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_commit_composed_handler,
+                             STUDIO_VCS_WORKSPACE_COMMIT_COMPOSED)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_diff_selected_handler,
+                             STUDIO_VCS_WORKSPACE_DIFF_SELECTED)
+DEFINE_VCS_WORKSPACE_HANDLER(vcs_diff_selected_staged_handler,
+                             STUDIO_VCS_WORKSPACE_DIFF_SELECTED_STAGED)
+#undef DEFINE_VCS_WORKSPACE_HANDLER
+
 static UmiStatus developer_report_handler(void *user_data,
                                           const char *argument,
                                           char *out_message,
@@ -2312,6 +2472,66 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
     status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_DIFF,
                               "Open Diff", "Source Control", "Load a working-tree path diff; prefix with --staged for index diff.",
                               "vcs.read", UMI_COMMAND_NONE, vcs_diff_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_FILTER,
+                              "Filter Source Control Changes", "Source Control",
+                              "Show all, staged, unstaged or conflicting changes.",
+                              "vcs.read", UMI_COMMAND_NONE, vcs_filter_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_SELECT_CHANGE,
+                              "Select Source Control Change", "Source Control",
+                              "Select a repository-relative path in the workspace.",
+                              "vcs.read", UMI_COMMAND_NONE, vcs_select_change_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_SELECT_COMMIT,
+                              "Select Repository Commit", "Source Control",
+                              "Select a commit by its stable identifier.",
+                              "vcs.read", UMI_COMMAND_NONE, vcs_select_commit_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_SELECT_BRANCH,
+                              "Select Repository Branch", "Source Control",
+                              "Select a branch without changing the working tree.",
+                              "vcs.read", UMI_COMMAND_NONE, vcs_select_branch_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_SELECT_REMOTE,
+                              "Select Repository Remote", "Source Control",
+                              "Select a configured remote for inspection.",
+                              "vcs.read", UMI_COMMAND_NONE, vcs_select_remote_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_SET_COMMIT_MESSAGE,
+                              "Set Commit Message", "Source Control",
+                              "Set the professional commit-composition message.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE, vcs_set_commit_message_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_STAGE_SELECTED,
+                              "Stage Selected Change", "Source Control",
+                              "Stage the selected repository path.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE, vcs_stage_selected_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_UNSTAGE_SELECTED,
+                              "Unstage Selected Change", "Source Control",
+                              "Remove the selected repository path from the index.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE, vcs_unstage_selected_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_DISCARD_SELECTED,
+                              "Discard Selected Change", "Source Control",
+                              "Discard the selected unstaged path after confirmation.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED, vcs_discard_selected_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_COMMIT_COMPOSED,
+                              "Commit Composed Changes", "Source Control",
+                              "Commit staged changes using the composed message.",
+                              "vcs.write", UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED, vcs_commit_composed_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_DIFF_SELECTED,
+                              "Open Selected Working Tree Diff", "Source Control",
+                              "Load the selected working-tree path diff.",
+                              "vcs.read", UMI_COMMAND_NONE, vcs_diff_selected_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services, UMI_STUDIO_COMMAND_VCS_DIFF_SELECTED_STAGED,
+                              "Open Selected Staged Diff", "Source Control",
+                              "Load the selected index path diff.",
+                              "vcs.read", UMI_COMMAND_NONE, vcs_diff_selected_staged_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_DEVELOPER_REPORT,

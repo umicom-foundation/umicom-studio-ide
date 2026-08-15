@@ -96,7 +96,14 @@ static UmiStatus register_view_containers(UmiUiWorkbench *workbench)
         UMI_STUDIO_PANE_SEARCH
     };
     static const char *const SCM[] = {
-        UMI_STUDIO_PANE_SOURCE_CONTROL
+        UMI_STUDIO_PANE_SOURCE_CONTROL,
+        UMI_STUDIO_PANE_VCS_COMMIT,
+        UMI_STUDIO_PANE_VCS_HISTORY,
+        UMI_STUDIO_PANE_VCS_BRANCHES,
+        UMI_STUDIO_PANE_VCS_REMOTES,
+        UMI_STUDIO_PANE_VCS_CONFLICTS,
+        UMI_STUDIO_PANE_VCS_DIFF,
+        UMI_STUDIO_PANE_VCS_OPERATIONS
     };
     static const char *const RUN[] = {
         UMI_STUDIO_PANE_RUN_DEBUG,
@@ -147,7 +154,7 @@ static UmiStatus register_view_containers(UmiUiWorkbench *workbench)
         "Search", "Workspace text, symbols and indexed resources",
         "system-search-symbolic", 20, SEARCH);
     REGISTER_CONTAINER(UMI_STUDIO_CONTAINER_SCM,
-        "Source Control", "Git repositories, changes, history and branches",
+        "Source Control", "Changes, commits, history, branches, remotes, conflicts, diffs and operations",
         "org.gnome.Builder-vcs-symbolic", 30, SCM);
     REGISTER_CONTAINER(UMI_STUDIO_CONTAINER_RUN,
         "Run and Debug", "Build output, run configurations, debugger and terminal",

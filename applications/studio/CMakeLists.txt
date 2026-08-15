@@ -1296,6 +1296,7 @@ if(BUILD_TESTING)
             debugger_service
             debug_workspace_views
             source_control_service
+            source_control_workspace
             developer_platform)
         string(REPLACE "_" "-" UMICOM_STUDIO_DEVELOPER_TEST_TARGET
             "${UMICOM_STUDIO_DEVELOPER_TEST}")

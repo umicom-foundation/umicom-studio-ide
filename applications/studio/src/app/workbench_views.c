@@ -41,10 +41,13 @@
 #define VIEW_EXPLORER      "studio.project-explorer"
 #define VIEW_SEARCH        "studio.search"
 #define VIEW_SOURCE_CTRL   "studio.source-control"
+#define VIEW_VCS_COMMIT    "studio.vcs-commit"
 #define VIEW_VCS_HISTORY   "studio.vcs-history"
 #define VIEW_VCS_BRANCHES  "studio.vcs-branches"
 #define VIEW_VCS_REMOTES   "studio.vcs-remotes"
+#define VIEW_VCS_CONFLICTS "studio.vcs-conflicts"
 #define VIEW_VCS_DIFF      "studio.vcs-diff"
+#define VIEW_VCS_OPERATIONS "studio.vcs-operations"
 #define VIEW_RUN_DEBUG     "studio.run-debug"
 #define VIEW_DEBUG_CALL_STACK "studio.debug-call-stack"
 #define VIEW_DEBUG_VARIABLES "studio.debug-variables"
@@ -242,29 +245,35 @@ static UmiStatus create_source_control(const char *view_id,
     UmiStudioSourceControlService *service;
     service = umi_studio_services_source_control(services);
     return service != NULL
-        ? umi_vcs_ui_source_control_view_create(
+        ? umi_vcs_ui_workspace_changes_view_create(
               view_id,
-              umi_studio_source_control_service_workspace(service),
+              umi_studio_source_control_service_coordinator(service),
               out_view)
         : UMI_STATUS_UNAVAILABLE;
 }
 
-static UmiVcsWorkspace *source_control_workspace(void *user_data)
+static UmiVcsWorkspaceCoordinator *source_control_coordinator(void *user_data)
 {
     UmiStudioSourceControlService *service = umi_studio_services_source_control(
         (UmiStudioServices *)user_data);
     return service != NULL
-        ? umi_studio_source_control_service_workspace(service) : NULL;
+        ? umi_studio_source_control_service_coordinator(service) : NULL;
 }
 
+static UmiStatus create_vcs_commit(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ UmiVcsWorkspaceCoordinator *coordinator = source_control_coordinator(user_data); return coordinator != NULL ? umi_vcs_ui_workspace_commit_view_create(view_id, coordinator, out_view) : UMI_STATUS_UNAVAILABLE; }
 static UmiStatus create_vcs_history(const char *view_id, void *user_data, UmiUiViewModel **out_view)
-{ UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_history_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
+{ UmiVcsWorkspaceCoordinator *coordinator = source_control_coordinator(user_data); return coordinator != NULL ? umi_vcs_ui_workspace_history_view_create(view_id, coordinator, out_view) : UMI_STATUS_UNAVAILABLE; }
 static UmiStatus create_vcs_branches(const char *view_id, void *user_data, UmiUiViewModel **out_view)
-{ UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_branches_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
+{ UmiVcsWorkspaceCoordinator *coordinator = source_control_coordinator(user_data); return coordinator != NULL ? umi_vcs_ui_workspace_branches_view_create(view_id, coordinator, out_view) : UMI_STATUS_UNAVAILABLE; }
 static UmiStatus create_vcs_remotes(const char *view_id, void *user_data, UmiUiViewModel **out_view)
-{ UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_remotes_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
+{ UmiVcsWorkspaceCoordinator *coordinator = source_control_coordinator(user_data); return coordinator != NULL ? umi_vcs_ui_workspace_remotes_view_create(view_id, coordinator, out_view) : UMI_STATUS_UNAVAILABLE; }
+static UmiStatus create_vcs_conflicts(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ UmiVcsWorkspaceCoordinator *coordinator = source_control_coordinator(user_data); return coordinator != NULL ? umi_vcs_ui_workspace_conflicts_view_create(view_id, coordinator, out_view) : UMI_STATUS_UNAVAILABLE; }
 static UmiStatus create_vcs_diff(const char *view_id, void *user_data, UmiUiViewModel **out_view)
-{ UmiVcsWorkspace *workspace = source_control_workspace(user_data); return workspace != NULL ? umi_vcs_ui_diff_view_create(view_id, workspace, out_view) : UMI_STATUS_UNAVAILABLE; }
+{ UmiVcsWorkspaceCoordinator *coordinator = source_control_coordinator(user_data); return coordinator != NULL ? umi_vcs_ui_workspace_diff_view_create(view_id, coordinator, out_view) : UMI_STATUS_UNAVAILABLE; }
+static UmiStatus create_vcs_operations(const char *view_id, void *user_data, UmiUiViewModel **out_view)
+{ UmiVcsWorkspaceCoordinator *coordinator = source_control_coordinator(user_data); return coordinator != NULL ? umi_vcs_ui_workspace_operations_view_create(view_id, coordinator, out_view) : UMI_STATUS_UNAVAILABLE; }
 
 static UmiStatus create_extensions(const char *view_id, void *user_data, UmiUiViewModel **out_view)
 { return umi_studio_extension_centre_installed_view((UmiStudioServices *)user_data, view_id, out_view); }
@@ -924,10 +933,13 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_EXPLORER, create_explorer },
     { VIEW_SEARCH, create_search },
     { VIEW_SOURCE_CTRL, create_source_control },
+    { VIEW_VCS_COMMIT, create_vcs_commit },
     { VIEW_VCS_HISTORY, create_vcs_history },
     { VIEW_VCS_BRANCHES, create_vcs_branches },
     { VIEW_VCS_REMOTES, create_vcs_remotes },
+    { VIEW_VCS_CONFLICTS, create_vcs_conflicts },
     { VIEW_VCS_DIFF, create_vcs_diff },
+    { VIEW_VCS_OPERATIONS, create_vcs_operations },
     { VIEW_RUN_DEBUG, create_run_debug },
     { VIEW_DEBUG_CALL_STACK, create_debug_call_stack },
     { VIEW_DEBUG_VARIABLES, create_debug_variables },

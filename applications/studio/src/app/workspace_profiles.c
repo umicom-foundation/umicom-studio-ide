@@ -35,6 +35,18 @@ static int is_debug_workspace_pane(const char *pane_id)
            strcmp(pane_id, UMI_STUDIO_PANE_DEBUG_CONSOLE) == 0;
 }
 
+static int is_source_control_workspace_pane(const char *pane_id)
+{
+    return strcmp(pane_id, UMI_STUDIO_PANE_SOURCE_CONTROL) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_VCS_COMMIT) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_VCS_HISTORY) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_VCS_BRANCHES) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_VCS_REMOTES) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_VCS_CONFLICTS) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_VCS_DIFF) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_VCS_OPERATIONS) == 0;
+}
+
 static UmiStatus register_profile(UmiUiWorkbench *workbench,
                                   const char *profile_id,
                                   const char *label,
@@ -87,7 +99,12 @@ static UmiStatus register_profile(UmiUiWorkbench *workbench,
         int debug_pane = strcmp(profile_id,
                                 UMI_STUDIO_WORKSPACE_PROFILE_DEBUG) == 0 &&
                          is_debug_workspace_pane(pane.pane_id);
-        if ((!pane.visible && !debug_pane) ||
+        int source_control_pane =
+            strcmp(profile_id,
+                   UMI_STUDIO_WORKSPACE_PROFILE_SOURCE_CONTROL) == 0 &&
+            is_source_control_workspace_pane(pane.pane_id);
+        int profile_pane = debug_pane || source_control_pane;
+        if ((!pane.visible && !profile_pane) ||
             pane.placement == UMI_UI_PLACEMENT_CENTRE ||
             pane.placement == UMI_UI_PLACEMENT_FLOATING) {
             continue;
@@ -100,7 +117,7 @@ static UmiStatus register_profile(UmiUiWorkbench *workbench,
                        pane.pane_id);
         saved->placement = pane.placement;
         saved->order = pane.order;
-        saved->visible = debug_pane ? 1 : pane.visible;
+        saved->visible = profile_pane ? 1 : pane.visible;
     }
     return umi_ui_workspace_profile_model_upsert(model, &profile);
 }
@@ -127,19 +144,25 @@ UmiStatus umi_studio_workspace_profiles_register(UmiUiWorkbench *workbench)
         "applications-engineering-symbolic", 1, 1, 1, 300, 380, 300, 30);
     if (status != UMI_STATUS_OK) return status;
     status = register_profile(
+        workbench, UMI_STUDIO_WORKSPACE_PROFILE_SOURCE_CONTROL,
+        "Source Control",
+        "Changes, commit composition, history, branches, remotes, conflicts, diffs and operations",
+        "org.gnome.Builder-vcs-symbolic", 1, 1, 1, 340, 420, 320, 40);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_profile(
         workbench, UMI_STUDIO_WORKSPACE_PROFILE_REVIEW, "Review",
         "Code review and comparison with navigation and auxiliary context",
-        "document-properties-symbolic", 1, 1, 1, 260, 420, 260, 40);
+        "document-properties-symbolic", 1, 1, 1, 260, 420, 260, 50);
     if (status != UMI_STATUS_OK) return status;
     status = register_profile(
         workbench, UMI_STUDIO_WORKSPACE_PROFILE_OPERATIONS, "Operations",
         "Monitoring, diagnostics, tasks and operational evidence",
-        "utilities-system-monitor-symbolic", 1, 1, 1, 280, 420, 320, 50);
+        "utilities-system-monitor-symbolic", 1, 1, 1, 280, 420, 320, 60);
     if (status != UMI_STATUS_OK) return status;
     status = register_profile(
         workbench, UMI_STUDIO_WORKSPACE_PROFILE_TRADING, "Trading",
         "TWS-inspired market, chart, order, risk and activity workspace",
-        "view-statistics-symbolic", 1, 1, 1, 260, 390, 300, 60);
+        "view-statistics-symbolic", 1, 1, 1, 260, 390, 300, 70);
     if (status != UMI_STATUS_OK) return status;
 
     return umi_ui_workbench_activate_workspace_profile(

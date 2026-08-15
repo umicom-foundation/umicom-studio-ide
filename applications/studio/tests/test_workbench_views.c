@@ -28,6 +28,8 @@ int main(void)
     UmiUiPropertySnapshot debug_state;
     UmiUiViewModel *run_debug = NULL;
     UmiUiViewModel *debug_watches = NULL;
+    UmiUiViewModel *source_control = NULL;
+    UmiUiViewModel *source_control_commit = NULL;
     UmiUiCommandViewAction action;
 
     assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
@@ -75,6 +77,24 @@ int main(void)
     assert(strcmp(action.action_id, "studio.action.debug.add-watch") == 0);
     umi_ui_view_model_destroy(debug_watches);
     umi_ui_view_model_destroy(run_debug);
+
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench),
+               "studio.source-control", UMI_STUDIO_PANE_SOURCE_CONTROL,
+               &source_control) == UMI_STATUS_OK);
+    assert(umi_ui_command_view_action_at(source_control, 1U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id, "studio.action.vcs.filter") == 0);
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench),
+               "studio.vcs-commit", UMI_STUDIO_PANE_VCS_COMMIT,
+               &source_control_commit) == UMI_STATUS_OK);
+    assert(umi_ui_command_view_action_at(
+               source_control_commit, 0U, &action) == UMI_STATUS_OK);
+    assert(strcmp(action.action_id,
+                  "studio.action.vcs.set-commit-message") == 0);
+    umi_ui_view_model_destroy(source_control_commit);
+    umi_ui_view_model_destroy(source_control);
 
     umi_studio_bootstrap_destroy(bootstrap);
     return 0;

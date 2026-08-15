@@ -114,9 +114,23 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_VCS_BRANCH_CHECKOUT "studio.vcs.branch-checkout"
 #define UMI_STUDIO_COMMAND_VCS_BRANCH_DELETE "studio.vcs.branch-delete"
 #define UMI_STUDIO_COMMAND_VCS_DIFF "studio.vcs.diff"
+#define UMI_STUDIO_COMMAND_VCS_FILTER "studio.vcs.filter"
+#define UMI_STUDIO_COMMAND_VCS_SELECT_CHANGE "studio.vcs.select-change"
+#define UMI_STUDIO_COMMAND_VCS_SELECT_COMMIT "studio.vcs.select-commit"
+#define UMI_STUDIO_COMMAND_VCS_SELECT_BRANCH "studio.vcs.select-branch"
+#define UMI_STUDIO_COMMAND_VCS_SELECT_REMOTE "studio.vcs.select-remote"
+#define UMI_STUDIO_COMMAND_VCS_SET_COMMIT_MESSAGE \
+    "studio.vcs.set-commit-message"
+#define UMI_STUDIO_COMMAND_VCS_STAGE_SELECTED "studio.vcs.stage-selected"
+#define UMI_STUDIO_COMMAND_VCS_UNSTAGE_SELECTED "studio.vcs.unstage-selected"
+#define UMI_STUDIO_COMMAND_VCS_DISCARD_SELECTED "studio.vcs.discard-selected"
+#define UMI_STUDIO_COMMAND_VCS_COMMIT_COMPOSED "studio.vcs.commit-composed"
+#define UMI_STUDIO_COMMAND_VCS_DIFF_SELECTED "studio.vcs.diff-selected"
+#define UMI_STUDIO_COMMAND_VCS_DIFF_SELECTED_STAGED \
+    "studio.vcs.diff-selected-staged"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 91U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 103U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

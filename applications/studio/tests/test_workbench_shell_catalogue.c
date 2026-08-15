@@ -24,6 +24,7 @@ int main(void)
     UmiUiWorkbench *workbench;
     UmiUiWorkbenchSnapshot snapshot;
     UmiUiPaneSnapshot application_hub;
+    UmiUiViewContainerSnapshot source_control;
     UmiStatus status;
 
     assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
@@ -41,6 +42,14 @@ int main(void)
                                   UMI_STUDIO_PANE_APPLICATIONS,
                                   &application_hub) == UMI_STATUS_OK);
     assert(strcmp(application_hub.view_type, "studio.application-hub") == 0);
+    assert(umi_ui_view_container_model_find(
+               umi_ui_workbench_view_containers(workbench),
+               UMI_STUDIO_CONTAINER_SCM, &source_control) == UMI_STATUS_OK);
+    assert(source_control.view_count == 8U);
+    assert(strcmp(source_control.view_ids[1],
+                  UMI_STUDIO_PANE_VCS_COMMIT) == 0);
+    assert(strcmp(source_control.view_ids[7],
+                  UMI_STUDIO_PANE_VCS_OPERATIONS) == 0);
 
     status = umi_studio_bootstrap_stop(bootstrap);
     assert(status == UMI_STATUS_OK || status == UMI_STATUS_INVALID_STATE);
