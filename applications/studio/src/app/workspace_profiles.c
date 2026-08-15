@@ -57,6 +57,16 @@ static int is_testing_workspace_pane(const char *pane_id)
            strcmp(pane_id, UMI_STUDIO_PANE_TEST_RUNS) == 0;
 }
 
+static int is_build_workspace_pane(const char *pane_id)
+{
+    return strcmp(pane_id, UMI_STUDIO_PANE_BUILD_DASHBOARD) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_BUILD_GRAPH) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_BUILD_HISTORY) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_BUILD_OUTPUT) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_BUILD_ARTIFACTS) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_BUILD_TASKS) == 0;
+}
+
 static UmiStatus register_profile(UmiUiWorkbench *workbench,
                                   const char *profile_id,
                                   const char *label,
@@ -116,7 +126,11 @@ static UmiStatus register_profile(UmiUiWorkbench *workbench,
         int testing_pane =
             strcmp(profile_id, UMI_STUDIO_WORKSPACE_PROFILE_TESTING) == 0 &&
             is_testing_workspace_pane(pane.pane_id);
-        int profile_pane = debug_pane || source_control_pane || testing_pane;
+        int build_pane =
+            strcmp(profile_id, UMI_STUDIO_WORKSPACE_PROFILE_BUILD) == 0 &&
+            is_build_workspace_pane(pane.pane_id);
+        int profile_pane = debug_pane || source_control_pane || testing_pane ||
+                           build_pane;
         if ((!pane.visible && !profile_pane) ||
             pane.placement == UMI_UI_PLACEMENT_CENTRE ||
             pane.placement == UMI_UI_PLACEMENT_FLOATING) {
@@ -166,6 +180,11 @@ UmiStatus umi_studio_workspace_profiles_register(UmiUiWorkbench *workbench)
         workbench, UMI_STUDIO_WORKSPACE_PROFILE_TESTING, "Testing",
         "Test Explorer, results, failures, output, coverage and run history",
         "emblem-ok-symbolic", 1, 1, 1, 340, 420, 320, 45);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_profile(
+        workbench, UMI_STUDIO_WORKSPACE_PROFILE_BUILD, "Build",
+        "Build dashboard, dependency graph, history, output, artifacts and tasks",
+        "system-run-symbolic", 1, 1, 1, 360, 440, 340, 47);
     if (status != UMI_STATUS_OK) return status;
     status = register_profile(
         workbench, UMI_STUDIO_WORKSPACE_PROFILE_REVIEW, "Review",

@@ -27,6 +27,7 @@ int main(void)
     assert(snapshot.next_operation_id == 1U);
     assert(umi_studio_build_service_history(service) != NULL);
     assert(umi_studio_build_service_profile(service) != NULL);
+    assert(umi_studio_build_service_workspace(service) != NULL);
     assert(umi_studio_build_service_prepare_default_graph(service, 1) ==
            UMI_STATUS_OK);
     assert(umi_studio_build_service_snapshot(service, &snapshot) ==
@@ -34,6 +35,12 @@ int main(void)
     assert(snapshot.graph.node_count == 4U);
     assert(snapshot.graph.dependency_count == 3U);
     assert(snapshot.graph.ready_count == 1U);
+    assert(snapshot.workspace.graph.node_count == snapshot.graph.node_count);
+    assert(snapshot.workspace.visible_node_count == 4U);
+    assert(snapshot.workspace.has_selected_node);
+    assert(strcmp(snapshot.workspace.selected_node_id, "configure") == 0);
+    assert(snapshot.workspace.can_execute_next);
+    assert(snapshot.workspace.can_execute_all);
     assert(umi_studio_build_service_artifacts(service) != NULL);
     umi_studio_build_service_destroy(service);
     umi_clock_dispose(&clock);

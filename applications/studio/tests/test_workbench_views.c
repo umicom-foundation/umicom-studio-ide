@@ -32,6 +32,8 @@ int main(void)
     UmiUiViewModel *source_control_commit = NULL;
     UmiUiViewModel *test_explorer = NULL;
     UmiUiViewModel *test_results = NULL;
+    UmiUiViewModel *build_dashboard = NULL;
+    UmiUiViewModel *build_graph = NULL;
     UmiUiCommandViewAction action;
 
     assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
@@ -114,6 +116,23 @@ int main(void)
                   "studio.action.test.clear-results") == 0);
     umi_ui_view_model_destroy(test_results);
     umi_ui_view_model_destroy(test_explorer);
+
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench),
+               "studio.build-dashboard", UMI_STUDIO_PANE_BUILD_DASHBOARD,
+               &build_dashboard) == UMI_STATUS_OK);
+    assert(umi_ui_command_view_action_at(build_dashboard, 6U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id, "studio.action.build.run-all") == 0);
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench),
+               "studio.build-graph", UMI_STUDIO_PANE_BUILD_GRAPH,
+               &build_graph) == UMI_STATUS_OK);
+    assert(umi_ui_command_view_action_at(build_graph, 2U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id, "studio.action.build.run-next") == 0);
+    umi_ui_view_model_destroy(build_graph);
+    umi_ui_view_model_destroy(build_dashboard);
 
     umi_studio_bootstrap_destroy(bootstrap);
     return 0;

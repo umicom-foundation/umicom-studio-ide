@@ -1284,6 +1284,7 @@ if(BUILD_TESTING)
     foreach(UMICOM_STUDIO_DEVELOPER_TEST
             build_service
             build_workbench
+            build_workspace_views
             diagnostics_pipeline
             test_service
             test_explorer_state
@@ -1464,6 +1465,7 @@ if(BUILD_TESTING)
         studio.product_centre_views
         studio.build_service
         studio.build_workbench
+        studio.build_workspace_views
         studio.test_service
         studio.test_workspace_views
         studio.terminal_service

@@ -503,19 +503,27 @@ static UmiStatus build_retry_handler(void *user_data,
                                      char *out_message,
                                      size_t message_capacity)
 {
+    UmiStudioBuildService *service = umi_studio_services_build(
+        (UmiStudioServices *)user_data);
+    UmiBuildWorkspaceSnapshot snapshot;
+    const char *node_id = argument;
     UmiStatus status;
-    if (argument == NULL || argument[0] == '\0') {
-        return UMI_STATUS_INVALID_ARGUMENT;
+    if (node_id == NULL || node_id[0] == '\0') {
+        status = umi_build_workspace_snapshot(
+            umi_studio_build_service_workspace(service), &snapshot);
+        if (status != UMI_STATUS_OK || !snapshot.has_selected_node)
+            return status != UMI_STATUS_OK
+                ? status : UMI_STATUS_INVALID_ARGUMENT;
+        node_id = snapshot.selected_node_id;
     }
-    status = umi_studio_build_service_retry(
-        umi_studio_services_build((UmiStudioServices *)user_data), argument);
+    status = umi_studio_build_service_retry(service, node_id);
     if (out_message != NULL && message_capacity > 0U) {
         if (status == UMI_STATUS_OK) {
             (void)snprintf(out_message, message_capacity,
-                           "Operation '%s' scheduled for retry", argument);
+                           "Operation '%s' scheduled for retry", node_id);
         } else {
             (void)snprintf(out_message, message_capacity,
-                           "Retry '%s': %s", argument,
+                           "Retry '%s': %s", node_id,
                            umi_status_text(status));
         }
     }
@@ -534,6 +542,275 @@ static UmiStatus build_cancel_handler(void *user_data,
         (void)snprintf(out_message, message_capacity,
                        "Build cancellation requested");
     }
+    return UMI_STATUS_OK;
+}
+
+static UmiBuildWorkspace *build_workspace(void *user_data)
+{
+    UmiStudioBuildService *service = umi_studio_services_build(
+        (UmiStudioServices *)user_data);
+    return service != NULL
+        ? umi_studio_build_service_workspace(service) : NULL;
+}
+
+static UmiStatus build_filter_handler(void *user_data,
+                                      const char *argument,
+                                      char *out_message,
+                                      size_t message_capacity)
+{
+    UmiBuildWorkspace *workspace = build_workspace(user_data);
+    UmiBuildWorkspaceNodeFilter node_filter = UMI_BUILD_WORKSPACE_NODES_ALL;
+    const char *text = argument != NULL ? argument : "";
+    UmiBuildWorkspaceSnapshot snapshot;
+    UmiStatus status;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    if (strcmp(text, "all") == 0) text = "";
+    else if (strcmp(text, "pending") == 0) {
+        text = "";
+        node_filter = UMI_BUILD_WORKSPACE_NODES_PENDING;
+    } else if (strcmp(text, "ready") == 0) {
+        text = "";
+        node_filter = UMI_BUILD_WORKSPACE_NODES_READY;
+    } else if (strcmp(text, "running") == 0) {
+        text = "";
+        node_filter = UMI_BUILD_WORKSPACE_NODES_RUNNING;
+    } else if (strcmp(text, "succeeded") == 0) {
+        text = "";
+        node_filter = UMI_BUILD_WORKSPACE_NODES_SUCCEEDED;
+    } else if (strcmp(text, "failed") == 0) {
+        text = "";
+        node_filter = UMI_BUILD_WORKSPACE_NODES_FAILED;
+    } else if (strcmp(text, "blocked") == 0) {
+        text = "";
+        node_filter = UMI_BUILD_WORKSPACE_NODES_BLOCKED;
+    }
+    status = umi_build_workspace_set_filter(workspace, text, node_filter);
+    if (status == UMI_STATUS_OK)
+        status = umi_build_workspace_snapshot(workspace, &snapshot);
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message, message_capacity,
+                           "Build filter selected %zu node(s)",
+                           snapshot.visible_node_count);
+        } else {
+            (void)snprintf(out_message, message_capacity, "Build filter: %s",
+                           umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus build_select_node_handler(void *user_data,
+                                           const char *argument,
+                                           char *out_message,
+                                           size_t message_capacity)
+{
+    UmiBuildWorkspace *workspace = build_workspace(user_data);
+    UmiStatus status;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    if (argument == NULL || argument[0] == '\0')
+        return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_build_workspace_select_node(workspace, argument);
+    if (out_message != NULL && message_capacity > 0U)
+        (void)snprintf(out_message, message_capacity,
+                       "Selected build node %s: %s", argument,
+                       umi_status_text(status));
+    return status;
+}
+
+static UmiStatus build_select_operation_handler(void *user_data,
+                                                const char *argument,
+                                                char *out_message,
+                                                size_t message_capacity)
+{
+    UmiBuildWorkspace *workspace = build_workspace(user_data);
+    unsigned long long operation_id;
+    char *end = NULL;
+    UmiStatus status;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    if (argument == NULL || argument[0] == '\0')
+        return UMI_STATUS_INVALID_ARGUMENT;
+    errno = 0;
+    operation_id = strtoull(argument, &end, 10);
+    if (errno != 0 || end == argument || *end != '\0' || operation_id == 0U)
+        return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_build_workspace_select_operation(
+        workspace, (uint64_t)operation_id);
+    if (out_message != NULL && message_capacity > 0U)
+        (void)snprintf(out_message, message_capacity,
+                       "Selected build operation %llu: %s", operation_id,
+                       umi_status_text(status));
+    return status;
+}
+
+static UmiStatus build_select_artifact_handler(void *user_data,
+                                               const char *argument,
+                                               char *out_message,
+                                               size_t message_capacity)
+{
+    UmiBuildWorkspace *workspace = build_workspace(user_data);
+    UmiStatus status;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    if (argument == NULL || argument[0] == '\0')
+        return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_build_workspace_select_artifact(workspace, argument);
+    if (out_message != NULL && message_capacity > 0U)
+        (void)snprintf(out_message, message_capacity,
+                       "Selected build artifact %s: %s", argument,
+                       umi_status_text(status));
+    return status;
+}
+
+static UmiStatus build_run_next_handler(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t message_capacity)
+{
+    UmiStudioServices *services = (UmiStudioServices *)user_data;
+    UmiBuildResult result;
+    UmiStatus status;
+    (void)argument;
+
+    memset(&result, 0, sizeof(result));
+    status = umi_studio_build_service_execute_next(
+        umi_studio_services_build(services), &result);
+    if (status != UMI_STATUS_NOT_FOUND) {
+        UmiStatus diagnostic_status =
+            umi_studio_diagnostics_ingest_build_result(services, &result);
+        if (status == UMI_STATUS_OK && diagnostic_status != UMI_STATUS_OK)
+            status = diagnostic_status;
+    }
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_NOT_FOUND) {
+            (void)snprintf(out_message, message_capacity,
+                           "No build graph node is ready");
+        } else {
+            (void)snprintf(out_message, message_capacity,
+                           "Build operation #%" PRIu64 ": %s",
+                           result.operation_id, umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus build_run_all_handler(void *user_data,
+                                       const char *argument,
+                                       char *out_message,
+                                       size_t message_capacity)
+{
+    UmiStudioBuildService *service = umi_studio_services_build(
+        (UmiStudioServices *)user_data);
+    unsigned long maximum_nodes = UMI_BUILD_GRAPH_MAX_NODES;
+    char *end = NULL;
+    size_t executed = 0U;
+    UmiStatus status;
+
+    if (argument != NULL && argument[0] != '\0') {
+        errno = 0;
+        maximum_nodes = strtoul(argument, &end, 10);
+        if (errno != 0 || end == argument || *end != '\0' ||
+            maximum_nodes == 0UL || maximum_nodes > UMI_BUILD_GRAPH_MAX_NODES)
+            return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_studio_build_service_execute_all(
+        service, (size_t)maximum_nodes, &executed);
+    if (executed > 0U) {
+        UmiBuildResult latest;
+        if (umi_build_history_latest(
+                umi_studio_build_service_history(service), &latest) ==
+            UMI_STATUS_OK) {
+            UmiStatus diagnostic_status =
+                umi_studio_diagnostics_ingest_build_result(
+                    (UmiStudioServices *)user_data, &latest);
+            if (status == UMI_STATUS_OK && diagnostic_status != UMI_STATUS_OK)
+                status = diagnostic_status;
+        }
+    }
+    if (out_message != NULL && message_capacity > 0U)
+        (void)snprintf(out_message, message_capacity,
+                       "Build plan executed %zu node(s): %s", executed,
+                       umi_status_text(status));
+    return status;
+}
+
+static UmiStatus build_invalidate_handler(void *user_data,
+                                          const char *argument,
+                                          char *out_message,
+                                          size_t message_capacity)
+{
+    UmiStudioBuildService *service = umi_studio_services_build(
+        (UmiStudioServices *)user_data);
+    UmiBuildWorkspace *workspace = service != NULL
+        ? umi_studio_build_service_workspace(service) : NULL;
+    UmiBuildWorkspaceSnapshot snapshot;
+    UmiBuildGraphNodeSnapshot node;
+    const char *node_id = argument;
+    UmiStatus status;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    status = umi_build_workspace_snapshot(workspace, &snapshot);
+    if (status != UMI_STATUS_OK) return status;
+    if (node_id == NULL || node_id[0] == '\0')
+        node_id = snapshot.selected_node_id;
+    if (node_id[0] == '\0') return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_build_graph_find(umi_studio_build_service_graph(service),
+                                  node_id, &node);
+    if (status == UMI_STATUS_OK)
+        status = umi_studio_build_service_invalidate(
+            service, node_id, node.input_revision + 1U);
+    if (out_message != NULL && message_capacity > 0U)
+        (void)snprintf(out_message, message_capacity,
+                       "Invalidate build node %s: %s", node_id,
+                       umi_status_text(status));
+    return status;
+}
+
+static UmiStatus build_refresh_handler(void *user_data,
+                                       const char *argument,
+                                       char *out_message,
+                                       size_t message_capacity)
+{
+    UmiBuildWorkspace *workspace = build_workspace(user_data);
+    UmiBuildWorkspaceSnapshot snapshot;
+    UmiStatus status;
+    (void)argument;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    status = umi_build_workspace_refresh(workspace);
+    if (status == UMI_STATUS_OK)
+        status = umi_build_workspace_snapshot(workspace, &snapshot);
+    if (out_message != NULL && message_capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message, message_capacity,
+                           "Build workspace refreshed: %zu ready, %zu running, %zu failed",
+                           snapshot.graph.ready_count,
+                           snapshot.graph.running_count,
+                           snapshot.graph.failed_count);
+        } else {
+            (void)snprintf(out_message, message_capacity,
+                           "Build refresh: %s", umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus build_clear_history_handler(void *user_data,
+                                             const char *argument,
+                                             char *out_message,
+                                             size_t message_capacity)
+{
+    UmiBuildWorkspace *workspace = build_workspace(user_data);
+    (void)argument;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    umi_build_workspace_clear_history(workspace);
+    if (out_message != NULL && message_capacity > 0U)
+        (void)snprintf(out_message, message_capacity,
+                       "Build history and retained output cleared");
     return UMI_STATUS_OK;
 }
 
@@ -2409,6 +2686,79 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                   UMI_COMMAND_REQUIRES_TRUST |
                                   UMI_COMMAND_AUDITED,
                               build_cancel_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_FILTER,
+                              "Filter Build Graph", "Build",
+                              "Filter build nodes by text or lifecycle state.",
+                              "studio.build.read", UMI_COMMAND_NONE,
+                              build_filter_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_SELECT_NODE,
+                              "Select Build Node", "Build",
+                              "Select a build graph node by stable identifier.",
+                              "studio.build.read", UMI_COMMAND_NONE,
+                              build_select_node_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_SELECT_OPERATION,
+                              "Select Build Operation", "Build",
+                              "Select retained build evidence by operation ID.",
+                              "studio.build.read", UMI_COMMAND_NONE,
+                              build_select_operation_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_SELECT_ARTIFACT,
+                              "Select Build Artifact", "Build",
+                              "Select a produced artifact by stable identifier.",
+                              "studio.build.read", UMI_COMMAND_NONE,
+                              build_select_artifact_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_RUN_NEXT,
+                              "Run Next Build Node", "Build",
+                              "Execute the next ready dependency-graph node.",
+                              "studio.build.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              build_run_next_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_RUN_ALL,
+                              "Run Build Plan", "Build",
+                              "Execute ready build nodes in dependency order.",
+                              "studio.build.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              build_run_all_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_INVALIDATE,
+                              "Invalidate Build Node", "Build",
+                              "Mark a node pending after its inputs change.",
+                              "studio.build.execute",
+                              UMI_COMMAND_MUTATES_STATE |
+                                  UMI_COMMAND_REQUIRES_TRUST |
+                                  UMI_COMMAND_AUDITED,
+                              build_invalidate_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_REFRESH,
+                              "Refresh Build Workspace", "Build",
+                              "Refresh graph readiness, selection and totals.",
+                              "studio.build.read", UMI_COMMAND_NONE,
+                              build_refresh_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_BUILD_CLEAR_HISTORY,
+                              "Clear Build History", "Build",
+                              "Clear retained build results and output evidence.",
+                              "studio.build.execute",
+                              UMI_COMMAND_MUTATES_STATE | UMI_COMMAND_AUDITED,
+                              build_clear_history_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_TESTS_DISCOVER,

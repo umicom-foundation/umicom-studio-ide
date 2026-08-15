@@ -127,6 +127,28 @@ int main(void)
     ) == UMI_STATUS_OK);
     assert(strstr(message, "Build profile:") != NULL);
 
+    /*
+     * Filtering, stable selection and refresh remain entirely inside the
+     * Framework coordinator, so this exercises the professional workspace
+     * commands without launching a compiler process during the unit test.
+     */
+    assert(umi_command_registry_snapshot(
+               registry, UMI_STUDIO_COMMAND_BUILD_FILTER, &snapshot) ==
+           UMI_STATUS_OK);
+    assert(strcmp(snapshot.category, "Build") == 0);
+    assert(umi_command_registry_execute(
+               registry, UMI_STUDIO_COMMAND_BUILD_FILTER, "all",
+               message, sizeof(message)) == UMI_STATUS_OK);
+    assert(strstr(message, "build node") != NULL);
+    assert(umi_command_registry_execute(
+               registry, UMI_STUDIO_COMMAND_BUILD_SELECT_NODE, "configure",
+               message, sizeof(message)) == UMI_STATUS_OK);
+    assert(strstr(message, "configure") != NULL);
+    assert(umi_command_registry_execute(
+               registry, UMI_STUDIO_COMMAND_BUILD_REFRESH, "",
+               message, sizeof(message)) == UMI_STATUS_OK);
+    assert(strstr(message, "refreshed") != NULL);
+
     assert(umi_command_registry_execute(
         registry,
         UMI_STUDIO_COMMAND_AI_EXPLAIN_CODE,

@@ -21,6 +21,7 @@ struct UmiStudioBuildService {
     UmiBuildHistory *history;
     UmiBuildEngine *engine;
     UmiBuildArtifactIndex *artifacts;
+    UmiBuildWorkspace *workspace;
     UmiCancellationToken *cancellation;
     UmiBuildResult last_result;
     int has_last_result;
@@ -111,6 +112,15 @@ UmiStatus umi_studio_build_service_create(const char *source_root,
     if (status == UMI_STATUS_OK) {
         status = umi_build_artifact_index_create(&service->artifacts);
     }
+    if (status == UMI_STATUS_OK) {
+        UmiBuildWorkspaceBindings bindings;
+        umi_build_workspace_bindings_init(&bindings);
+        bindings.graph = umi_build_engine_graph(service->engine);
+        bindings.history = service->history;
+        bindings.artifacts = service->artifacts;
+        bindings.profile = &service->profile;
+        status = umi_build_workspace_create(&bindings, &service->workspace);
+    }
     if (status != UMI_STATUS_OK) {
         umi_studio_build_service_destroy(service);
         return status;
@@ -122,11 +132,21 @@ UmiStatus umi_studio_build_service_create(const char *source_root,
 void umi_studio_build_service_destroy(UmiStudioBuildService *service)
 {
     if (service == NULL) return;
+    umi_build_workspace_destroy(service->workspace);
     umi_build_artifact_index_destroy(service->artifacts);
     umi_build_engine_destroy(service->engine);
     umi_cancellation_token_destroy(service->cancellation);
     umi_build_history_destroy(service->history);
     free(service);
+}
+
+UmiStatus umi_studio_build_service_bind_task_queue(
+    UmiStudioBuildService *service,
+    UmiTaskQueue *task_queue)
+{
+    if (service == NULL || task_queue == NULL)
+        return UMI_STATUS_INVALID_ARGUMENT;
+    return umi_build_workspace_set_task_queue(service->workspace, task_queue);
 }
 
 UmiStatus umi_studio_build_service_set_profile(
@@ -168,6 +188,7 @@ UmiStatus umi_studio_build_service_execute_next(
     if (status != UMI_STATUS_NOT_FOUND) {
         service->last_result = *out_result;
         service->has_last_result = 1;
+        (void)umi_build_workspace_select_latest_operation(service->workspace);
     }
     return status;
 }
@@ -182,7 +203,10 @@ UmiStatus umi_studio_build_service_execute_all(
     status = umi_build_engine_execute_all(service->engine, maximum_nodes,
                                           out_executed_count);
     if (umi_build_history_latest(service->history, &service->last_result) ==
-        UMI_STATUS_OK) service->has_last_result = 1;
+        UMI_STATUS_OK) {
+        service->has_last_result = 1;
+        (void)umi_build_workspace_select_latest_operation(service->workspace);
+    }
     return status;
 }
 
@@ -194,18 +218,25 @@ void umi_studio_build_service_cancel(UmiStudioBuildService *service)
 UmiStatus umi_studio_build_service_retry(UmiStudioBuildService *service,
                                          const char *node_id)
 {
-    return service != NULL
-        ? umi_build_engine_retry(service->engine, node_id)
-        : UMI_STATUS_INVALID_ARGUMENT;
+    UmiStatus status;
+    if (service == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_build_engine_retry(service->engine, node_id);
+    if (status == UMI_STATUS_OK)
+        (void)umi_build_workspace_select_node(service->workspace, node_id);
+    return status;
 }
 
 UmiStatus umi_studio_build_service_invalidate(UmiStudioBuildService *service,
                                               const char *node_id,
                                               uint64_t input_revision)
 {
-    return service != NULL
-        ? umi_build_engine_invalidate(service->engine, node_id, input_revision)
-        : UMI_STATUS_INVALID_ARGUMENT;
+    UmiStatus status;
+    if (service == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    status = umi_build_engine_invalidate(service->engine, node_id,
+                                         input_revision);
+    if (status == UMI_STATUS_OK)
+        (void)umi_build_workspace_select_node(service->workspace, node_id);
+    return status;
 }
 
 UmiBuildGraph *umi_studio_build_service_graph(UmiStudioBuildService *service)
@@ -237,6 +268,7 @@ UmiStatus umi_studio_build_service_run(UmiStudioBuildService *service,
     status = umi_build_engine_execute_phase(service->engine, phase, out_result);
     service->last_result = *out_result;
     service->has_last_result = 1;
+    (void)umi_build_workspace_select_latest_operation(service->workspace);
     return status;
 }
 
@@ -274,7 +306,8 @@ UmiStatus umi_studio_build_service_snapshot(
         out_snapshot->diagnostic_count =
             service->last_result.diagnostics.count;
     }
-    return UMI_STATUS_OK;
+    return umi_build_workspace_snapshot(service->workspace,
+                                        &out_snapshot->workspace);
 }
 
 UmiBuildHistory *umi_studio_build_service_history(UmiStudioBuildService *service)
@@ -286,4 +319,10 @@ const UmiBuildProfile *umi_studio_build_service_profile(
     const UmiStudioBuildService *service)
 {
     return service != NULL ? &service->profile : NULL;
+}
+
+UmiBuildWorkspace *umi_studio_build_service_workspace(
+    UmiStudioBuildService *service)
+{
+    return service != NULL ? service->workspace : NULL;
 }

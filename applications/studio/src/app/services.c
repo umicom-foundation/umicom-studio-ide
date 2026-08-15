@@ -440,6 +440,12 @@ UmiStatus umi_studio_services_create(
         &services->developer_platform
     );
     if (status == UMI_STATUS_OK) {
+        status = umi_studio_build_service_bind_task_queue(
+            umi_studio_developer_platform_build(
+                services->developer_platform),
+            services->task_queue);
+    }
+    if (status == UMI_STATUS_OK) {
         status = umi_studio_build_service_prepare_default_graph(
             umi_studio_developer_platform_build(
                 services->developer_platform),

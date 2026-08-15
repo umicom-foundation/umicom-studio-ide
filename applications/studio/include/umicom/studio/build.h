@@ -36,6 +36,7 @@ typedef struct UmiStudioBuildSnapshot {
     size_t diagnostic_count;
     UmiBuildGraphSnapshot graph;
     size_t artifact_count;
+    UmiBuildWorkspaceSnapshot workspace;
 } UmiStudioBuildSnapshot;
 
 UmiStatus umi_studio_build_service_create(const char *source_root,
@@ -45,6 +46,10 @@ void umi_studio_build_service_destroy(UmiStudioBuildService *service);
 UmiStatus umi_studio_build_service_set_profile(
     UmiStudioBuildService *service,
     const UmiBuildProfile *profile
+);
+UmiStatus umi_studio_build_service_bind_task_queue(
+    UmiStudioBuildService *service,
+    UmiTaskQueue *task_queue
 );
 UmiStatus umi_studio_build_service_run(UmiStudioBuildService *service,
                                        UmiBuildPhase phase,
@@ -80,6 +85,9 @@ UmiBuildHistory *umi_studio_build_service_history(
 );
 const UmiBuildProfile *umi_studio_build_service_profile(
     const UmiStudioBuildService *service
+);
+UmiBuildWorkspace *umi_studio_build_service_workspace(
+    UmiStudioBuildService *service
 );
 
 #ifdef __cplusplus

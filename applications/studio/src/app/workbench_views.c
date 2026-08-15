@@ -37,6 +37,7 @@
 #include "umicom/studio/source_control.h"
 #include "umicom/studio/tests.h"
 #include "umicom/studio/terminal.h"
+#include "umicom/build_ui/build_ui.h"
 #include "umicom/test_ui/test_ui.h"
 
 #define VIEW_EXPLORER      "studio.project-explorer"
@@ -61,6 +62,12 @@
 #define VIEW_TEST_OUTPUT   "studio.test-output"
 #define VIEW_TEST_COVERAGE "studio.test-coverage"
 #define VIEW_TEST_RUNS     "studio.test-runs"
+#define VIEW_BUILD_DASHBOARD "studio.build-dashboard"
+#define VIEW_BUILD_GRAPH "studio.build-graph"
+#define VIEW_BUILD_HISTORY "studio.build-history"
+#define VIEW_BUILD_OUTPUT "studio.build-output"
+#define VIEW_BUILD_ARTIFACTS "studio.build-artifacts"
+#define VIEW_BUILD_TASKS "studio.build-tasks"
 #define VIEW_DESIGNER      "studio.designer"
 #define VIEW_APPLICATIONS  "studio.application-hub"
 #define VIEW_FRAMEWORK     "studio.framework"
@@ -622,6 +629,38 @@ static UmiStatus create_test_runs(const char *view_id, void *user_data,
         : UMI_STATUS_UNAVAILABLE;
 }
 
+static UmiBuildWorkspace *build_workspace_for_view(void *user_data)
+{
+    UmiStudioBuildService *service = umi_studio_services_build(
+        (UmiStudioServices *)user_data);
+    return service != NULL
+        ? umi_studio_build_service_workspace(service) : NULL;
+}
+
+#define DEFINE_BUILD_VIEW_FACTORY(name_, framework_factory_)                \
+    static UmiStatus name_(const char *view_id, void *user_data,            \
+                           UmiUiViewModel **out_view)                       \
+    {                                                                       \
+        UmiBuildWorkspace *workspace = build_workspace_for_view(user_data); \
+        return workspace != NULL                                            \
+            ? framework_factory_(view_id, workspace, out_view)              \
+            : UMI_STATUS_UNAVAILABLE;                                       \
+    }
+
+DEFINE_BUILD_VIEW_FACTORY(create_build_dashboard,
+                          umi_build_ui_dashboard_view_create)
+DEFINE_BUILD_VIEW_FACTORY(create_build_graph,
+                          umi_build_ui_graph_view_create)
+DEFINE_BUILD_VIEW_FACTORY(create_build_history,
+                          umi_build_ui_history_view_create)
+DEFINE_BUILD_VIEW_FACTORY(create_build_output,
+                          umi_build_ui_output_view_create)
+DEFINE_BUILD_VIEW_FACTORY(create_build_artifacts,
+                          umi_build_ui_artifacts_view_create)
+DEFINE_BUILD_VIEW_FACTORY(create_build_tasks,
+                          umi_build_ui_tasks_view_create)
+#undef DEFINE_BUILD_VIEW_FACTORY
+
 static UmiStatus create_output(const char *view_id,
                                void *user_data,
                                UmiUiViewModel **out_view)
@@ -972,6 +1011,12 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_TEST_OUTPUT, create_test_output },
     { VIEW_TEST_COVERAGE, create_test_coverage },
     { VIEW_TEST_RUNS, create_test_runs },
+    { VIEW_BUILD_DASHBOARD, create_build_dashboard },
+    { VIEW_BUILD_GRAPH, create_build_graph },
+    { VIEW_BUILD_HISTORY, create_build_history },
+    { VIEW_BUILD_OUTPUT, create_build_output },
+    { VIEW_BUILD_ARTIFACTS, create_build_artifacts },
+    { VIEW_BUILD_TASKS, create_build_tasks },
     { VIEW_DESIGNER, create_designer },
     { VIEW_APPLICATIONS, create_applications },
     { VIEW_FRAMEWORK, create_framework },

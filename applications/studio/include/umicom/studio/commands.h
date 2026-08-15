@@ -64,6 +64,17 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_BUILD_INSTALL "studio.build.install"
 #define UMI_STUDIO_COMMAND_BUILD_RETRY "studio.build.retry"
 #define UMI_STUDIO_COMMAND_BUILD_CANCEL "studio.build.cancel"
+#define UMI_STUDIO_COMMAND_BUILD_FILTER "studio.build.filter"
+#define UMI_STUDIO_COMMAND_BUILD_SELECT_NODE "studio.build.select-node"
+#define UMI_STUDIO_COMMAND_BUILD_SELECT_OPERATION \
+    "studio.build.select-operation"
+#define UMI_STUDIO_COMMAND_BUILD_SELECT_ARTIFACT \
+    "studio.build.select-artifact"
+#define UMI_STUDIO_COMMAND_BUILD_RUN_NEXT "studio.build.run-next"
+#define UMI_STUDIO_COMMAND_BUILD_RUN_ALL "studio.build.run-all"
+#define UMI_STUDIO_COMMAND_BUILD_INVALIDATE "studio.build.invalidate"
+#define UMI_STUDIO_COMMAND_BUILD_REFRESH "studio.build.refresh"
+#define UMI_STUDIO_COMMAND_BUILD_CLEAR_HISTORY "studio.build.clear-history"
 #define UMI_STUDIO_COMMAND_TESTS_DISCOVER "studio.tests.discover"
 #define UMI_STUDIO_COMMAND_TESTS_FILTER "studio.tests.filter"
 #define UMI_STUDIO_COMMAND_TESTS_SELECT "studio.tests.select"
@@ -142,7 +153,7 @@ extern "C" {
     "studio.vcs.diff-selected-staged"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 115U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 124U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);
