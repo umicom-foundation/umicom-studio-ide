@@ -84,6 +84,7 @@ add_library(umicom_studio_core STATIC
     src/app/workspace_layouts.c
     src/app/workspace_profiles.c
     src/app/workspace_profile_session.c
+    src/app/editor_layout_session.c
     src/app/workspace_groups.c
     src/app/workspace_themes.c
     src/app/appearance_centre.c
@@ -1720,6 +1721,7 @@ foreach(UMICOM_STUDIO_WORKSPACE_TEST
         workspace_layouts
         workspace_profiles
         workspace_profile_session
+        editor_layout_session
         workspace_groups
         workspace_themes
         appearance_centre
