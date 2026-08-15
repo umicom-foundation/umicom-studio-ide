@@ -33,8 +33,9 @@ typedef struct UmiStudioUi UmiStudioUi;
 #define UMI_STUDIO_COMMAND_WORKSPACE_PROFILE_ACTIVATE \
     "studio.ui.workspace-profile.activate"
 #define UMI_STUDIO_COMMAND_NOTIFICATION_INFO "studio.ui.notification.info"
+#define UMI_STUDIO_COMMAND_QUICK_ACCESS_SHOW "studio.ui.quick-access.show"
 
-#define UMI_STUDIO_WORKBENCH_COMMAND_COUNT 10U
+#define UMI_STUDIO_WORKBENCH_COMMAND_COUNT 11U
 
 UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
                                                   UmiStudioUi *ui);

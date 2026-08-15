@@ -322,13 +322,22 @@ static UmiStatus register_keybindings(UmiUiWorkbench *workbench)
                                  110);
     if (status != UMI_STATUS_OK) return status;
 
+    status = register_keybinding(workbench,
+                                 "studio.keys.auxiliary-toggle",
+                                 UMI_STUDIO_COMMAND_AUXILIARY_TOGGLE,
+                                 "",
+                                 "Ctrl+Alt+B",
+                                 "",
+                                 120);
+    if (status != UMI_STATUS_OK) return status;
+
     return register_keybinding(workbench,
-                               "studio.keys.auxiliary-toggle",
-                               UMI_STUDIO_COMMAND_AUXILIARY_TOGGLE,
+                               "studio.keys.command-palette",
+                               UMI_STUDIO_COMMAND_QUICK_ACCESS_SHOW,
                                "",
-                               "Ctrl+Alt+B",
+                               "Ctrl+Shift+P",
                                "",
-                               120);
+                               130);
 }
 
 static UmiStatus seed_explorer(UmiUiWorkbench *workbench)

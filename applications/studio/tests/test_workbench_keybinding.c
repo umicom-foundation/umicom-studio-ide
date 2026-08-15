@@ -33,6 +33,26 @@ int main(void)
     assert(strcmp(resolution.argument,
                   UMI_STUDIO_ACTIVITY_SEARCH) == 0);
 
+    assert(umi_ui_workbench_resolve_keybinding(workbench,
+                                               "Ctrl+Shift+P",
+                                               &resolution) == UMI_STATUS_OK);
+    assert(strcmp(resolution.command_id,
+                  UMI_STUDIO_COMMAND_QUICK_ACCESS_SHOW) == 0);
+    assert(umi_command_registry_execute(umi_ui_workbench_commands(workbench),
+                                        resolution.command_id,
+                                        NULL,
+                                        NULL,
+                                        0U) == UMI_STATUS_OK);
+    {
+        UmiUiContextSnapshot request;
+        assert(umi_ui_context_get(
+            umi_ui_workbench_context(workbench),
+            UMI_UI_QUICK_ACCESS_REQUEST_CONTEXT_KEY,
+            &request) == UMI_STATUS_OK);
+        assert(request.kind == UMI_UI_CONTEXT_INTEGER);
+        assert(request.integer_value == 1);
+    }
+
     umi_studio_bootstrap_destroy(bootstrap);
     return 0;
 }

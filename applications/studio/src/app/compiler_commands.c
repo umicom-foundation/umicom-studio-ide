@@ -3,7 +3,7 @@
 #include <string.h>
 static const UmiStudioCompilerCommand COMMANDS[] = {
     {"compiler.detect","Detect Compilers","Compiler","Ctrl+Shift+Alt+D",false,false,false},
-    {"compiler.profile.select","Select Compiler Profile","Compiler","Ctrl+Shift+P",false,true,false},
+    {"compiler.profile.select","Select Compiler Profile","Compiler","Ctrl+Alt+Shift+P",false,true,false},
     {"compiler.project.configure","Configure Polyglot Project","Build","Ctrl+Shift+C",true,true,false},
     {"compiler.build","Build Active Project","Build","Ctrl+Shift+B",true,true,false},
     {"compiler.rebuild","Rebuild Active Project","Build","Ctrl+Alt+B",true,true,true},

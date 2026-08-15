@@ -18,6 +18,7 @@
 
 #include "umicom/studio/workbench_commands.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -263,6 +264,37 @@ static UmiStatus notification_info(void *user_data,
     return status;
 }
 
+static UmiStatus quick_access_show(void *user_data,
+                                   const char *argument,
+                                   char *out_message,
+                                   size_t capacity)
+{
+    UmiStudioUi *ui = (UmiStudioUi *)user_data;
+    UmiUiContextStore *context;
+    UmiUiContextSnapshot current;
+    int64_t request = 1;
+    UmiStatus status;
+    (void)argument;
+    if (ui == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    context = umi_ui_workbench_context(umi_studio_ui_workbench(ui));
+    if (umi_ui_context_get(context,
+                           UMI_UI_QUICK_ACCESS_REQUEST_CONTEXT_KEY,
+                           &current) == UMI_STATUS_OK &&
+        current.kind == UMI_UI_CONTEXT_INTEGER &&
+        current.integer_value < INT64_MAX) {
+        request = current.integer_value + 1;
+    }
+    status = umi_ui_context_set_integer(
+        context, UMI_UI_QUICK_ACCESS_REQUEST_CONTEXT_KEY, request);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "%s",
+                       status == UMI_STATUS_OK
+                           ? "Command palette ready"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
 UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
                                                   UmiStudioUi *ui)
 {
@@ -303,7 +335,11 @@ UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
           workspace_profile_activate, UMI_COMMAND_MUTATES_STATE },
         { UMI_STUDIO_COMMAND_NOTIFICATION_INFO,
           "Show Notification", "Publish an information notification",
-          notification_info, UMI_COMMAND_MUTATES_STATE }
+          notification_info, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_QUICK_ACCESS_SHOW,
+          "Show Command Palette",
+          "Focus the global action-aware command palette",
+          quick_access_show, UMI_COMMAND_MUTATES_STATE }
     };
     size_t index;
     UmiStatus status;
