@@ -32,6 +32,13 @@ typedef struct UmiStudioApplicationCentreSnapshot {
     char summary[512];
     uint64_t revision;
     size_t item_count;
+    size_t available_count;
+    size_t foundation_count;
+    size_t roadmap_count;
+    size_t reusable_component_count;
+    size_t gtk4_widget_count;
+    size_t architecture_error_count;
+    int architecture_passed;
     int available;
 } UmiStudioApplicationCentreSnapshot;
 UmiStatus umi_studio_application_centre_snapshot(UmiStudioServices *services, UmiStudioApplicationCentreSnapshot *out_snapshot);

@@ -1270,6 +1270,7 @@ if(BUILD_TESTING)
             ui_services
             ui_session
             ui_actions
+            application_authority
             extension_centre
             product_centre_views)
         add_executable(umicom-studio-${UMICOM_STUDIO_UI_TEST}-test
@@ -1464,6 +1465,7 @@ if(BUILD_TESTING)
         studio.ui_services
         studio.ui_session
         studio.ui_actions
+        studio.application_authority
         studio.extension_centre
         studio.product_centre_views
         studio.trading_service

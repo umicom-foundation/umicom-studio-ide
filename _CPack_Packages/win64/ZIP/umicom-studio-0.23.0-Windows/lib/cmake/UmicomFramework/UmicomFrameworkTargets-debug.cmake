@@ -205,6 +205,16 @@ set_target_properties(Umicom::build PROPERTIES
 list(APPEND _cmake_import_check_targets Umicom::build )
 list(APPEND _cmake_import_check_files_for_Umicom::build "${_IMPORT_PREFIX}/lib/libumicom_build.a" )
 
+# Import target "Umicom::build_ui" for configuration "Debug"
+set_property(TARGET Umicom::build_ui APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+set_target_properties(Umicom::build_ui PROPERTIES
+  IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "C"
+  IMPORTED_LOCATION_DEBUG "${_IMPORT_PREFIX}/lib/libumicom_build_ui.a"
+  )
+
+list(APPEND _cmake_import_check_targets Umicom::build_ui )
+list(APPEND _cmake_import_check_files_for_Umicom::build_ui "${_IMPORT_PREFIX}/lib/libumicom_build_ui.a" )
+
 # Import target "Umicom::diagnostic_ui" for configuration "Debug"
 set_property(TARGET Umicom::diagnostic_ui APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
 set_target_properties(Umicom::diagnostic_ui PROPERTIES
@@ -465,6 +475,16 @@ set_target_properties(Umicom::trading PROPERTIES
 list(APPEND _cmake_import_check_targets Umicom::trading )
 list(APPEND _cmake_import_check_files_for_Umicom::trading "${_IMPORT_PREFIX}/lib/libumicom_trading.a" )
 
+# Import target "Umicom::trading_ui" for configuration "Debug"
+set_property(TARGET Umicom::trading_ui APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+set_target_properties(Umicom::trading_ui PROPERTIES
+  IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "C"
+  IMPORTED_LOCATION_DEBUG "${_IMPORT_PREFIX}/lib/libumicom_trading_ui.a"
+  )
+
+list(APPEND _cmake_import_check_targets Umicom::trading_ui )
+list(APPEND _cmake_import_check_files_for_Umicom::trading_ui "${_IMPORT_PREFIX}/lib/libumicom_trading_ui.a" )
+
 # Import target "Umicom::codeguard" for configuration "Debug"
 set_property(TARGET Umicom::codeguard APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
 set_target_properties(Umicom::codeguard PROPERTIES
@@ -524,6 +544,16 @@ set_target_properties(Umicom::test_platform PROPERTIES
 
 list(APPEND _cmake_import_check_targets Umicom::test_platform )
 list(APPEND _cmake_import_check_files_for_Umicom::test_platform "${_IMPORT_PREFIX}/lib/libumicom_test_platform.a" )
+
+# Import target "Umicom::test_ui" for configuration "Debug"
+set_property(TARGET Umicom::test_ui APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+set_target_properties(Umicom::test_ui PROPERTIES
+  IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "C"
+  IMPORTED_LOCATION_DEBUG "${_IMPORT_PREFIX}/lib/libumicom_test_ui.a"
+  )
+
+list(APPEND _cmake_import_check_targets Umicom::test_ui )
+list(APPEND _cmake_import_check_files_for_Umicom::test_ui "${_IMPORT_PREFIX}/lib/libumicom_test_ui.a" )
 
 # Import target "Umicom::developer" for configuration "Debug"
 set_property(TARGET Umicom::developer APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)

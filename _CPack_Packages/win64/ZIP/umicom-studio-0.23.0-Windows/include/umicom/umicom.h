@@ -155,6 +155,7 @@
 #include "umicom/debug/debug.h"
 #include "umicom/source_control/source_control.h"
 #include "umicom/test_platform/test_platform.h"
+#include "umicom/test_ui/test_ui.h"
 #include "umicom/developer/developer.h"
 
 #include "umicom/build/types.h"
@@ -174,6 +175,8 @@
 #include "umicom/build/plan.h"
 #include "umicom/build/engine.h"
 #include "umicom/build/artifact.h"
+#include "umicom/build/workspace.h"
+#include "umicom/build_ui/build_ui.h"
 #include "umicom/diagnostic_ui/diagnostic_ui.h"
 
 #include "umicom/testing/types.h"
@@ -290,6 +293,8 @@
 #include "umicom/product/product.h"
 #include "umicom/distribution/distribution.h"
 #include "umicom/distribution_ui/distribution_ui.h"
+#include "umicom/trading/trading.h"
+#include "umicom/trading_ui/trading_ui.h"
 #include "umicom/codeguard/codeguard.h"
 
 #include "umicom/runtime/capability_registry.h"

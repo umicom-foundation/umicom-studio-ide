@@ -41,6 +41,7 @@
 #include "umicom/build_ui/build_ui.h"
 #include "umicom/test_ui/test_ui.h"
 #include "umicom/trading_ui/trading_ui.h"
+#include "umicom/application_ui/application_ui.h"
 
 #define VIEW_EXPLORER      "studio.project-explorer"
 #define VIEW_SEARCH        "studio.search"
@@ -80,6 +81,9 @@
 #define VIEW_TRADING_PORTFOLIO_RISK "studio.trading-portfolio-risk"
 #define VIEW_DESIGNER      "studio.designer"
 #define VIEW_APPLICATIONS  "studio.application-hub"
+#define VIEW_APPLICATION_COMPONENTS "studio.application-components"
+#define VIEW_GTK4_COVERAGE "studio.gtk4-coverage"
+#define VIEW_ARCHITECTURE "studio.architecture"
 #define VIEW_FRAMEWORK     "studio.framework"
 #define VIEW_AI            "studio.authorengine"
 #define VIEW_AI_RUNTIMES   "studio.ai-runtimes"
@@ -810,24 +814,34 @@ static UmiStatus create_applications(const char *view_id,
                                      void *user_data,
                                      UmiUiViewModel **out_view)
 {
-    UmiStatus status;
     (void)user_data;
+    return umi_application_ui_portfolio_view_create(
+        view_id, "org.umicom.studio", out_view);
+}
 
-    status = create_base_view(
-        view_id,
-        VIEW_APPLICATIONS,
-        "Applications",
-        "Umicom application catalogue, runtime presence and safe launch planning.",
-        out_view);
-    if (status == UMI_STATUS_OK) {
-        status = property_string(*out_view, "provider",
-                                 "Studio Runtime Manager / Integration Fabric");
-    }
-    if (status == UMI_STATUS_OK) {
-        status = property_string(*out_view, "launch-mode",
-                                 "planned and supervised");
-    }
-    return status;
+static UmiStatus create_application_components(const char *view_id,
+                                                void *user_data,
+                                                UmiUiViewModel **out_view)
+{
+    (void)user_data;
+    return umi_application_ui_component_catalogue_view_create(
+        view_id, "development", out_view);
+}
+
+static UmiStatus create_gtk4_coverage(const char *view_id,
+                                      void *user_data,
+                                      UmiUiViewModel **out_view)
+{
+    (void)user_data;
+    return umi_application_ui_gtk4_coverage_view_create(view_id, out_view);
+}
+
+static UmiStatus create_architecture_audit(const char *view_id,
+                                           void *user_data,
+                                           UmiUiViewModel **out_view)
+{
+    (void)user_data;
+    return umi_application_ui_boundary_audit_view_create(view_id, out_view);
 }
 
 static UmiStatus create_framework(const char *view_id,
@@ -1074,6 +1088,9 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_TRADING_PORTFOLIO_RISK, create_trading_portfolio_risk },
     { VIEW_DESIGNER, create_designer },
     { VIEW_APPLICATIONS, create_applications },
+    { VIEW_APPLICATION_COMPONENTS, create_application_components },
+    { VIEW_GTK4_COVERAGE, create_gtk4_coverage },
+    { VIEW_ARCHITECTURE, create_architecture_audit },
     { VIEW_FRAMEWORK, create_framework },
     { VIEW_AI, create_ai },
     { VIEW_AI_RUNTIMES, create_ai_runtimes },

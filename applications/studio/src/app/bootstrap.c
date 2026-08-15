@@ -107,6 +107,15 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         return status;
     }
 
+    status = umi_master_controller_install_application_authority(
+        bootstrap->master, "org.umicom.studio");
+    if (status != UMI_STATUS_OK) {
+        umi_master_controller_destroy(bootstrap->master);
+        umi_studio_services_destroy(bootstrap->services);
+        free(bootstrap);
+        return status;
+    }
+
     status = umi_studio_services_publish(bootstrap->services,
                                          bootstrap->master);
     if (status != UMI_STATUS_OK) {
@@ -166,6 +175,9 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
             "umicom.configuration",
             "umicom.runtime.capabilities",
             "umicom.security.policy",
+            "umicom.application.federation",
+            "umicom.application.context",
+            "umicom.application.resources",
             NULL
         };
         static const char *optional_capabilities[] = {
@@ -203,6 +215,7 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         &bootstrap->studio_shell_module
     );
     if (status != UMI_STATUS_OK) {
+        umi_studio_ui_destroy(bootstrap->ui);
         umi_master_controller_destroy(bootstrap->master);
         umi_studio_services_destroy(bootstrap->services);
         free(bootstrap);

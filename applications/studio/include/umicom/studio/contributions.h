@@ -77,6 +77,9 @@ extern "C" {
     "studio.pane.trading-portfolio-risk"
 #define UMI_STUDIO_PANE_DESIGNER "studio.pane.designer"
 #define UMI_STUDIO_PANE_APPLICATIONS "studio.pane.applications"
+#define UMI_STUDIO_PANE_APPLICATION_COMPONENTS \
+    "studio.pane.application-components"
+#define UMI_STUDIO_PANE_GTK4_COVERAGE "studio.pane.gtk4-coverage"
 #define UMI_STUDIO_PANE_FRAMEWORK "studio.pane.framework"
 #define UMI_STUDIO_PANE_AI "studio.pane.ai"
 #define UMI_STUDIO_PANE_AI_RUNTIMES "studio.pane.ai-runtimes"

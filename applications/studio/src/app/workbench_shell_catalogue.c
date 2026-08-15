@@ -127,7 +127,9 @@ static UmiStatus register_view_containers(UmiUiWorkbench *workbench)
         "studio.designer.inspector"
     };
     static const char *const APPLICATIONS[] = {
-        UMI_STUDIO_PANE_APPLICATIONS
+        UMI_STUDIO_PANE_APPLICATIONS,
+        UMI_STUDIO_PANE_APPLICATION_COMPONENTS,
+        UMI_STUDIO_PANE_GTK4_COVERAGE
     };
     static const char *const FRAMEWORK[] = {
         UMI_STUDIO_PANE_FRAMEWORK,

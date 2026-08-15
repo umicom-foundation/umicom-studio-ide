@@ -53,6 +53,8 @@ UmiHealthRegistry *umi_studio_bootstrap_health_registry(
     UmiStudioBootstrap *bootstrap
 );
 UmiStudioUi *umi_studio_bootstrap_ui(UmiStudioBootstrap *bootstrap);
+UmiApplicationSupervisor *umi_studio_bootstrap_application_supervisor(
+    UmiStudioBootstrap *bootstrap);
 
 #ifdef __cplusplus
 }
