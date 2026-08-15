@@ -23,6 +23,11 @@ int main(void)
     umi_ui_workbench_state_init(&state);
     state.sidebar_visible = 0;
     state.bottom_panel_size = 280;
+    state.editor_split_mode = UMI_UI_EDITOR_SPLIT_COLUMNS;
+    state.editor_split_ratio = 4200;
+    (void)snprintf(state.active_editor_group,
+                   sizeof(state.active_editor_group), "%s",
+                   UMI_UI_SECONDARY_EDITOR_GROUP_ID);
     (void)snprintf(state.active_activity, sizeof(state.active_activity),
                    "%s", "studio.activity.framework");
     (void)snprintf(state.active_workspace_profile,
@@ -36,5 +41,14 @@ int main(void)
     assert(strcmp(decoded.active_activity,
                   "studio.activity.framework") == 0);
     assert(strcmp(decoded.active_workspace_profile, "focus") == 0);
+    assert(decoded.editor_split_mode == UMI_UI_EDITOR_SPLIT_COLUMNS);
+    assert(decoded.editor_split_ratio == 4200);
+    assert(strcmp(decoded.active_editor_group,
+                  UMI_UI_SECONDARY_EDITOR_GROUP_ID) == 0);
+    assert(umi_ui_workbench_state_decode(
+               "v2|explorer|files|develop|welcome|focus|1|0|1|280|360|240|7",
+               &decoded) == UMI_STATUS_OK);
+    assert(decoded.editor_split_mode == UMI_UI_EDITOR_SPLIT_SINGLE);
+    assert(decoded.editor_split_ratio == UMI_UI_EDITOR_SPLIT_RATIO_DEFAULT);
     return 0;
 }

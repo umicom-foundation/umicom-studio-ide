@@ -358,13 +358,58 @@ static UmiStatus register_keybindings(UmiUiWorkbench *workbench)
                                  150);
     if (status != UMI_STATUS_OK) return status;
 
+    status = register_keybinding(workbench,
+                                 "studio.keys.editor-split-right",
+                                 UMI_STUDIO_COMMAND_EDITOR_SPLIT_RIGHT,
+                                 "",
+                                 "Ctrl+\\",
+                                 "",
+                                 160);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_keybinding(workbench,
+                                 "studio.keys.editor-split-down",
+                                 UMI_STUDIO_COMMAND_EDITOR_SPLIT_DOWN,
+                                 "",
+                                 "Ctrl+Shift+\\",
+                                 "",
+                                 170);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_keybinding(workbench,
+                                 "studio.keys.editor-move-next-group",
+                                 UMI_STUDIO_COMMAND_EDITOR_MOVE_NEXT_GROUP,
+                                 "",
+                                 "Ctrl+Alt+Right",
+                                 "",
+                                 180);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_keybinding(workbench,
+                                 "studio.keys.editor-move-previous-group",
+                                 UMI_STUDIO_COMMAND_EDITOR_MOVE_PREVIOUS_GROUP,
+                                 "",
+                                 "Ctrl+Alt+Left",
+                                 "",
+                                 190);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_keybinding(workbench,
+                                 "studio.keys.editor-focus-next-group",
+                                 UMI_STUDIO_COMMAND_EDITOR_FOCUS_NEXT_GROUP,
+                                 "",
+                                 "Ctrl+Alt+G",
+                                 "",
+                                 200);
+    if (status != UMI_STATUS_OK) return status;
+
     return register_keybinding(workbench,
                                "studio.keys.editor-word-wrap",
                                UMI_STUDIO_COMMAND_EDITOR_WORD_WRAP_TOGGLE,
                                "",
                                "Alt+Z",
                                "",
-                               160);
+                               210);
 }
 
 static UmiStatus seed_explorer(UmiUiWorkbench *workbench)

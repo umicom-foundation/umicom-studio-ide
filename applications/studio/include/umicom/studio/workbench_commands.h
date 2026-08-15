@@ -42,8 +42,20 @@ typedef struct UmiStudioUi UmiStudioUi;
     "studio.editor.word-wrap-toggle"
 #define UMI_STUDIO_COMMAND_EDITOR_NEXT "studio.editor.next"
 #define UMI_STUDIO_COMMAND_EDITOR_PREVIOUS "studio.editor.previous"
+#define UMI_STUDIO_COMMAND_EDITOR_SPLIT_RIGHT "studio.editor.split-right"
+#define UMI_STUDIO_COMMAND_EDITOR_SPLIT_DOWN "studio.editor.split-down"
+#define UMI_STUDIO_COMMAND_EDITOR_MOVE_NEXT_GROUP \
+    "studio.editor.move-next-group"
+#define UMI_STUDIO_COMMAND_EDITOR_MOVE_PREVIOUS_GROUP \
+    "studio.editor.move-previous-group"
+#define UMI_STUDIO_COMMAND_EDITOR_FOCUS_NEXT_GROUP \
+    "studio.editor.focus-next-group"
+#define UMI_STUDIO_COMMAND_EDITOR_BALANCE_GROUPS \
+    "studio.editor.balance-groups"
+#define UMI_STUDIO_COMMAND_EDITOR_RESET_GROUPS \
+    "studio.editor.reset-groups"
 
-#define UMI_STUDIO_WORKBENCH_COMMAND_COUNT 18U
+#define UMI_STUDIO_WORKBENCH_COMMAND_COUNT 25U
 
 UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
                                                   UmiStudioUi *ui);

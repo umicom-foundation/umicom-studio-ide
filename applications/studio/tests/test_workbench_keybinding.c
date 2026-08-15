@@ -65,6 +65,16 @@ int main(void)
     assert(strcmp(resolution.command_id,
                   UMI_STUDIO_COMMAND_EDITOR_PREVIOUS) == 0);
     assert(umi_ui_workbench_resolve_keybinding(workbench,
+                                               "Ctrl+\\",
+                                               &resolution) == UMI_STATUS_OK);
+    assert(strcmp(resolution.command_id,
+                  UMI_STUDIO_COMMAND_EDITOR_SPLIT_RIGHT) == 0);
+    assert(umi_ui_workbench_resolve_keybinding(workbench,
+                                               "Ctrl+Alt+Right",
+                                               &resolution) == UMI_STATUS_OK);
+    assert(strcmp(resolution.command_id,
+                  UMI_STUDIO_COMMAND_EDITOR_MOVE_NEXT_GROUP) == 0);
+    assert(umi_ui_workbench_resolve_keybinding(workbench,
                                                "Alt+Z",
                                                &resolution) == UMI_STATUS_OK);
     assert(strcmp(resolution.command_id,

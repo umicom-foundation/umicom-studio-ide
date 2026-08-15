@@ -497,6 +497,231 @@ static UmiStatus editor_previous(void *user_data,
     return editor_navigate(user_data, -1, out_message, capacity);
 }
 
+static const char *other_editor_group(const char *group_id)
+{
+    return strcmp(group_id, UMI_UI_SECONDARY_EDITOR_GROUP_ID) == 0
+        ? UMI_UI_PRIMARY_EDITOR_GROUP_ID
+        : UMI_UI_SECONDARY_EDITOR_GROUP_ID;
+}
+
+static UmiStatus editor_split(void *user_data,
+                              UmiUiEditorSplitMode mode,
+                              char *out_message,
+                              size_t capacity)
+{
+    UmiUiWorkbench *workbench = NULL;
+    UmiUiDocumentViewSnapshot document;
+    UmiUiWorkbenchState state;
+    UmiStatus status = active_document((UmiStudioUi *)user_data,
+                                       &workbench, &document);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_ui_workbench_state_snapshot(workbench, &state);
+    if (status != UMI_STATUS_OK) return status;
+    state.editor_split_mode = mode;
+    state.editor_split_ratio = UMI_UI_EDITOR_SPLIT_RATIO_DEFAULT;
+    if (strcmp(document.group_id,
+               UMI_UI_SECONDARY_EDITOR_GROUP_ID) != 0) {
+        status = umi_ui_document_view_model_move_to_group(
+            umi_ui_workbench_documents(workbench), document.view_id,
+            UMI_UI_SECONDARY_EDITOR_GROUP_ID);
+        if (status != UMI_STATUS_OK) return status;
+    }
+    (void)snprintf(state.active_editor_group,
+                   sizeof(state.active_editor_group), "%s",
+                   UMI_UI_SECONDARY_EDITOR_GROUP_ID);
+    status = umi_ui_workbench_state_apply(workbench, &state);
+    if (status == UMI_STATUS_OK) {
+        status = umi_ui_workbench_activate_document(workbench,
+                                                    document.view_id);
+    }
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "%s",
+                       status == UMI_STATUS_OK
+                           ? (mode == UMI_UI_EDITOR_SPLIT_COLUMNS
+                                  ? "Editor split into columns"
+                                  : "Editor split into rows")
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus editor_split_right(void *user_data,
+                                    const char *argument,
+                                    char *out_message,
+                                    size_t capacity)
+{
+    (void)argument;
+    return editor_split(user_data, UMI_UI_EDITOR_SPLIT_COLUMNS,
+                        out_message, capacity);
+}
+
+static UmiStatus editor_split_down(void *user_data,
+                                   const char *argument,
+                                   char *out_message,
+                                   size_t capacity)
+{
+    (void)argument;
+    return editor_split(user_data, UMI_UI_EDITOR_SPLIT_ROWS,
+                        out_message, capacity);
+}
+
+static UmiStatus editor_move_group(void *user_data,
+                                   char *out_message,
+                                   size_t capacity)
+{
+    UmiUiWorkbench *workbench = NULL;
+    UmiUiDocumentViewSnapshot document;
+    UmiUiWorkbenchState state;
+    const char *target_group;
+    UmiStatus status = active_document((UmiStudioUi *)user_data,
+                                       &workbench, &document);
+    if (status != UMI_STATUS_OK) return status;
+    target_group = other_editor_group(document.group_id);
+    status = umi_ui_document_view_model_move_to_group(
+        umi_ui_workbench_documents(workbench), document.view_id,
+        target_group);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_ui_workbench_state_snapshot(workbench, &state);
+    if (status != UMI_STATUS_OK) return status;
+    if (state.editor_split_mode == UMI_UI_EDITOR_SPLIT_SINGLE) {
+        state.editor_split_mode = UMI_UI_EDITOR_SPLIT_COLUMNS;
+    }
+    (void)snprintf(state.active_editor_group,
+                   sizeof(state.active_editor_group), "%s", target_group);
+    status = umi_ui_workbench_state_apply(workbench, &state);
+    if (status == UMI_STATUS_OK) {
+        status = umi_ui_workbench_activate_document(workbench,
+                                                    document.view_id);
+    }
+    if (out_message != NULL && capacity > 0U) {
+        if (status == UMI_STATUS_OK) {
+            (void)snprintf(out_message, capacity, "Moved %s to %s",
+                           document.title, target_group);
+        } else {
+            (void)snprintf(out_message, capacity, "%s",
+                           umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus editor_move_next_group(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t capacity)
+{
+    (void)argument;
+    return editor_move_group(user_data, out_message, capacity);
+}
+
+static UmiStatus editor_move_previous_group(void *user_data,
+                                            const char *argument,
+                                            char *out_message,
+                                            size_t capacity)
+{
+    (void)argument;
+    return editor_move_group(user_data, out_message, capacity);
+}
+
+static UmiStatus editor_focus_next_group(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t capacity)
+{
+    UmiStudioUi *ui = (UmiStudioUi *)user_data;
+    UmiUiWorkbench *workbench;
+    UmiUiWorkbenchState state;
+    const char *target_group;
+    char target_view[UMI_UI_ID_CAPACITY];
+    UmiStatus status;
+    (void)argument;
+    if (ui == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    workbench = umi_studio_ui_workbench(ui);
+    status = umi_ui_workbench_state_snapshot(workbench, &state);
+    if (status != UMI_STATUS_OK) return status;
+    target_group = other_editor_group(state.active_editor_group);
+    status = umi_ui_document_view_model_activate_group(
+        umi_ui_workbench_documents(workbench), target_group,
+        target_view, sizeof(target_view));
+    if (status == UMI_STATUS_OK) {
+        status = umi_ui_workbench_activate_document(workbench, target_view);
+    }
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "%s",
+                       status == UMI_STATUS_OK
+                           ? target_view
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus editor_balance_groups(void *user_data,
+                                       const char *argument,
+                                       char *out_message,
+                                       size_t capacity)
+{
+    UmiStudioUi *ui = (UmiStudioUi *)user_data;
+    UmiUiWorkbench *workbench;
+    UmiUiWorkbenchState state;
+    UmiStatus status;
+    (void)argument;
+    if (ui == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    workbench = umi_studio_ui_workbench(ui);
+    status = umi_ui_workbench_state_snapshot(workbench, &state);
+    if (status != UMI_STATUS_OK) return status;
+    state.editor_split_ratio = UMI_UI_EDITOR_SPLIT_RATIO_DEFAULT;
+    status = umi_ui_workbench_state_apply(workbench, &state);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "%s",
+                       status == UMI_STATUS_OK
+                           ? "Editor groups balanced"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus editor_reset_groups(void *user_data,
+                                     const char *argument,
+                                     char *out_message,
+                                     size_t capacity)
+{
+    UmiStudioUi *ui = (UmiStudioUi *)user_data;
+    UmiUiWorkbench *workbench;
+    UmiUiWorkbenchState state;
+    char target_view[UMI_UI_ID_CAPACITY];
+    UmiStatus status;
+    (void)argument;
+    if (ui == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    workbench = umi_studio_ui_workbench(ui);
+    status = umi_ui_document_view_model_merge_group(
+        umi_ui_workbench_documents(workbench),
+        UMI_UI_SECONDARY_EDITOR_GROUP_ID,
+        UMI_UI_PRIMARY_EDITOR_GROUP_ID);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_ui_workbench_state_snapshot(workbench, &state);
+    if (status != UMI_STATUS_OK) return status;
+    state.editor_split_mode = UMI_UI_EDITOR_SPLIT_SINGLE;
+    state.editor_split_ratio = UMI_UI_EDITOR_SPLIT_RATIO_DEFAULT;
+    (void)snprintf(state.active_editor_group,
+                   sizeof(state.active_editor_group), "%s",
+                   UMI_UI_PRIMARY_EDITOR_GROUP_ID);
+    status = umi_ui_workbench_state_apply(workbench, &state);
+    if (status == UMI_STATUS_OK &&
+        umi_ui_document_view_model_activate_group(
+            umi_ui_workbench_documents(workbench),
+            UMI_UI_PRIMARY_EDITOR_GROUP_ID,
+            target_view, sizeof(target_view)) == UMI_STATUS_OK) {
+        status = umi_ui_workbench_activate_document(workbench, target_view);
+    }
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "%s",
+                       status == UMI_STATUS_OK
+                           ? "Editor groups reset"
+                           : umi_status_text(status));
+    }
+    return status;
+}
+
 UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
                                                   UmiStudioUi *ui)
 {
@@ -569,7 +794,28 @@ UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
         { UMI_STUDIO_COMMAND_EDITOR_PREVIOUS,
           "Previous Editor",
           "Activate the previous editor in the current group",
-          editor_previous, UMI_COMMAND_MUTATES_STATE }
+          editor_previous, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_SPLIT_RIGHT,
+          "Split Editor Right", "Open the active editor in a right-hand group",
+          editor_split_right, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_SPLIT_DOWN,
+          "Split Editor Down", "Open the active editor in a lower group",
+          editor_split_down, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_MOVE_NEXT_GROUP,
+          "Move Editor to Next Group", "Move the active tab to the other group",
+          editor_move_next_group, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_MOVE_PREVIOUS_GROUP,
+          "Move Editor to Previous Group", "Move the active tab to the other group",
+          editor_move_previous_group, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_FOCUS_NEXT_GROUP,
+          "Focus Next Editor Group", "Activate the other editor group",
+          editor_focus_next_group, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_BALANCE_GROUPS,
+          "Balance Editor Groups", "Give both editor groups equal space",
+          editor_balance_groups, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_RESET_GROUPS,
+          "Reset Editor Groups", "Merge all editors into one primary group",
+          editor_reset_groups, UMI_COMMAND_MUTATES_STATE }
     };
     size_t index;
     UmiStatus status;
