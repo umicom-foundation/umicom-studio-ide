@@ -27,6 +27,7 @@ typedef struct UmiStudioTestExplorerCentreSnapshot {
     uint32_t struct_size; uint32_t api_version;
     char area_id[128]; char title[256]; char summary[512];
     UmiTestPlatformServiceSnapshot service;
+    UmiTestWorkspaceSnapshot workspace;
     UmiStudioTestExplorerState explorer;
     size_t hierarchy_count;
     size_t selected_count;
@@ -42,6 +43,9 @@ UmiStatus umi_studio_test_explorer_centre_create_bound(
 void umi_studio_test_explorer_centre_destroy(UmiStudioTestExplorerCentre *centre);
 UmiStatus umi_studio_test_explorer_centre_snapshot(UmiStudioTestExplorerCentre *centre,UmiStudioTestExplorerCentreSnapshot *out_snapshot);
 UmiTestPlatformService *umi_studio_test_explorer_centre_service(UmiStudioTestExplorerCentre *centre);
+UmiTestWorkspace *umi_studio_test_explorer_centre_workspace(
+    UmiStudioTestExplorerCentre *centre
+);
 UmiStatus umi_studio_test_explorer_centre_set_workspace(
     UmiStudioTestExplorerCentre *centre,
     const char *workspace_root,

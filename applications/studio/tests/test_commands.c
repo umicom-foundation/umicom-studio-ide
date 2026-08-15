@@ -14,6 +14,7 @@
 #include "umicom/studio/bootstrap.h"
 #include "umicom/studio/platform_contract.h"
 #include "umicom/studio/workbench_commands.h"
+#include "umicom/studio/tests.h"
 
 #include <assert.h>
 #include <string.h>
@@ -206,6 +207,32 @@ int main(void)
     assert(umi_command_registry_snapshot(
                registry, UMI_STUDIO_COMMAND_VCS_COMMIT_COMPOSED, &snapshot) ==
            UMI_STATUS_OK);
+
+    {
+        UmiTestPlatformItemSnapshot item = {0};
+        UmiStudioTestService *tests = umi_studio_services_tests(
+            umi_studio_bootstrap_services(bootstrap));
+        (void)strcpy(item.id, "studio.command.alpha");
+        (void)strcpy(item.name, "Studio Command Alpha");
+        (void)strcpy(item.kind, "test");
+        item.enabled = 1;
+        assert(umi_test_platform_item_registry_upsert(
+                   umi_test_platform_service_item(
+                       umi_studio_test_service_platform(tests)), &item) ==
+               UMI_STATUS_OK);
+        assert(umi_command_registry_execute(
+                   registry, UMI_STUDIO_COMMAND_TESTS_FILTER, "all",
+                   message, sizeof(message)) == UMI_STATUS_OK);
+        assert(strstr(message, "1 test(s)") != NULL);
+        assert(umi_command_registry_execute(
+                   registry, UMI_STUDIO_COMMAND_TESTS_SELECT,
+                   "studio.command.alpha", message, sizeof(message)) ==
+               UMI_STATUS_OK);
+        assert(umi_command_registry_snapshot(
+                   registry, UMI_STUDIO_COMMAND_TESTS_RUN_SELECTED,
+                   &snapshot) == UMI_STATUS_OK);
+        assert(strcmp(snapshot.category, "Testing") == 0);
+    }
 
     assert(umi_command_registry_execute(
         registry,

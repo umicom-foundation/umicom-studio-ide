@@ -25,6 +25,7 @@ int main(void)
     assert(snapshot.explorer_revision == 1U);
     assert(umi_studio_test_service_registry(service) != NULL);
     assert(umi_studio_test_service_platform(service) != NULL);
+    assert(umi_studio_test_service_workspace(service) != NULL);
     umi_studio_test_service_destroy(service);
     return 0;
 }

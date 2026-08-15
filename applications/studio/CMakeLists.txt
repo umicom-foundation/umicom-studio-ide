@@ -1289,6 +1289,7 @@ if(BUILD_TESTING)
             test_explorer_state
             test_explorer_operations
             test_explorer_hierarchy
+            test_workspace_views
             test_execution_bridge
             terminal_service
             terminal_workbench
@@ -1464,6 +1465,7 @@ if(BUILD_TESTING)
         studio.build_service
         studio.build_workbench
         studio.test_service
+        studio.test_workspace_views
         studio.terminal_service
         studio.language_service
         studio.debugger_service

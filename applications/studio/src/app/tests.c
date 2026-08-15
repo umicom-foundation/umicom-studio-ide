@@ -20,6 +20,7 @@ struct UmiStudioTestService {
     UmiTestRegistry *registry;
     UmiTestSuite *ctest_suite;
     UmiTestPlatformService *platform;
+    UmiTestWorkspace *workspace;
     UmiTestPlatformFilter filter;
     UmiStudioTestExplorerState explorer;
     char build_directory[UMI_BUILD_PATH_CAPACITY];
@@ -57,6 +58,10 @@ UmiStatus umi_studio_test_service_create(UmiStudioTestService **out_service)
     if (status == UMI_STATUS_OK) {
         status = umi_test_platform_service_create(&service->platform);
     }
+    if (status == UMI_STATUS_OK) {
+        status = umi_test_workspace_create(service->platform,
+                                           &service->workspace);
+    }
     if (status != UMI_STATUS_OK) {
         umi_studio_test_service_destroy(service);
         return status;
@@ -71,6 +76,7 @@ UmiStatus umi_studio_test_service_create(UmiStudioTestService **out_service)
 void umi_studio_test_service_destroy(UmiStudioTestService *service)
 {
     if (service == NULL) return;
+    umi_test_workspace_destroy(service->workspace);
     umi_test_platform_service_destroy(service->platform);
     umi_test_registry_destroy(service->registry);
     free(service);
@@ -116,6 +122,7 @@ UmiStatus umi_studio_test_service_discover_metadata(
     copy_text(service->explorer.active_suite_id,
               sizeof(service->explorer.active_suite_id), options.suite_id);
     service->explorer.revision += 1U;
+    (void)umi_test_workspace_refresh(service->workspace);
     return UMI_STATUS_OK;
 }
 
@@ -147,6 +154,7 @@ UmiStatus umi_studio_test_service_discover(UmiStudioTestService *service,
     }
     if (status == UMI_STATUS_OK) {
         (void)memcpy(service->build_directory, build_directory, length + 1U);
+        (void)umi_test_workspace_refresh(service->workspace);
     }
     return status;
 }
@@ -380,6 +388,11 @@ UmiStatus umi_studio_test_service_set_filter(
               service->explorer.active_suite_id);
     service->filter.outcome = outcome;
     service->filter.include_disabled = include_disabled != 0;
+    status = umi_test_workspace_set_filter(
+        service->workspace, search_text != NULL ? search_text : "",
+        service->explorer.active_suite_id, label != NULL ? label : "",
+        outcome, include_disabled, 0);
+    if (status != UMI_STATUS_OK) return status;
     status = umi_test_platform_service_select(service->platform,
                                               &service->filter, &selection);
     if (status != UMI_STATUS_OK) return status;
@@ -479,4 +492,10 @@ UmiTestPlatformService *umi_studio_test_service_platform(
 UmiTestRegistry *umi_studio_test_service_registry(UmiStudioTestService *service)
 {
     return service != NULL ? service->registry : NULL;
+}
+
+UmiTestWorkspace *umi_studio_test_service_workspace(
+    UmiStudioTestService *service)
+{
+    return service != NULL ? service->workspace : NULL;
 }

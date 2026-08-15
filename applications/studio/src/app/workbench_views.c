@@ -37,6 +37,7 @@
 #include "umicom/studio/source_control.h"
 #include "umicom/studio/tests.h"
 #include "umicom/studio/terminal.h"
+#include "umicom/test_ui/test_ui.h"
 
 #define VIEW_EXPLORER      "studio.project-explorer"
 #define VIEW_SEARCH        "studio.search"
@@ -55,6 +56,11 @@
 #define VIEW_DEBUG_BREAKPOINTS "studio.debug-breakpoints"
 #define VIEW_DEBUG_CONSOLE "studio.debug-console"
 #define VIEW_TESTING       "studio.testing"
+#define VIEW_TEST_RESULTS  "studio.test-results"
+#define VIEW_TEST_FAILURES "studio.test-failures"
+#define VIEW_TEST_OUTPUT   "studio.test-output"
+#define VIEW_TEST_COVERAGE "studio.test-coverage"
+#define VIEW_TEST_RUNS     "studio.test-runs"
 #define VIEW_DESIGNER      "studio.designer"
 #define VIEW_APPLICATIONS  "studio.application-hub"
 #define VIEW_FRAMEWORK     "studio.framework"
@@ -555,51 +561,65 @@ static UmiStatus create_testing(const char *view_id,
                                 void *user_data,
                                 UmiUiViewModel **out_view)
 {
-    UmiStudioServices *services = (UmiStudioServices *)user_data;
-    UmiStudioTestSnapshot snapshot;
-    UmiStudioTestService *service;
-    UmiStatus status = create_base_view(
-        view_id,
-        VIEW_TESTING,
-        "Testing",
-        "Discovered test suites and latest Framework testing summary.",
-        out_view);
+    UmiStudioTestService *service = umi_studio_services_tests(
+        (UmiStudioServices *)user_data);
+    return service != NULL
+        ? umi_test_ui_explorer_view_create(
+              view_id, umi_studio_test_service_workspace(service), out_view)
+        : UMI_STATUS_UNAVAILABLE;
+}
 
-    if (status != UMI_STATUS_OK) return status;
-    service = umi_studio_services_tests(services);
-    (void)memset(&snapshot, 0, sizeof(snapshot));
+static UmiTestWorkspace *test_workspace(void *user_data)
+{
+    UmiStudioTestService *service = umi_studio_services_tests(
+        (UmiStudioServices *)user_data);
+    return service != NULL
+        ? umi_studio_test_service_workspace(service) : NULL;
+}
 
-    if (service == NULL ||
-        umi_studio_test_service_snapshot(service, &snapshot) != UMI_STATUS_OK) {
-        return property_boolean(*out_view, "available", 0);
-    }
+static UmiStatus create_test_results(const char *view_id, void *user_data,
+                                     UmiUiViewModel **out_view)
+{
+    UmiTestWorkspace *workspace = test_workspace(user_data);
+    return workspace != NULL
+        ? umi_test_ui_results_view_create(view_id, workspace, out_view)
+        : UMI_STATUS_UNAVAILABLE;
+}
 
-    status = property_boolean(*out_view, "available", 1);
-    if (status == UMI_STATUS_OK) {
-        status = property_integer(*out_view, "suites",
-                                  (int64_t)snapshot.suite_count);
-    }
-    if (status == UMI_STATUS_OK) {
-        status = property_integer(*out_view, "tests",
-                                  (int64_t)snapshot.test_count);
-    }
-    if (status == UMI_STATUS_OK) {
-        status = property_integer(*out_view, "passed",
-                                  (int64_t)snapshot.passed);
-    }
-    if (status == UMI_STATUS_OK) {
-        status = property_integer(*out_view, "failed",
-                                  (int64_t)snapshot.failed);
-    }
-    if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 0U, "studio.action.test.discover",
-                            "Discover", "Discover CTest tests in the build directory");
-    }
-    if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 1U, "studio.action.build.test",
-                            "Run All", "Run the complete CTest suite");
-    }
-    return status;
+static UmiStatus create_test_failures(const char *view_id, void *user_data,
+                                      UmiUiViewModel **out_view)
+{
+    UmiTestWorkspace *workspace = test_workspace(user_data);
+    return workspace != NULL
+        ? umi_test_ui_failures_view_create(view_id, workspace, out_view)
+        : UMI_STATUS_UNAVAILABLE;
+}
+
+static UmiStatus create_test_output(const char *view_id, void *user_data,
+                                    UmiUiViewModel **out_view)
+{
+    UmiTestWorkspace *workspace = test_workspace(user_data);
+    return workspace != NULL
+        ? umi_test_ui_output_view_create(view_id, workspace, out_view)
+        : UMI_STATUS_UNAVAILABLE;
+}
+
+static UmiStatus create_test_coverage(const char *view_id, void *user_data,
+                                      UmiUiViewModel **out_view)
+{
+    UmiTestWorkspace *workspace = test_workspace(user_data);
+    return workspace != NULL
+        ? umi_test_ui_coverage_view_create(view_id, workspace, out_view)
+        : UMI_STATUS_UNAVAILABLE;
+}
+
+static UmiStatus create_test_runs(const char *view_id, void *user_data,
+                                  UmiUiViewModel **out_view)
+{
+    UmiTestWorkspace *workspace = test_workspace(user_data);
+    return workspace != NULL
+        ? umi_test_ui_runs_view_create(view_id, workspace, out_view)
+        : UMI_STATUS_UNAVAILABLE;
 }
 
 static UmiStatus create_output(const char *view_id,
@@ -947,6 +967,11 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_DEBUG_BREAKPOINTS, create_debug_breakpoints },
     { VIEW_DEBUG_CONSOLE, create_debug_console },
     { VIEW_TESTING, create_testing },
+    { VIEW_TEST_RESULTS, create_test_results },
+    { VIEW_TEST_FAILURES, create_test_failures },
+    { VIEW_TEST_OUTPUT, create_test_output },
+    { VIEW_TEST_COVERAGE, create_test_coverage },
+    { VIEW_TEST_RUNS, create_test_runs },
     { VIEW_DESIGNER, create_designer },
     { VIEW_APPLICATIONS, create_applications },
     { VIEW_FRAMEWORK, create_framework },

@@ -542,26 +542,267 @@ static UmiStatus tests_discover_handler(void *user_data,
                                         char *out_message,
                                         size_t message_capacity)
 {
-    size_t discovered = 0U;
+    UmiTestPlatformCtestImportSummary summary;
     const UmiBuildProfile *profile;
     UmiStatus status;
     UmiStudioServices *services = (UmiStudioServices *)user_data;
     profile = umi_studio_build_service_profile(
         umi_studio_services_build(services));
-    status = umi_studio_test_service_discover(
+    status = umi_studio_test_service_discover_metadata(
         umi_studio_services_tests(services),
+        profile->source_directory, "studio",
         argument != NULL && argument[0] != '\0'
             ? argument : profile->build_directory,
-        &discovered);
+        profile->configuration, &summary);
     if (out_message != NULL && message_capacity > 0U) {
         (void)snprintf(out_message,
                        message_capacity,
                        "Discovered %zu test(s): %s",
-                       discovered,
+                       status == UMI_STATUS_OK ? summary.discovered_count : 0U,
                        umi_status_text(status));
     }
     return status;
 }
+
+static UmiTestWorkspace *tests_workspace(void *user_data)
+{
+    UmiStudioTestService *service = umi_studio_services_tests(
+        (UmiStudioServices *)user_data);
+    return service != NULL
+        ? umi_studio_test_service_workspace(service) : NULL;
+}
+
+static UmiStatus tests_filter_handler(void *user_data,
+                                      const char *argument,
+                                      char *out_message,
+                                      size_t message_capacity)
+{
+    UmiTestWorkspace *workspace = tests_workspace(user_data);
+    const char *text = argument != NULL ? argument : "";
+    int outcome = -1;
+    int failed_only = 0;
+    UmiStatus status;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    if (strcmp(text, "all") == 0) text = "";
+    else if (strcmp(text, "failed") == 0) failed_only = 1;
+    else if (strcmp(text, "passed") == 0) {
+        text = "";
+        outcome = UMI_TEST_PLATFORM_OUTCOME_PASSED;
+    } else if (strcmp(text, "skipped") == 0) {
+        text = "";
+        outcome = UMI_TEST_PLATFORM_OUTCOME_SKIPPED;
+    } else if (strcmp(text, "not-run") == 0) {
+        text = "";
+        outcome = UMI_TEST_PLATFORM_OUTCOME_NOT_RUN;
+    }
+    status = umi_test_workspace_set_filter(
+        workspace, failed_only ? "" : text, "", "", outcome, 0,
+        failed_only);
+    if (out_message != NULL && message_capacity > 0U) {
+        UmiTestWorkspaceSnapshot snapshot;
+        if (status == UMI_STATUS_OK &&
+            umi_test_workspace_snapshot(workspace, &snapshot) ==
+                UMI_STATUS_OK) {
+            (void)snprintf(out_message, message_capacity,
+                           "Testing filter selected %zu test(s)",
+                           snapshot.visible_item_count);
+        } else {
+            (void)snprintf(out_message, message_capacity, "Testing filter: %s",
+                           umi_status_text(status));
+        }
+    }
+    return status;
+}
+
+static UmiStatus tests_select_handler(void *user_data,
+                                      const char *argument,
+                                      char *out_message,
+                                      size_t message_capacity)
+{
+    UmiTestWorkspace *workspace = tests_workspace(user_data);
+    UmiStatus status;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_test_workspace_select_item(workspace, argument);
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity, "Selected test %s: %s",
+                       argument, umi_status_text(status));
+    }
+    return status;
+}
+
+typedef enum StudioTestWorkspaceOperation {
+    STUDIO_TEST_RUN_ALL,
+    STUDIO_TEST_RUN_SELECTED,
+    STUDIO_TEST_DEBUG_SELECTED,
+    STUDIO_TEST_RUN_COVERAGE,
+    STUDIO_TEST_RERUN_FAILED,
+    STUDIO_TEST_REPEAT_SELECTED
+} StudioTestWorkspaceOperation;
+
+static UmiStatus tests_execute_operation(
+    void *user_data, const char *argument, char *out_message,
+    size_t message_capacity, StudioTestWorkspaceOperation operation)
+{
+    UmiStudioTestService *service = umi_studio_services_tests(
+        (UmiStudioServices *)user_data);
+    UmiTestWorkspace *workspace = service != NULL
+        ? umi_studio_test_service_workspace(service) : NULL;
+    UmiTestPlatformOperationPlan plan;
+    UmiTestPlatformExecutionSummary summary;
+    UmiStatus status;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    switch (operation) {
+        case STUDIO_TEST_RUN_ALL:
+            status = umi_test_workspace_set_run_mode(
+                workspace, UMI_TEST_WORKSPACE_RUN);
+            if (status == UMI_STATUS_OK) {
+                status = umi_test_workspace_plan_all(workspace, &plan);
+            }
+            break;
+        case STUDIO_TEST_RUN_SELECTED:
+            status = umi_test_workspace_set_run_mode(
+                workspace, UMI_TEST_WORKSPACE_RUN);
+            if (status == UMI_STATUS_OK) {
+                status = umi_test_workspace_plan_selected(workspace, &plan);
+            }
+            break;
+        case STUDIO_TEST_DEBUG_SELECTED:
+            status = umi_test_workspace_set_run_mode(
+                workspace, UMI_TEST_WORKSPACE_DEBUG);
+            if (status == UMI_STATUS_OK) {
+                status = umi_test_workspace_plan_selected(workspace, &plan);
+            }
+            break;
+        case STUDIO_TEST_RUN_COVERAGE:
+            status = umi_test_workspace_set_run_mode(
+                workspace, UMI_TEST_WORKSPACE_COVERAGE);
+            if (status == UMI_STATUS_OK) {
+                status = umi_test_workspace_plan_all(workspace, &plan);
+            }
+            break;
+        case STUDIO_TEST_RERUN_FAILED:
+            status = umi_test_workspace_set_run_mode(
+                workspace, UMI_TEST_WORKSPACE_RUN);
+            if (status == UMI_STATUS_OK) {
+                status = umi_test_workspace_plan_failed(workspace, &plan);
+            }
+            break;
+        case STUDIO_TEST_REPEAT_SELECTED: {
+            char *end = NULL;
+            unsigned long repeat = argument != NULL && argument[0] != '\0'
+                ? strtoul(argument, &end, 10) : 10UL;
+            if (repeat == 0UL || repeat > UINT32_MAX ||
+                (end != NULL && *end != '\0')) {
+                return UMI_STATUS_INVALID_ARGUMENT;
+            }
+            status = umi_test_workspace_set_run_mode(
+                workspace, UMI_TEST_WORKSPACE_RUN);
+            if (status == UMI_STATUS_OK) {
+                status = umi_test_workspace_plan_repeat_selected(
+                    workspace, (uint32_t)repeat, 0, &plan);
+            }
+            break;
+        }
+        default:
+            status = UMI_STATUS_INVALID_ARGUMENT;
+            break;
+    }
+    (void)memset(&summary, 0, sizeof(summary));
+    if (status == UMI_STATUS_OK) {
+        status = umi_studio_test_service_execute(service, &plan, &summary);
+    }
+    if (out_message != NULL && message_capacity > 0U) {
+        (void)snprintf(out_message, message_capacity,
+                       "Tests: %zu planned, %zu executed, %zu passed, "
+                       "%zu failed (%s)",
+                       summary.planned, summary.executed, summary.passed,
+                       summary.failed, umi_status_text(status));
+    }
+    return status;
+}
+
+#define DEFINE_TEST_EXECUTION_HANDLER(name_, operation_)                    \
+    static UmiStatus name_(void *user_data, const char *argument,           \
+                           char *out_message, size_t capacity)              \
+    {                                                                       \
+        return tests_execute_operation(user_data, argument, out_message,   \
+                                       capacity, operation_);              \
+    }
+DEFINE_TEST_EXECUTION_HANDLER(tests_run_all_handler, STUDIO_TEST_RUN_ALL)
+DEFINE_TEST_EXECUTION_HANDLER(tests_run_selected_handler,
+                              STUDIO_TEST_RUN_SELECTED)
+DEFINE_TEST_EXECUTION_HANDLER(tests_debug_selected_handler,
+                              STUDIO_TEST_DEBUG_SELECTED)
+DEFINE_TEST_EXECUTION_HANDLER(tests_run_coverage_handler,
+                              STUDIO_TEST_RUN_COVERAGE)
+DEFINE_TEST_EXECUTION_HANDLER(tests_rerun_failed_handler,
+                              STUDIO_TEST_RERUN_FAILED)
+DEFINE_TEST_EXECUTION_HANDLER(tests_repeat_selected_handler,
+                              STUDIO_TEST_REPEAT_SELECTED)
+#undef DEFINE_TEST_EXECUTION_HANDLER
+
+static UmiStatus tests_stop_handler(void *user_data, const char *argument,
+                                    char *out_message, size_t capacity)
+{
+    UmiTestWorkspace *workspace = tests_workspace(user_data);
+    UmiStatus status;
+    (void)argument;
+
+    status = workspace != NULL
+        ? umi_test_workspace_request_stop(workspace) : UMI_STATUS_UNAVAILABLE;
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Stop test run: %s",
+                       umi_status_text(status));
+    }
+    return status;
+}
+
+typedef enum StudioTestClearOperation {
+    STUDIO_TEST_CLEAR_RESULTS,
+    STUDIO_TEST_CLEAR_OUTPUT,
+    STUDIO_TEST_CLEAR_COVERAGE
+} StudioTestClearOperation;
+
+static UmiStatus tests_clear_operation(
+    void *user_data, const char *argument, char *out_message, size_t capacity,
+    StudioTestClearOperation operation)
+{
+    UmiTestWorkspace *workspace = tests_workspace(user_data);
+    (void)argument;
+
+    if (workspace == NULL) return UMI_STATUS_UNAVAILABLE;
+    if (operation == STUDIO_TEST_CLEAR_RESULTS) {
+        umi_test_workspace_clear_results(workspace);
+    } else if (operation == STUDIO_TEST_CLEAR_OUTPUT) {
+        umi_test_workspace_clear_output(workspace);
+    } else {
+        umi_test_workspace_clear_coverage(workspace);
+    }
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Testing evidence cleared");
+    }
+    return UMI_STATUS_OK;
+}
+
+#define DEFINE_TEST_CLEAR_HANDLER(name_, operation_)                        \
+    static UmiStatus name_(void *user_data, const char *argument,           \
+                           char *out_message, size_t capacity)              \
+    {                                                                       \
+        return tests_clear_operation(user_data, argument, out_message,     \
+                                     capacity, operation_);                \
+    }
+DEFINE_TEST_CLEAR_HANDLER(tests_clear_results_handler,
+                          STUDIO_TEST_CLEAR_RESULTS)
+DEFINE_TEST_CLEAR_HANDLER(tests_clear_output_handler, STUDIO_TEST_CLEAR_OUTPUT)
+DEFINE_TEST_CLEAR_HANDLER(tests_clear_coverage_handler,
+                          STUDIO_TEST_CLEAR_COVERAGE)
+#undef DEFINE_TEST_CLEAR_HANDLER
 
 static UmiStatus terminal_execute_handler(void *user_data,
                                           const char *argument,
@@ -2175,6 +2416,90 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "Discover CTest tests from a build directory.",
                               "studio.tests.read", UMI_COMMAND_NONE,
                               tests_discover_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_FILTER,
+                              "Filter Tests", "Testing",
+                              "Filter tests by text or by all, passed, failed, skipped or not-run state.",
+                              "studio.tests.read", UMI_COMMAND_NONE,
+                              tests_filter_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_SELECT,
+                              "Select Test", "Testing",
+                              "Select a visible test by its stable identifier.",
+                              "studio.tests.read", UMI_COMMAND_NONE,
+                              tests_select_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_RUN_ALL,
+                              "Run All Tests", "Testing",
+                              "Execute every test visible in the Test Explorer.",
+                              "studio.tests.execute", UMI_COMMAND_AUDITED,
+                              tests_run_all_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_RUN_SELECTED,
+                              "Run Selected Test", "Testing",
+                              "Execute the selected Test Explorer item.",
+                              "studio.tests.execute", UMI_COMMAND_AUDITED,
+                              tests_run_selected_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_DEBUG_SELECTED,
+                              "Debug Selected Test", "Testing",
+                              "Execute the selected test with debugger run-mode context.",
+                              "studio.tests.execute", UMI_COMMAND_AUDITED,
+                              tests_debug_selected_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_RUN_COVERAGE,
+                              "Run Tests with Coverage", "Testing",
+                              "Execute visible tests with coverage run-mode context.",
+                              "studio.tests.execute", UMI_COMMAND_AUDITED,
+                              tests_run_coverage_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_RERUN_FAILED,
+                              "Rerun Failed Tests", "Testing",
+                              "Execute tests whose latest retained result failed.",
+                              "studio.tests.execute", UMI_COMMAND_AUDITED,
+                              tests_rerun_failed_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_REPEAT_SELECTED,
+                              "Repeat Selected Test", "Testing",
+                              "Repeat the selected test to diagnose intermittent failures.",
+                              "studio.tests.execute", UMI_COMMAND_AUDITED,
+                              tests_repeat_selected_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_STOP,
+                              "Stop Test Run", "Testing",
+                              "Request cooperative cancellation of the active test operation.",
+                              "studio.tests.execute", UMI_COMMAND_AUDITED,
+                              tests_stop_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_CLEAR_RESULTS,
+                              "Clear Test Results", "Testing",
+                              "Clear retained test-result evidence.",
+                              "studio.tests.execute", UMI_COMMAND_MUTATES_STATE,
+                              tests_clear_results_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_CLEAR_OUTPUT,
+                              "Clear Test Output", "Testing",
+                              "Clear retained test output streams.",
+                              "studio.tests.execute", UMI_COMMAND_MUTATES_STATE,
+                              tests_clear_output_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_TESTS_CLEAR_COVERAGE,
+                              "Clear Test Coverage", "Testing",
+                              "Clear retained line and branch coverage summaries.",
+                              "studio.tests.execute", UMI_COMMAND_MUTATES_STATE,
+                              tests_clear_coverage_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_TERMINAL_EXECUTE,

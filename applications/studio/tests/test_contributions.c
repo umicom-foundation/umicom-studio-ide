@@ -11,7 +11,67 @@
  *---------------------------------------------------------------------------*/
 
 #include <assert.h>
+
 #include "umicom/studio/bootstrap.h"
 #include "umicom/studio/contributions.h"
 #include "umicom/studio/workspace_profiles.h"
-int main(void){UmiStudioBootstrap*b=NULL;UmiUiPaneSnapshot p;UmiUiWorkbench*w;assert(umi_studio_bootstrap_create(&b)==UMI_STATUS_OK);w=umi_studio_ui_workbench(umi_studio_bootstrap_ui(b));assert(umi_ui_contribution_model_count(umi_ui_workbench_contributions(w))==umi_studio_contribution_definition_count());assert(umi_ui_pane_model_find(umi_ui_workbench_panes(w),UMI_STUDIO_PANE_EXPLORER,&p)==UMI_STATUS_OK);assert(p.visible);assert(umi_ui_pane_model_find(umi_ui_workbench_panes(w),UMI_STUDIO_PANE_DEBUG_CONSOLE,&p)==UMI_STATUS_OK);assert(p.placement==UMI_UI_PLACEMENT_BOTTOM);assert(umi_ui_workbench_activate_workspace_profile(w,UMI_STUDIO_WORKSPACE_PROFILE_DEBUG)==UMI_STATUS_OK);assert(umi_ui_pane_model_find(umi_ui_workbench_panes(w),UMI_STUDIO_PANE_DEBUG_CONSOLE,&p)==UMI_STATUS_OK);assert(p.visible);assert(umi_ui_workbench_activate_workspace_profile(w,UMI_STUDIO_WORKSPACE_PROFILE_SOURCE_CONTROL)==UMI_STATUS_OK);assert(umi_ui_pane_model_find(umi_ui_workbench_panes(w),UMI_STUDIO_PANE_VCS_COMMIT,&p)==UMI_STATUS_OK);assert(p.visible);assert(umi_ui_pane_model_find(umi_ui_workbench_panes(w),UMI_STUDIO_PANE_VCS_OPERATIONS,&p)==UMI_STATUS_OK);assert(p.visible);umi_studio_bootstrap_destroy(b);return 0;}
+
+int main(void)
+{
+    UmiStudioBootstrap *bootstrap = NULL;
+    UmiUiPaneSnapshot pane;
+    UmiUiWorkbench *workbench;
+
+    assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
+    workbench = umi_studio_ui_workbench(umi_studio_bootstrap_ui(bootstrap));
+    assert(umi_ui_contribution_model_count(
+               umi_ui_workbench_contributions(workbench)) ==
+           umi_studio_contribution_definition_count());
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench), UMI_STUDIO_PANE_EXPLORER,
+               &pane) == UMI_STATUS_OK);
+    assert(pane.visible);
+
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench),
+               UMI_STUDIO_PANE_DEBUG_CONSOLE, &pane) == UMI_STATUS_OK);
+    assert(pane.placement == UMI_UI_PLACEMENT_BOTTOM);
+    assert(umi_ui_workbench_activate_workspace_profile(
+               workbench, UMI_STUDIO_WORKSPACE_PROFILE_DEBUG) ==
+           UMI_STATUS_OK);
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench),
+               UMI_STUDIO_PANE_DEBUG_CONSOLE, &pane) == UMI_STATUS_OK);
+    assert(pane.visible);
+
+    assert(umi_ui_workbench_activate_workspace_profile(
+               workbench, UMI_STUDIO_WORKSPACE_PROFILE_SOURCE_CONTROL) ==
+           UMI_STATUS_OK);
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench), UMI_STUDIO_PANE_VCS_COMMIT,
+               &pane) == UMI_STATUS_OK);
+    assert(pane.visible);
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench),
+               UMI_STUDIO_PANE_VCS_OPERATIONS, &pane) == UMI_STATUS_OK);
+    assert(pane.visible);
+
+    assert(umi_ui_workbench_activate_workspace_profile(
+               workbench, UMI_STUDIO_WORKSPACE_PROFILE_TESTING) ==
+           UMI_STATUS_OK);
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench), UMI_STUDIO_PANE_TESTING,
+               &pane) == UMI_STATUS_OK);
+    assert(pane.visible && pane.placement == UMI_UI_PLACEMENT_LEFT);
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench),
+               UMI_STUDIO_PANE_TEST_FAILURES, &pane) == UMI_STATUS_OK);
+    assert(pane.visible && pane.placement == UMI_UI_PLACEMENT_BOTTOM);
+    assert(umi_ui_pane_model_find(
+               umi_ui_workbench_panes(workbench),
+               UMI_STUDIO_PANE_TEST_COVERAGE, &pane) == UMI_STATUS_OK);
+    assert(pane.visible && pane.placement == UMI_UI_PLACEMENT_RIGHT);
+
+    umi_studio_bootstrap_destroy(bootstrap);
+    return 0;
+}

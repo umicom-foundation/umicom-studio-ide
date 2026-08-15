@@ -65,6 +65,18 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_BUILD_RETRY "studio.build.retry"
 #define UMI_STUDIO_COMMAND_BUILD_CANCEL "studio.build.cancel"
 #define UMI_STUDIO_COMMAND_TESTS_DISCOVER "studio.tests.discover"
+#define UMI_STUDIO_COMMAND_TESTS_FILTER "studio.tests.filter"
+#define UMI_STUDIO_COMMAND_TESTS_SELECT "studio.tests.select"
+#define UMI_STUDIO_COMMAND_TESTS_RUN_ALL "studio.tests.run-all"
+#define UMI_STUDIO_COMMAND_TESTS_RUN_SELECTED "studio.tests.run-selected"
+#define UMI_STUDIO_COMMAND_TESTS_DEBUG_SELECTED "studio.tests.debug-selected"
+#define UMI_STUDIO_COMMAND_TESTS_RUN_COVERAGE "studio.tests.run-coverage"
+#define UMI_STUDIO_COMMAND_TESTS_RERUN_FAILED "studio.tests.rerun-failed"
+#define UMI_STUDIO_COMMAND_TESTS_REPEAT_SELECTED "studio.tests.repeat-selected"
+#define UMI_STUDIO_COMMAND_TESTS_STOP "studio.tests.stop"
+#define UMI_STUDIO_COMMAND_TESTS_CLEAR_RESULTS "studio.tests.clear-results"
+#define UMI_STUDIO_COMMAND_TESTS_CLEAR_OUTPUT "studio.tests.clear-output"
+#define UMI_STUDIO_COMMAND_TESTS_CLEAR_COVERAGE "studio.tests.clear-coverage"
 #define UMI_STUDIO_COMMAND_TERMINAL_EXECUTE "studio.terminal.execute"
 #define UMI_STUDIO_COMMAND_TERMINAL_CLEAR "studio.terminal.clear"
 #define UMI_STUDIO_COMMAND_TERMINAL_NEW "studio.terminal.new"
@@ -130,7 +142,7 @@ extern "C" {
     "studio.vcs.diff-selected-staged"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 103U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 115U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

@@ -134,6 +134,11 @@ UmiTestRegistry *umi_studio_test_service_registry(
 UmiTestPlatformService *umi_studio_test_service_platform(
     UmiStudioTestService *service
 );
+/* Framework owns professional Test Explorer selection and presentation state;
+ * Studio only exposes the coordinator bound to its application service. */
+UmiTestWorkspace *umi_studio_test_service_workspace(
+    UmiStudioTestService *service
+);
 
 #ifdef __cplusplus
 }

@@ -30,6 +30,8 @@ int main(void)
     UmiUiViewModel *debug_watches = NULL;
     UmiUiViewModel *source_control = NULL;
     UmiUiViewModel *source_control_commit = NULL;
+    UmiUiViewModel *test_explorer = NULL;
+    UmiUiViewModel *test_results = NULL;
     UmiUiCommandViewAction action;
 
     assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
@@ -95,6 +97,23 @@ int main(void)
                   "studio.action.vcs.set-commit-message") == 0);
     umi_ui_view_model_destroy(source_control_commit);
     umi_ui_view_model_destroy(source_control);
+
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench), "studio.testing",
+               UMI_STUDIO_PANE_TESTING, &test_explorer) == UMI_STATUS_OK);
+    assert(umi_ui_command_view_action_at(test_explorer, 3U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id, "studio.action.test.run-all") == 0);
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench),
+               "studio.test-results", UMI_STUDIO_PANE_TEST_RESULTS,
+               &test_results) == UMI_STATUS_OK);
+    assert(umi_ui_command_view_action_at(test_results, 1U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id,
+                  "studio.action.test.clear-results") == 0);
+    umi_ui_view_model_destroy(test_results);
+    umi_ui_view_model_destroy(test_explorer);
 
     umi_studio_bootstrap_destroy(bootstrap);
     return 0;
