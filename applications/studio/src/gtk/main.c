@@ -4,8 +4,8 @@
  *
  * PURPOSE:
  *   Start the GTK4 Umicom Studio IDE frontend inside the Umicom Framework
- *   lifecycle. Batch 38 makes the Framework-owned workbench the default while
- *   retaining the established product frontend behind --legacy-ui.
+ *   lifecycle. The Framework-owned workbench is the default while the
+ *   established product frontend remains available behind --legacy-ui.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -24,11 +24,45 @@
 
 #include "app.h"
 #include "workbench_window.h"
+#include "umicom/studio/appearance_centre.h"
 #include "umicom/studio/bootstrap.h"
 
 static int str_eq(const char *a, const char *b)
 {
     return a != NULL && b != NULL && strcmp(a, b) == 0;
+}
+
+static void configure_runtime_branding(UmiStudioBootstrap *bootstrap,
+                                       const char *program_path)
+{
+    char *absolute_program;
+    char *program_directory;
+    char *branding_directory;
+    char *logo_path;
+    char *icon_path;
+    UmiStudioUi *ui;
+
+    if (bootstrap == NULL || program_path == NULL) return;
+    absolute_program = g_canonicalize_filename(program_path, NULL);
+    if (absolute_program == NULL) return;
+    program_directory = g_path_get_dirname(absolute_program);
+    branding_directory = g_build_filename(program_directory, "branding", NULL);
+    logo_path = g_build_filename(
+        branding_directory, "umicom-logo.svg", NULL);
+    icon_path = g_build_filename(
+        branding_directory, "umicom-icon.svg", NULL);
+    ui = umi_studio_bootstrap_ui(bootstrap);
+    if (ui != NULL && logo_path != NULL && icon_path != NULL &&
+        g_file_test(logo_path, G_FILE_TEST_IS_REGULAR) &&
+        g_file_test(icon_path, G_FILE_TEST_IS_REGULAR)) {
+        (void)umi_studio_appearance_set_brand_resources(
+            umi_studio_ui_workbench(ui), logo_path, icon_path);
+    }
+    g_free(icon_path);
+    g_free(logo_path);
+    g_free(branding_directory);
+    g_free(program_directory);
+    g_free(absolute_program);
 }
 
 static void log_line(const char *text)
@@ -230,6 +264,11 @@ int main(int argc, char **argv)
         umi_studio_bootstrap_destroy(bootstrap);
         return 1;
     }
+
+    /* Branding is resolved beside the executable.  This works for both the
+     * build tree and installed packages without compiling a developer's
+     * private absolute folder structure into the public binary. */
+    configure_runtime_branding(bootstrap, argc > 0 ? argv[0] : NULL);
 
     result = run_studio(bootstrap, argc, argv);
     umi_studio_bootstrap_destroy(bootstrap);

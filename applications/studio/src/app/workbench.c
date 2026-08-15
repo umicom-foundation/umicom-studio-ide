@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "umicom/studio/contributions.h"
+#include "umicom/studio/appearance_centre.h"
 #include "umicom/studio/perspectives.h"
 #include "umicom/studio/workbench_shell_catalogue.h"
 #include "umicom/studio/workbench_views.h"
@@ -68,6 +69,8 @@ UmiStatus umi_studio_workbench_populate(UmiUiWorkbench *workbench,
     status = umi_studio_contributions_register(workbench);
     if (status != UMI_STATUS_OK) return status;
     status = umi_studio_workspace_profiles_register(workbench);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_studio_appearance_register(workbench);
     if (status != UMI_STATUS_OK) return status;
 
     /*
@@ -125,6 +128,8 @@ UmiStatus umi_studio_workbench_restore_session(UmiUiWorkbench *workbench,
      * during workbench population. */
     status = umi_studio_workspace_profile_session_restore(workbench, session);
     if (status != UMI_STATUS_OK) return status;
+    status = umi_studio_appearance_restore(workbench, session);
+    if (status != UMI_STATUS_OK) return status;
 
     status = umi_session_store_get(session,
                                    UMI_STUDIO_WORKBENCH_STATE_SESSION_KEY,
@@ -181,6 +186,8 @@ UmiStatus umi_studio_workbench_save_session(UmiUiWorkbench *workbench,
                                    encoded);
     if (status != UMI_STATUS_OK) return status;
     status = umi_studio_workspace_profile_session_save(workbench, session);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_studio_appearance_save(workbench, session);
     if (status != UMI_STATUS_OK) return status;
 
     /* Keep the old key during the migration window for older tooling. */

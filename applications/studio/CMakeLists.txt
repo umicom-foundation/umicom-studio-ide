@@ -86,6 +86,7 @@ add_library(umicom_studio_core STATIC
     src/app/workspace_profile_session.c
     src/app/workspace_groups.c
     src/app/workspace_themes.c
+    src/app/appearance_centre.c
     src/app/workspace_persistence.c
     src/app/workspace_views.c
     src/app/workspace_commands.c
@@ -782,10 +783,33 @@ if(UMICOM_STUDIO_BUILD_GTK)
         set_property(TARGET umicom-studio-ide PROPERTY WIN32_EXECUTABLE TRUE)
     endif()
 
+    # Keep the canonical trademark assets beside the executable in development
+    # and in installed packages. Runtime path discovery avoids leaking a
+    # developer's private source-tree path into the binary.
+    add_custom_command(TARGET umicom-studio-ide POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:umicom-studio-ide>/branding"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/assets/umicom-icon.svg"
+            "$<TARGET_FILE_DIR:umicom-studio-ide>/branding/umicom-icon.svg"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/assets/umicom-logo.svg"
+            "$<TARGET_FILE_DIR:umicom-studio-ide>/branding/umicom-logo.svg"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/win/umicom-logo.png"
+            "$<TARGET_FILE_DIR:umicom-studio-ide>/branding/umicom-logo.png"
+        COMMENT "Copying Umicom trademark assets for the Studio workbench")
+
     install(TARGETS
         umicom-studio-ide
         umicom-studio-workbench-demo
         RUNTIME DESTINATION bin)
+    install(FILES
+        "${CMAKE_SOURCE_DIR}/assets/umicom-icon.svg"
+        "${CMAKE_SOURCE_DIR}/assets/umicom-logo.svg"
+        "${CMAKE_SOURCE_DIR}/win/umicom-logo.png"
+        "${CMAKE_SOURCE_DIR}/win/umicom.ico"
+        DESTINATION bin/branding)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -1697,6 +1721,8 @@ foreach(UMICOM_STUDIO_WORKSPACE_TEST
         workspace_profile_session
         workspace_groups
         workspace_themes
+        appearance_centre
+        appearance_session
         workspace_persistence
         workspace_views_commands)
     string(REPLACE "_" "-" UMICOM_STUDIO_WORKSPACE_TEST_TARGET

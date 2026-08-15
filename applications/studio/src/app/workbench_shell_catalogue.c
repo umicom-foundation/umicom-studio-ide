@@ -218,7 +218,7 @@ static UmiStatus register_context(UmiUiWorkbench *workbench)
          */
         status = umi_ui_context_set_string(context,
                                            "studio.ui.theme",
-                                           "dark");
+                                           "umicom-dark");
     }
     if (status == UMI_STATUS_OK) {
         status = umi_ui_context_set_string(context,
