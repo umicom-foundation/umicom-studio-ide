@@ -102,10 +102,14 @@ UmiStatus umi_studio_workbench_populate(UmiUiWorkbench *workbench,
     (void)snprintf(welcome.uri, sizeof(welcome.uri), "%s",
                    "umicom://studio/welcome.c");
     (void)snprintf(welcome.language_id, sizeof(welcome.language_id), "%s", "c");
+    (void)snprintf(welcome.group_id, sizeof(welcome.group_id), "%s",
+                   "editor.primary");
     (void)snprintf(welcome.source_text, sizeof(welcome.source_text), "%s",
                    WELCOME_SOURCE);
     welcome.active = 1;
     welcome.pinned = 1;
+    welcome.closable = 1;
+    welcome.show_line_numbers = 1;
     status = umi_ui_document_view_model_upsert(
         umi_ui_workbench_documents(workbench), &welcome);
     if (status != UMI_STATUS_OK) return status;

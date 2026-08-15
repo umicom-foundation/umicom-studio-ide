@@ -34,8 +34,16 @@ typedef struct UmiStudioUi UmiStudioUi;
     "studio.ui.workspace-profile.activate"
 #define UMI_STUDIO_COMMAND_NOTIFICATION_INFO "studio.ui.notification.info"
 #define UMI_STUDIO_COMMAND_QUICK_ACCESS_SHOW "studio.ui.quick-access.show"
+#define UMI_STUDIO_COMMAND_EDITOR_CLOSE_OTHERS "studio.editor.close-others"
+#define UMI_STUDIO_COMMAND_EDITOR_CLOSE_ALL "studio.editor.close-all"
+#define UMI_STUDIO_COMMAND_EDITOR_PIN_TOGGLE "studio.editor.pin-toggle"
+#define UMI_STUDIO_COMMAND_EDITOR_PREVIEW_PROMOTE "studio.editor.preview-promote"
+#define UMI_STUDIO_COMMAND_EDITOR_WORD_WRAP_TOGGLE \
+    "studio.editor.word-wrap-toggle"
+#define UMI_STUDIO_COMMAND_EDITOR_NEXT "studio.editor.next"
+#define UMI_STUDIO_COMMAND_EDITOR_PREVIOUS "studio.editor.previous"
 
-#define UMI_STUDIO_WORKBENCH_COMMAND_COUNT 11U
+#define UMI_STUDIO_WORKBENCH_COMMAND_COUNT 18U
 
 UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
                                                   UmiStudioUi *ui);

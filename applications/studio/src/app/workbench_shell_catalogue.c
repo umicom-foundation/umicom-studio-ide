@@ -331,13 +331,40 @@ static UmiStatus register_keybindings(UmiUiWorkbench *workbench)
                                  120);
     if (status != UMI_STATUS_OK) return status;
 
+    status = register_keybinding(workbench,
+                                 "studio.keys.command-palette",
+                                 UMI_STUDIO_COMMAND_QUICK_ACCESS_SHOW,
+                                 "",
+                                 "Ctrl+Shift+P",
+                                 "",
+                                 130);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_keybinding(workbench,
+                                 "studio.keys.editor-next",
+                                 UMI_STUDIO_COMMAND_EDITOR_NEXT,
+                                 "",
+                                 "Ctrl+Tab",
+                                 "",
+                                 140);
+    if (status != UMI_STATUS_OK) return status;
+
+    status = register_keybinding(workbench,
+                                 "studio.keys.editor-previous",
+                                 UMI_STUDIO_COMMAND_EDITOR_PREVIOUS,
+                                 "",
+                                 "Ctrl+Shift+Tab",
+                                 "",
+                                 150);
+    if (status != UMI_STATUS_OK) return status;
+
     return register_keybinding(workbench,
-                               "studio.keys.command-palette",
-                               UMI_STUDIO_COMMAND_QUICK_ACCESS_SHOW,
+                               "studio.keys.editor-word-wrap",
+                               UMI_STUDIO_COMMAND_EDITOR_WORD_WRAP_TOGGLE,
                                "",
-                               "Ctrl+Shift+P",
+                               "Alt+Z",
                                "",
-                               130);
+                               160);
 }
 
 static UmiStatus seed_explorer(UmiUiWorkbench *workbench)

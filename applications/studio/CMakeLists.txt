@@ -886,6 +886,7 @@ if(BUILD_TESTING)
             source_control_workbench
             platform_shell_expansion
             editor_workspace
+            editor_workbench_commands
             developer_project_centre
             developer_workspace_model
             developer_workspace_discovery

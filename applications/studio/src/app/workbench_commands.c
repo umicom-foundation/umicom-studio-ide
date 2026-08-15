@@ -295,6 +295,208 @@ static UmiStatus quick_access_show(void *user_data,
     return status;
 }
 
+static UmiStatus active_document(UmiStudioUi *ui,
+                                 UmiUiWorkbench **out_workbench,
+                                 UmiUiDocumentViewSnapshot *out_document)
+{
+    UmiUiWorkbenchSnapshot snapshot;
+    UmiUiWorkbench *workbench;
+    UmiStatus status;
+    if (ui == NULL || out_workbench == NULL || out_document == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    workbench = umi_studio_ui_workbench(ui);
+    status = umi_ui_workbench_snapshot(workbench, &snapshot);
+    if (status != UMI_STATUS_OK) return status;
+    if (snapshot.active_document_view[0] == '\0') return UMI_STATUS_NOT_FOUND;
+    status = umi_ui_document_view_model_find(
+        umi_ui_workbench_documents(workbench),
+        snapshot.active_document_view,
+        out_document);
+    if (status == UMI_STATUS_OK) *out_workbench = workbench;
+    return status;
+}
+
+static UmiStatus editor_close(void *user_data,
+                              int close_all,
+                              char *out_message,
+                              size_t capacity)
+{
+    UmiStudioUi *ui = (UmiStudioUi *)user_data;
+    UmiUiWorkbench *workbench = NULL;
+    UmiUiDocumentViewSnapshot document;
+    UmiUiDocumentCloseResult result = {0};
+    UmiStatus status;
+    status = active_document(ui, &workbench, &document);
+    if (status != UMI_STATUS_OK) return status;
+    status = close_all
+        ? umi_ui_document_view_model_close_all(
+              umi_ui_workbench_documents(workbench), &result)
+        : umi_ui_document_view_model_close_others(
+              umi_ui_workbench_documents(workbench),
+              document.view_id,
+              &result);
+    if (status == UMI_STATUS_OK && close_all &&
+        umi_ui_document_view_model_find(
+            umi_ui_workbench_documents(workbench),
+            document.view_id,
+            &document) == UMI_STATUS_NOT_FOUND &&
+        umi_ui_document_view_model_count(
+            umi_ui_workbench_documents(workbench)) > 0U &&
+        umi_ui_document_view_model_at(
+            umi_ui_workbench_documents(workbench),
+            0U,
+            &document) == UMI_STATUS_OK) {
+        status = umi_ui_workbench_activate_document(workbench,
+                                                    document.view_id);
+    }
+    if (status == UMI_STATUS_OK && out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity,
+                       "Closed %zu editor(s); preserved %zu dirty, %zu pinned and %zu protected",
+                       result.closed_count,
+                       result.dirty_count,
+                       result.pinned_count,
+                       result.non_closable_count);
+    }
+    return status;
+}
+
+static UmiStatus editor_close_others(void *user_data,
+                                     const char *argument,
+                                     char *out_message,
+                                     size_t capacity)
+{
+    (void)argument;
+    return editor_close(user_data, 0, out_message, capacity);
+}
+
+static UmiStatus editor_close_all(void *user_data,
+                                  const char *argument,
+                                  char *out_message,
+                                  size_t capacity)
+{
+    (void)argument;
+    return editor_close(user_data, 1, out_message, capacity);
+}
+
+static UmiStatus editor_pin_toggle(void *user_data,
+                                   const char *argument,
+                                   char *out_message,
+                                   size_t capacity)
+{
+    UmiUiWorkbench *workbench = NULL;
+    UmiUiDocumentViewSnapshot document;
+    UmiStatus status;
+    (void)argument;
+    status = active_document((UmiStudioUi *)user_data,
+                             &workbench,
+                             &document);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_ui_document_view_model_set_pinned(
+        umi_ui_workbench_documents(workbench),
+        document.view_id,
+        !document.pinned);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "%s: %s",
+                       document.title,
+                       document.pinned ? "unpinned" : "pinned");
+    }
+    return status;
+}
+
+static UmiStatus editor_preview_promote(void *user_data,
+                                        const char *argument,
+                                        char *out_message,
+                                        size_t capacity)
+{
+    UmiUiWorkbench *workbench = NULL;
+    UmiUiDocumentViewSnapshot document;
+    UmiStatus status;
+    (void)argument;
+    status = active_document((UmiStudioUi *)user_data,
+                             &workbench,
+                             &document);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_ui_document_view_model_promote_preview(
+        umi_ui_workbench_documents(workbench), document.view_id);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity,
+                       "%s is now a permanent editor", document.title);
+    }
+    return status;
+}
+
+static UmiStatus editor_word_wrap_toggle(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t capacity)
+{
+    UmiUiWorkbench *workbench = NULL;
+    UmiUiDocumentViewSnapshot document;
+    UmiStatus status;
+    (void)argument;
+    status = active_document((UmiStudioUi *)user_data,
+                             &workbench,
+                             &document);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_ui_document_view_model_set_word_wrap(
+        umi_ui_workbench_documents(workbench),
+        document.view_id,
+        !document.word_wrap);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Word wrap %s",
+                       document.word_wrap ? "disabled" : "enabled");
+    }
+    return status;
+}
+
+static UmiStatus editor_navigate(void *user_data,
+                                 int direction,
+                                 char *out_message,
+                                 size_t capacity)
+{
+    UmiUiWorkbench *workbench = NULL;
+    UmiUiDocumentViewSnapshot document;
+    char target[UMI_UI_ID_CAPACITY];
+    UmiStatus status;
+    status = active_document((UmiStudioUi *)user_data,
+                             &workbench,
+                             &document);
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_ui_document_view_model_activate_relative(
+        umi_ui_workbench_documents(workbench),
+        document.view_id,
+        direction,
+        target,
+        sizeof(target));
+    if (status == UMI_STATUS_OK) {
+        status = umi_ui_workbench_activate_document(workbench, target);
+    }
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "%s",
+                       status == UMI_STATUS_OK ? target : umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus editor_next(void *user_data,
+                             const char *argument,
+                             char *out_message,
+                             size_t capacity)
+{
+    (void)argument;
+    return editor_navigate(user_data, 1, out_message, capacity);
+}
+
+static UmiStatus editor_previous(void *user_data,
+                                 const char *argument,
+                                 char *out_message,
+                                 size_t capacity)
+{
+    (void)argument;
+    return editor_navigate(user_data, -1, out_message, capacity);
+}
+
 UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
                                                   UmiStudioUi *ui)
 {
@@ -339,7 +541,35 @@ UmiStatus umi_studio_workbench_commands_register(UmiCommandRegistry *registry,
         { UMI_STUDIO_COMMAND_QUICK_ACCESS_SHOW,
           "Show Command Palette",
           "Focus the global action-aware command palette",
-          quick_access_show, UMI_COMMAND_MUTATES_STATE }
+          quick_access_show, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_CLOSE_OTHERS,
+          "Close Other Editors",
+          "Close clean, unpinned editors in the active editor group",
+          editor_close_others, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_CLOSE_ALL,
+          "Close All Editors",
+          "Close clean, unpinned editors while preserving unsaved work",
+          editor_close_all, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_PIN_TOGGLE,
+          "Pin or Unpin Editor",
+          "Toggle persistence of the active editor tab",
+          editor_pin_toggle, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_PREVIEW_PROMOTE,
+          "Keep Preview Editor",
+          "Promote the active preview into a permanent editor tab",
+          editor_preview_promote, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_WORD_WRAP_TOGGLE,
+          "Toggle Word Wrap",
+          "Toggle viewport word wrapping in the active editor",
+          editor_word_wrap_toggle, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_NEXT,
+          "Next Editor",
+          "Activate the next editor in the current group",
+          editor_next, UMI_COMMAND_MUTATES_STATE },
+        { UMI_STUDIO_COMMAND_EDITOR_PREVIOUS,
+          "Previous Editor",
+          "Activate the previous editor in the current group",
+          editor_previous, UMI_COMMAND_MUTATES_STATE }
     };
     size_t index;
     UmiStatus status;

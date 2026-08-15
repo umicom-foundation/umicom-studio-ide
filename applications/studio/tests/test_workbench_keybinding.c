@@ -21,6 +21,7 @@ int main(void)
     UmiStudioBootstrap *bootstrap = NULL;
     UmiUiWorkbench *workbench;
     UmiUiKeybindingResolution resolution;
+    UmiUiDocumentViewSnapshot document;
 
     assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
     assert(umi_studio_bootstrap_start(bootstrap) == UMI_STATUS_OK);
@@ -52,6 +53,44 @@ int main(void)
         assert(request.kind == UMI_UI_CONTEXT_INTEGER);
         assert(request.integer_value == 1);
     }
+
+    assert(umi_ui_workbench_resolve_keybinding(workbench,
+                                               "Ctrl+Tab",
+                                               &resolution) == UMI_STATUS_OK);
+    assert(strcmp(resolution.command_id,
+                  UMI_STUDIO_COMMAND_EDITOR_NEXT) == 0);
+    assert(umi_ui_workbench_resolve_keybinding(workbench,
+                                               "Ctrl+Shift+Tab",
+                                               &resolution) == UMI_STATUS_OK);
+    assert(strcmp(resolution.command_id,
+                  UMI_STUDIO_COMMAND_EDITOR_PREVIOUS) == 0);
+    assert(umi_ui_workbench_resolve_keybinding(workbench,
+                                               "Alt+Z",
+                                               &resolution) == UMI_STATUS_OK);
+    assert(strcmp(resolution.command_id,
+                  UMI_STUDIO_COMMAND_EDITOR_WORD_WRAP_TOGGLE) == 0);
+    assert(umi_command_registry_execute(umi_ui_workbench_commands(workbench),
+                                        resolution.command_id,
+                                        NULL,
+                                        NULL,
+                                        0U) == UMI_STATUS_OK);
+    assert(umi_ui_document_view_model_find(
+               umi_ui_workbench_documents(workbench),
+               "studio.editor.welcome",
+               &document) == UMI_STATUS_OK);
+    assert(document.word_wrap);
+
+    assert(umi_command_registry_execute(
+               umi_ui_workbench_commands(workbench),
+               UMI_STUDIO_COMMAND_EDITOR_PIN_TOGGLE,
+               NULL,
+               NULL,
+               0U) == UMI_STATUS_OK);
+    assert(umi_ui_document_view_model_find(
+               umi_ui_workbench_documents(workbench),
+               "studio.editor.welcome",
+               &document) == UMI_STATUS_OK);
+    assert(!document.pinned);
 
     umi_studio_bootstrap_destroy(bootstrap);
     return 0;
