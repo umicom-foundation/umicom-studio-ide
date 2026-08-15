@@ -35,6 +35,7 @@ typedef struct UmiStudioDebuggerSnapshot {
     size_t watch_count;
     size_t event_count;
     char controller_state[64];
+    UmiDebugWorkspaceSnapshot workspace;
 } UmiStudioDebuggerSnapshot;
 
 UmiStatus umi_studio_debugger_service_create(
@@ -80,6 +81,40 @@ UmiStatus umi_studio_debugger_service_add_breakpoint(
     int line,
     int column
 );
+UmiStatus umi_studio_debugger_service_set_breakpoint_enabled(
+    UmiStudioDebuggerService *service,
+    const char *breakpoint_id,
+    int enabled
+);
+UmiStatus umi_studio_debugger_service_remove_breakpoint(
+    UmiStudioDebuggerService *service,
+    const char *breakpoint_id
+);
+UmiStatus umi_studio_debugger_service_add_watch(
+    UmiStudioDebuggerService *service,
+    const char *expression,
+    char *out_watch_id,
+    size_t out_watch_id_capacity
+);
+UmiStatus umi_studio_debugger_service_remove_watch(
+    UmiStudioDebuggerService *service,
+    const char *watch_id
+);
+UmiStatus umi_studio_debugger_service_select_thread(
+    UmiStudioDebuggerService *service,
+    const char *thread_id
+);
+UmiStatus umi_studio_debugger_service_select_frame(
+    UmiStudioDebuggerService *service,
+    const char *frame_id
+);
+UmiStatus umi_studio_debugger_service_select_scope(
+    UmiStudioDebuggerService *service,
+    const char *scope_id
+);
+UmiStatus umi_studio_debugger_service_clear_console(
+    UmiStudioDebuggerService *service
+);
 UmiStatus umi_studio_debugger_service_snapshot(
     const UmiStudioDebuggerService *service,
     UmiStudioDebuggerSnapshot *out_snapshot
@@ -91,6 +126,9 @@ UmiDebugService *umi_studio_debugger_service_model(
     UmiStudioDebuggerService *service
 );
 UmiDebugController *umi_studio_debugger_service_controller(
+    UmiStudioDebuggerService *service
+);
+UmiDebugWorkspace *umi_studio_debugger_service_workspace(
     UmiStudioDebuggerService *service
 );
 

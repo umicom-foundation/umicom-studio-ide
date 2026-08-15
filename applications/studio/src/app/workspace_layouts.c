@@ -45,8 +45,8 @@ static UmiStatus debug_layout(UmiUiWorkspaceLayout *layout)
     if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,false);
     if (status == UMI_STATUS_OK) status = add_window(layout,"debug-explorer","Project Explorer","project-explorer","debug-orange",0.0,0.0,0.18,0.68,true,1);
     if (status == UMI_STATUS_OK) status = add_window(layout,"debug-editor","Editor","editor","debug-orange",0.18,0.0,0.58,0.68,false,2);
-    if (status == UMI_STATUS_OK) status = add_window(layout,"debug-state","Variables and Call Stack","debug","debug-orange",0.76,0.0,0.24,0.68,true,3);
-    if (status == UMI_STATUS_OK) status = add_window(layout,"debug-console","Debug Console, Problems and Terminal","terminal","debug-orange",0.0,0.68,1.0,0.32,true,4);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"debug-state","Variables, Watch and Call Stack","debug-workspace","debug-orange",0.76,0.0,0.24,0.68,true,3);
+    if (status == UMI_STATUS_OK) status = add_window(layout,"debug-console","Debug Console, Breakpoints and Terminal","debug-console","debug-orange",0.0,0.68,1.0,0.32,true,4);
     if (status == UMI_STATUS_OK) status = umi_ui_workspace_layout_set_locked(layout,true);
     return status;
 }

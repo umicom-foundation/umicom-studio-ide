@@ -23,6 +23,18 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "umicom/studio/contributions.h"
+
+static int is_debug_workspace_pane(const char *pane_id)
+{
+    return strcmp(pane_id, UMI_STUDIO_PANE_RUN_DEBUG) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_DEBUG_CALL_STACK) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_DEBUG_VARIABLES) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_DEBUG_WATCHES) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_DEBUG_BREAKPOINTS) == 0 ||
+           strcmp(pane_id, UMI_STUDIO_PANE_DEBUG_CONSOLE) == 0;
+}
+
 static UmiStatus register_profile(UmiUiWorkbench *workbench,
                                   const char *profile_id,
                                   const char *label,
@@ -72,7 +84,11 @@ static UmiStatus register_profile(UmiUiWorkbench *workbench,
         UmiStatus status = umi_ui_pane_model_at(
             umi_ui_workbench_panes(workbench), pane_index, &pane);
         if (status != UMI_STATUS_OK) return status;
-        if (!pane.visible || pane.placement == UMI_UI_PLACEMENT_CENTRE ||
+        int debug_pane = strcmp(profile_id,
+                                UMI_STUDIO_WORKSPACE_PROFILE_DEBUG) == 0 &&
+                         is_debug_workspace_pane(pane.pane_id);
+        if ((!pane.visible && !debug_pane) ||
+            pane.placement == UMI_UI_PLACEMENT_CENTRE ||
             pane.placement == UMI_UI_PLACEMENT_FLOATING) {
             continue;
         }
@@ -84,7 +100,7 @@ static UmiStatus register_profile(UmiUiWorkbench *workbench,
                        pane.pane_id);
         saved->placement = pane.placement;
         saved->order = pane.order;
-        saved->visible = pane.visible;
+        saved->visible = debug_pane ? 1 : pane.visible;
     }
     return umi_ui_workspace_profile_model_upsert(model, &profile);
 }

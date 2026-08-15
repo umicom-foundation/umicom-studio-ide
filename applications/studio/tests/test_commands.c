@@ -156,6 +156,43 @@ int main(void)
 
     assert(umi_command_registry_execute(
         registry,
+        UMI_STUDIO_COMMAND_DEBUG_ADD_BREAKPOINT,
+        "main.c:42",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_DEBUG_SET_BREAKPOINT_ENABLED,
+        "main.c:42:1=0",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_DEBUG_ADD_WATCH,
+        "counter + 1",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(strstr(message, "watch-1") != NULL);
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_DEBUG_REMOVE_WATCH,
+        "watch-1",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+    assert(umi_command_registry_execute(
+        registry,
+        UMI_STUDIO_COMMAND_DEBUG_CLEAR_CONSOLE,
+        "",
+        message,
+        sizeof(message)
+    ) == UMI_STATUS_OK);
+
+    assert(umi_command_registry_execute(
+        registry,
         UMI_STUDIO_COMMAND_SECURITY_REPORT,
         "",
         message,

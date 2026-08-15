@@ -157,6 +157,7 @@ add_library(umicom_studio_core STATIC
     src/app/terminal.c
     src/app/language.c
     src/app/debugger.c
+    src/app/debug_workspace_views.c
     src/app/source_control.c
     src/app/developer_platform.c
     src/app/declarative.c
@@ -1293,6 +1294,7 @@ if(BUILD_TESTING)
             terminal_workbench
             language_service
             debugger_service
+            debug_workspace_views
             source_control_service
             developer_platform)
         string(REPLACE "_" "-" UMICOM_STUDIO_DEVELOPER_TEST_TARGET
@@ -1464,6 +1466,7 @@ if(BUILD_TESTING)
         studio.terminal_service
         studio.language_service
         studio.debugger_service
+        studio.debug_workspace_views
         studio.source_control_service
         studio.developer_platform
         studio.ai_platform

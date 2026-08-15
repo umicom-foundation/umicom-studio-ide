@@ -1104,6 +1104,147 @@ static UmiStatus debug_add_breakpoint_handler(void *user_data,
     return status;
 }
 
+static UmiStatus debug_set_breakpoint_enabled_handler(
+    void *user_data, const char *argument, char *out_message, size_t capacity)
+{
+    char breakpoint_id[128];
+    const char *separator;
+    size_t id_length;
+    int enabled;
+    UmiStatus status;
+
+    if (argument == NULL ||
+        (separator = strrchr(argument, '=')) == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    id_length = (size_t)(separator - argument);
+    if (id_length == 0U || id_length + 1U > sizeof(breakpoint_id) ||
+        (strcmp(separator + 1, "0") != 0 &&
+         strcmp(separator + 1, "1") != 0)) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    (void)memcpy(breakpoint_id, argument, id_length);
+    breakpoint_id[id_length] = '\0';
+    enabled = strcmp(separator + 1, "1") == 0;
+    status = umi_studio_debugger_service_set_breakpoint_enabled(
+        umi_studio_services_debugger((UmiStudioServices *)user_data),
+        breakpoint_id, enabled);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Breakpoint %s %s: %s",
+                       breakpoint_id, enabled ? "enabled" : "disabled",
+                       umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus debug_remove_breakpoint_handler(
+    void *user_data, const char *argument, char *out_message, size_t capacity)
+{
+    UmiStatus status;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_studio_debugger_service_remove_breakpoint(
+        umi_studio_services_debugger((UmiStudioServices *)user_data),
+        argument);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Remove breakpoint %s: %s",
+                       argument, umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus debug_add_watch_handler(void *user_data, const char *argument,
+                                         char *out_message, size_t capacity)
+{
+    char watch_id[128] = {0};
+    UmiStatus status;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_studio_debugger_service_add_watch(
+        umi_studio_services_debugger((UmiStudioServices *)user_data),
+        argument, watch_id, sizeof(watch_id));
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Watch %s: %s", watch_id,
+                       umi_status_text(status));
+    }
+    return status;
+}
+
+static UmiStatus debug_remove_watch_handler(void *user_data,
+                                            const char *argument,
+                                            char *out_message,
+                                            size_t capacity)
+{
+    UmiStatus status;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_studio_debugger_service_remove_watch(
+        umi_studio_services_debugger((UmiStudioServices *)user_data),
+        argument);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Remove watch %s: %s",
+                       argument, umi_status_text(status));
+    }
+    return status;
+}
+
+typedef UmiStatus (*DebugSelectionAction)(UmiStudioDebuggerService *,
+                                          const char *);
+
+static UmiStatus debug_selection_handler(void *user_data,
+                                         const char *argument,
+                                         char *out_message,
+                                         size_t capacity,
+                                         const char *selection_name,
+                                         DebugSelectionAction action)
+{
+    UmiStatus status;
+    if (argument == NULL || argument[0] == '\0') {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = action(umi_studio_services_debugger(
+                        (UmiStudioServices *)user_data), argument);
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Select %s %s: %s",
+                       selection_name, argument, umi_status_text(status));
+    }
+    return status;
+}
+
+#define DEBUG_SELECTION_HANDLER(function_name, label, action)              \
+static UmiStatus function_name(void *user_data, const char *argument,       \
+                               char *out_message, size_t capacity)          \
+{                                                                           \
+    return debug_selection_handler(user_data, argument, out_message,        \
+                                   capacity, label, action);                \
+}
+DEBUG_SELECTION_HANDLER(debug_select_thread_handler, "thread",
+                        umi_studio_debugger_service_select_thread)
+DEBUG_SELECTION_HANDLER(debug_select_frame_handler, "frame",
+                        umi_studio_debugger_service_select_frame)
+DEBUG_SELECTION_HANDLER(debug_select_scope_handler, "scope",
+                        umi_studio_debugger_service_select_scope)
+#undef DEBUG_SELECTION_HANDLER
+
+static UmiStatus debug_clear_console_handler(void *user_data,
+                                             const char *argument,
+                                             char *out_message,
+                                             size_t capacity)
+{
+    UmiStatus status;
+    (void)argument;
+    status = umi_studio_debugger_service_clear_console(
+        umi_studio_services_debugger((UmiStudioServices *)user_data));
+    if (out_message != NULL && capacity > 0U) {
+        (void)snprintf(out_message, capacity, "Debug Console clear: %s",
+                       umi_status_text(status));
+    }
+    return status;
+}
+
 static UmiStatus vcs_refresh_handler(void *user_data,
                                      const char *argument,
                                      char *out_message,
@@ -2056,6 +2197,62 @@ UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                               "Add a source breakpoint using path:line.",
                               "studio.debug.use", UMI_COMMAND_MUTATES_STATE,
                               debug_add_breakpoint_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_SET_BREAKPOINT_ENABLED,
+                              "Enable or Disable Breakpoint", "Debug",
+                              "Set breakpoint state using id=1 or id=0.",
+                              "studio.debug.use", UMI_COMMAND_MUTATES_STATE,
+                              debug_set_breakpoint_enabled_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_REMOVE_BREAKPOINT,
+                              "Remove Breakpoint", "Debug",
+                              "Remove a breakpoint by its stable ID.",
+                              "studio.debug.use", UMI_COMMAND_MUTATES_STATE,
+                              debug_remove_breakpoint_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_ADD_WATCH,
+                              "Add Watch Expression", "Debug",
+                              "Add an expression to the Watch pane.",
+                              "studio.debug.use", UMI_COMMAND_MUTATES_STATE,
+                              debug_add_watch_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_REMOVE_WATCH,
+                              "Remove Watch Expression", "Debug",
+                              "Remove a watch expression by its stable ID.",
+                              "studio.debug.use", UMI_COMMAND_MUTATES_STATE,
+                              debug_remove_watch_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_SELECT_THREAD,
+                              "Select Debug Thread", "Debug",
+                              "Select a thread in the debugger workspace.",
+                              "studio.debug.use", UMI_COMMAND_NONE,
+                              debug_select_thread_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_SELECT_FRAME,
+                              "Select Stack Frame", "Debug",
+                              "Select a stack frame in the debugger workspace.",
+                              "studio.debug.use", UMI_COMMAND_NONE,
+                              debug_select_frame_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_SELECT_SCOPE,
+                              "Select Variable Scope", "Debug",
+                              "Select a variable scope for the Variables pane.",
+                              "studio.debug.use", UMI_COMMAND_NONE,
+                              debug_select_scope_handler);
+    if (status != UMI_STATUS_OK) return status;
+    status = register_command(registry, services,
+                              UMI_STUDIO_COMMAND_DEBUG_CLEAR_CONSOLE,
+                              "Clear Debug Console", "Debug",
+                              "Clear retained Debug Console entries.",
+                              "studio.debug.use", UMI_COMMAND_MUTATES_STATE,
+                              debug_clear_console_handler);
     if (status != UMI_STATUS_OK) return status;
     status = register_command(registry, services,
                               UMI_STUDIO_COMMAND_VCS_REFRESH,

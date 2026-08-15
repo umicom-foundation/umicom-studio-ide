@@ -100,6 +100,11 @@ static UmiStatus register_view_containers(UmiUiWorkbench *workbench)
     };
     static const char *const RUN[] = {
         UMI_STUDIO_PANE_RUN_DEBUG,
+        UMI_STUDIO_PANE_DEBUG_CALL_STACK,
+        UMI_STUDIO_PANE_DEBUG_VARIABLES,
+        UMI_STUDIO_PANE_DEBUG_WATCHES,
+        UMI_STUDIO_PANE_DEBUG_BREAKPOINTS,
+        UMI_STUDIO_PANE_DEBUG_CONSOLE,
         UMI_STUDIO_PANE_OUTPUT,
         UMI_STUDIO_PANE_TERMINAL
     };

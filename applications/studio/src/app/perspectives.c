@@ -18,7 +18,7 @@ static const UmiUiPerspectiveSnapshot STUDIO_PERSPECTIVES[] = {
     { UMI_STUDIO_PERSPECTIVE_DEVELOP, "Develop", "Edit and navigate source", "applications-development-symbolic", 10, 1 },
     { UMI_STUDIO_PERSPECTIVE_BUILD, "Build", "Configure, compile and inspect build output", "system-run-symbolic", 20, 0 },
     { UMI_STUDIO_PERSPECTIVE_TEST, "Test", "Discover and execute automated tests", "emblem-ok-symbolic", 30, 0 },
-    { UMI_STUDIO_PERSPECTIVE_DEBUG, "Debug", "Inspect breakpoints, stack and variables", "applications-engineering-symbolic", 40, 0 },
+    { UMI_STUDIO_PERSPECTIVE_DEBUG, "Debug", "Control execution and inspect threads, stack frames, variables, watches, breakpoints and console output", "applications-engineering-symbolic", 40, 0 },
     { UMI_STUDIO_PERSPECTIVE_SOURCE_CONTROL, "Source Control", "Review changes and repository history", "vcs-branch-symbolic", 50, 0 },
     { UMI_STUDIO_PERSPECTIVE_AI, "AI", "Use governed AI and AuthorEngine services", "system-search-symbolic", 60, 0 },
     { UMI_STUDIO_PERSPECTIVE_DESIGNER, "Designer", "Compose declarative Umicom applications", "applications-graphics-symbolic", 70, 0 },

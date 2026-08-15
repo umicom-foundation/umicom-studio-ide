@@ -90,6 +90,16 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_DEBUG_STEP_OUT "studio.debug.step-out"
 #define UMI_STUDIO_COMMAND_DEBUG_STOP "studio.debug.stop"
 #define UMI_STUDIO_COMMAND_DEBUG_ADD_BREAKPOINT "studio.debug.add-breakpoint"
+#define UMI_STUDIO_COMMAND_DEBUG_SET_BREAKPOINT_ENABLED \
+    "studio.debug.set-breakpoint-enabled"
+#define UMI_STUDIO_COMMAND_DEBUG_REMOVE_BREAKPOINT \
+    "studio.debug.remove-breakpoint"
+#define UMI_STUDIO_COMMAND_DEBUG_ADD_WATCH "studio.debug.add-watch"
+#define UMI_STUDIO_COMMAND_DEBUG_REMOVE_WATCH "studio.debug.remove-watch"
+#define UMI_STUDIO_COMMAND_DEBUG_SELECT_THREAD "studio.debug.select-thread"
+#define UMI_STUDIO_COMMAND_DEBUG_SELECT_FRAME "studio.debug.select-frame"
+#define UMI_STUDIO_COMMAND_DEBUG_SELECT_SCOPE "studio.debug.select-scope"
+#define UMI_STUDIO_COMMAND_DEBUG_CLEAR_CONSOLE "studio.debug.clear-console"
 #define UMI_STUDIO_COMMAND_VCS_REFRESH "studio.vcs.refresh"
 #define UMI_STUDIO_COMMAND_VCS_STAGE "studio.vcs.stage"
 #define UMI_STUDIO_COMMAND_VCS_UNSTAGE "studio.vcs.unstage"
@@ -106,7 +116,7 @@ extern "C" {
 #define UMI_STUDIO_COMMAND_VCS_DIFF "studio.vcs.diff"
 #define UMI_STUDIO_COMMAND_DEVELOPER_REPORT "studio.developer.report"
 
-#define UMI_STUDIO_CORE_COMMAND_COUNT 83U
+#define UMI_STUDIO_CORE_COMMAND_COUNT 91U
 
 UmiStatus umi_studio_commands_register(UmiCommandRegistry *registry,
                                        UmiStudioServices *services);

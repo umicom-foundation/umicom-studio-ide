@@ -28,6 +28,7 @@
 #include "umicom/studio/build.h"
 #include "umicom/studio/commands.h"
 #include "umicom/studio/debugger.h"
+#include "umicom/studio/debug_workspace_views.h"
 #include "umicom/studio/designer.h"
 #include "umicom/studio/extension_centre.h"
 #include "umicom/studio/product_centre.h"
@@ -45,6 +46,11 @@
 #define VIEW_VCS_REMOTES   "studio.vcs-remotes"
 #define VIEW_VCS_DIFF      "studio.vcs-diff"
 #define VIEW_RUN_DEBUG     "studio.run-debug"
+#define VIEW_DEBUG_CALL_STACK "studio.debug-call-stack"
+#define VIEW_DEBUG_VARIABLES "studio.debug-variables"
+#define VIEW_DEBUG_WATCHES "studio.debug-watches"
+#define VIEW_DEBUG_BREAKPOINTS "studio.debug-breakpoints"
+#define VIEW_DEBUG_CONSOLE "studio.debug-console"
 #define VIEW_TESTING       "studio.testing"
 #define VIEW_DESIGNER      "studio.designer"
 #define VIEW_APPLICATIONS  "studio.application-hub"
@@ -78,18 +84,28 @@
 #define VIEW_PRODUCT_TRANSACTIONS "studio.product-transactions"
 #define VIEW_PRODUCT_EVIDENCE "studio.product-evidence"
 
+static UmiStatus add_action_enabled(UmiUiViewModel *view,
+                                    size_t index,
+                                    const char *action_id,
+                                    const char *label,
+                                    const char *tooltip,
+                                    int enabled)
+{
+    UmiUiCommandViewAction action = {0};
+    (void)snprintf(action.action_id, sizeof(action.action_id), "%s", action_id);
+    (void)snprintf(action.label, sizeof(action.label), "%s", label);
+    (void)snprintf(action.tooltip, sizeof(action.tooltip), "%s", tooltip);
+    action.enabled = enabled != 0;
+    return umi_ui_command_view_set_action(view, index, &action);
+}
+
 static UmiStatus add_action(UmiUiViewModel *view,
                             size_t index,
                             const char *action_id,
                             const char *label,
                             const char *tooltip)
 {
-    UmiUiCommandViewAction action = {0};
-    (void)snprintf(action.action_id, sizeof(action.action_id), "%s", action_id);
-    (void)snprintf(action.label, sizeof(action.label), "%s", label);
-    (void)snprintf(action.tooltip, sizeof(action.tooltip), "%s", tooltip);
-    action.enabled = 1;
-    return umi_ui_command_view_set_action(view, index, &action);
+    return add_action_enabled(view, index, action_id, label, tooltip, 1);
 }
 
 typedef UmiStatus (*StudioViewCreateFn)(
@@ -395,6 +411,26 @@ static UmiStatus create_run_debug(const char *view_id,
             status = property_integer(*out_view, "debug-events",
                                       (int64_t)debug_snapshot.event_count);
         }
+        if (status == UMI_STATUS_OK) {
+            status = property_boolean(*out_view, "can-start",
+                                      debug_snapshot.workspace.can_start);
+        }
+        if (status == UMI_STATUS_OK) {
+            status = property_boolean(*out_view, "can-continue",
+                                      debug_snapshot.workspace.can_continue);
+        }
+        if (status == UMI_STATUS_OK) {
+            status = property_boolean(*out_view, "can-pause",
+                                      debug_snapshot.workspace.can_pause);
+        }
+        if (status == UMI_STATUS_OK) {
+            status = property_boolean(*out_view, "can-step",
+                                      debug_snapshot.workspace.can_step);
+        }
+        if (status == UMI_STATUS_OK) {
+            status = property_boolean(*out_view, "can-stop",
+                                      debug_snapshot.workspace.can_stop);
+        }
     }
     if (status == UMI_STATUS_OK) {
         status = add_action(*out_view, 0U, "studio.action.build.configure",
@@ -413,32 +449,45 @@ static UmiStatus create_run_debug(const char *view_id,
                             "Deploy", "Install into the local staging prefix");
     }
     if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 4U, "studio.action.debug.start",
-                            "Debug", "Start the configured debug target");
+        status = add_action_enabled(
+            *out_view, 4U, "studio.action.debug.start", "Debug",
+            "Start the configured debug target",
+            debug_snapshot.workspace.can_start);
     }
     if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 5U, "studio.action.debug.continue",
-                            "Continue", "Continue the selected debug thread");
+        status = add_action_enabled(
+            *out_view, 5U, "studio.action.debug.continue", "Continue",
+            "Continue the selected debug thread",
+            debug_snapshot.workspace.can_continue);
     }
     if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 6U, "studio.action.debug.pause",
-                            "Pause", "Pause the selected debug thread");
+        status = add_action_enabled(
+            *out_view, 6U, "studio.action.debug.pause", "Pause",
+            "Pause the selected debug thread",
+            debug_snapshot.workspace.can_pause);
     }
     if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 7U, "studio.action.debug.next",
-                            "Step Over", "Step over the next statement");
+        status = add_action_enabled(
+            *out_view, 7U, "studio.action.debug.next", "Step Over",
+            "Step over the next statement", debug_snapshot.workspace.can_step);
     }
     if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 8U, "studio.action.debug.step-in",
-                            "Step Into", "Step into the next function call");
+        status = add_action_enabled(
+            *out_view, 8U, "studio.action.debug.step-in", "Step Into",
+            "Step into the next function call",
+            debug_snapshot.workspace.can_step);
     }
     if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 9U, "studio.action.debug.step-out",
-                            "Step Out", "Step out of the current function");
+        status = add_action_enabled(
+            *out_view, 9U, "studio.action.debug.step-out", "Step Out",
+            "Step out of the current function",
+            debug_snapshot.workspace.can_step);
     }
     if (status == UMI_STATUS_OK) {
-        status = add_action(*out_view, 10U, "studio.action.debug.stop",
-                            "Stop", "Terminate the active debug session");
+        status = add_action_enabled(
+            *out_view, 10U, "studio.action.debug.stop", "Stop",
+            "Terminate the active debug session",
+            debug_snapshot.workspace.can_stop);
     }
     if (status == UMI_STATUS_OK) {
         status = add_action(*out_view, 11U,
@@ -446,6 +495,51 @@ static UmiStatus create_run_debug(const char *view_id,
                             "Breakpoint…", "Add a source breakpoint using path:line");
     }
     return status;
+}
+
+static UmiStatus create_debug_call_stack(const char *view_id,
+                                         void *user_data,
+                                         UmiUiViewModel **out_view)
+{
+    return umi_studio_debug_call_stack_view_create(
+        view_id, umi_studio_services_debugger(
+                     (UmiStudioServices *)user_data), out_view);
+}
+
+static UmiStatus create_debug_variables(const char *view_id,
+                                        void *user_data,
+                                        UmiUiViewModel **out_view)
+{
+    return umi_studio_debug_variables_view_create(
+        view_id, umi_studio_services_debugger(
+                     (UmiStudioServices *)user_data), out_view);
+}
+
+static UmiStatus create_debug_watches(const char *view_id,
+                                      void *user_data,
+                                      UmiUiViewModel **out_view)
+{
+    return umi_studio_debug_watches_view_create(
+        view_id, umi_studio_services_debugger(
+                     (UmiStudioServices *)user_data), out_view);
+}
+
+static UmiStatus create_debug_breakpoints(const char *view_id,
+                                          void *user_data,
+                                          UmiUiViewModel **out_view)
+{
+    return umi_studio_debug_breakpoints_view_create(
+        view_id, umi_studio_services_debugger(
+                     (UmiStudioServices *)user_data), out_view);
+}
+
+static UmiStatus create_debug_console(const char *view_id,
+                                      void *user_data,
+                                      UmiUiViewModel **out_view)
+{
+    return umi_studio_debug_console_view_create(
+        view_id, umi_studio_services_debugger(
+                     (UmiStudioServices *)user_data), out_view);
 }
 
 static UmiStatus create_testing(const char *view_id,
@@ -835,6 +929,11 @@ static const StudioViewDefinition DEFINITIONS[] = {
     { VIEW_VCS_REMOTES, create_vcs_remotes },
     { VIEW_VCS_DIFF, create_vcs_diff },
     { VIEW_RUN_DEBUG, create_run_debug },
+    { VIEW_DEBUG_CALL_STACK, create_debug_call_stack },
+    { VIEW_DEBUG_VARIABLES, create_debug_variables },
+    { VIEW_DEBUG_WATCHES, create_debug_watches },
+    { VIEW_DEBUG_BREAKPOINTS, create_debug_breakpoints },
+    { VIEW_DEBUG_CONSOLE, create_debug_console },
     { VIEW_TESTING, create_testing },
     { VIEW_DESIGNER, create_designer },
     { VIEW_APPLICATIONS, create_applications },

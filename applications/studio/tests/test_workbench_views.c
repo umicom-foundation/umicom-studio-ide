@@ -27,6 +27,7 @@ int main(void)
     UmiUiPropertySnapshot title;
     UmiUiPropertySnapshot debug_state;
     UmiUiViewModel *run_debug = NULL;
+    UmiUiViewModel *debug_watches = NULL;
     UmiUiCommandViewAction action;
 
     assert(umi_studio_bootstrap_create(&bootstrap) == UMI_STATUS_OK);
@@ -64,6 +65,15 @@ int main(void)
            UMI_STATUS_OK);
     assert(strcmp(action.action_id,
                   "studio.action.debug.add-breakpoint") == 0);
+    assert(umi_ui_view_factory_create_view(
+               umi_ui_workbench_view_factories(workbench),
+               "studio.debug-watches",
+               UMI_STUDIO_PANE_DEBUG_WATCHES,
+               &debug_watches) == UMI_STATUS_OK);
+    assert(umi_ui_command_view_action_at(debug_watches, 0U, &action) ==
+           UMI_STATUS_OK);
+    assert(strcmp(action.action_id, "studio.action.debug.add-watch") == 0);
+    umi_ui_view_model_destroy(debug_watches);
     umi_ui_view_model_destroy(run_debug);
 
     umi_studio_bootstrap_destroy(bootstrap);

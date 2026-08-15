@@ -23,6 +23,7 @@ struct UmiStudioDebuggerService {
     UmiDapBreakpointRegistry *breakpoints;
     UmiDebugService *model;
     UmiDebugController *controller;
+    UmiDebugWorkspace *workspace;
 };
 
 UmiStatus umi_studio_debugger_service_create(
@@ -49,6 +50,11 @@ UmiStatus umi_studio_debugger_service_create(
         status = umi_debug_controller_create(&service->dap, service->model,
                                              &service->controller);
     }
+    if (status == UMI_STATUS_OK) {
+        status = umi_debug_workspace_create(service->model,
+                                            service->controller,
+                                            &service->workspace);
+    }
     if (status != UMI_STATUS_OK) {
         umi_studio_debugger_service_destroy(service);
         return status;
@@ -60,6 +66,7 @@ UmiStatus umi_studio_debugger_service_create(
 void umi_studio_debugger_service_destroy(UmiStudioDebuggerService *service)
 {
     if (service == NULL) return;
+    umi_debug_workspace_destroy(service->workspace);
     umi_debug_controller_destroy(service->controller);
     umi_debug_service_destroy(service->model);
     umi_dap_breakpoint_registry_destroy(service->breakpoints);
@@ -177,6 +184,117 @@ UmiStatus umi_studio_debugger_service_add_breakpoint(
     }
 }
 
+UmiStatus umi_studio_debugger_service_set_breakpoint_enabled(
+    UmiStudioDebuggerService *service, const char *breakpoint_id, int enabled)
+{
+    UmiDebugBreakpointSnapshot model_breakpoint;
+    UmiDapBreakpoint dap_breakpoint;
+    UmiStatus status;
+
+    if (service == NULL || breakpoint_id == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_debug_breakpoint_registry_find(
+        umi_debug_service_breakpoint(service->model), breakpoint_id,
+        &model_breakpoint);
+    if (status != UMI_STATUS_OK) {
+        return status;
+    }
+    status = umi_debug_workspace_set_breakpoint_enabled(
+        service->workspace, breakpoint_id, enabled);
+    if (status != UMI_STATUS_OK) {
+        return status;
+    }
+
+    /* Keep the DAP request registry aligned with the Framework model. */
+    (void)memset(&dap_breakpoint, 0, sizeof(dap_breakpoint));
+    (void)snprintf(dap_breakpoint.source_path,
+                   sizeof(dap_breakpoint.source_path), "%s",
+                   model_breakpoint.uri);
+    dap_breakpoint.line = (int)model_breakpoint.line;
+    dap_breakpoint.column = (int)model_breakpoint.column;
+    dap_breakpoint.enabled = enabled != 0;
+    dap_breakpoint.verified = model_breakpoint.verified;
+    (void)umi_dap_breakpoint_remove(service->breakpoints,
+                                    dap_breakpoint.source_path,
+                                    dap_breakpoint.line);
+    return umi_dap_breakpoint_add(service->breakpoints, &dap_breakpoint);
+}
+
+UmiStatus umi_studio_debugger_service_remove_breakpoint(
+    UmiStudioDebuggerService *service, const char *breakpoint_id)
+{
+    UmiDebugBreakpointSnapshot breakpoint;
+    UmiStatus status;
+
+    if (service == NULL || breakpoint_id == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    status = umi_debug_breakpoint_registry_find(
+        umi_debug_service_breakpoint(service->model), breakpoint_id,
+        &breakpoint);
+    if (status != UMI_STATUS_OK) {
+        return status;
+    }
+    (void)umi_dap_breakpoint_remove(service->breakpoints, breakpoint.uri,
+                                    (int)breakpoint.line);
+    return umi_debug_workspace_remove_breakpoint(service->workspace,
+                                                 breakpoint_id);
+}
+
+UmiStatus umi_studio_debugger_service_add_watch(
+    UmiStudioDebuggerService *service, const char *expression,
+    char *out_watch_id, size_t out_watch_id_capacity)
+{
+    return service != NULL
+        ? umi_debug_workspace_add_watch(service->workspace, expression,
+                                        out_watch_id,
+                                        out_watch_id_capacity)
+        : UMI_STATUS_INVALID_ARGUMENT;
+}
+
+UmiStatus umi_studio_debugger_service_remove_watch(
+    UmiStudioDebuggerService *service, const char *watch_id)
+{
+    return service != NULL
+        ? umi_debug_workspace_remove_watch(service->workspace, watch_id)
+        : UMI_STATUS_INVALID_ARGUMENT;
+}
+
+UmiStatus umi_studio_debugger_service_select_thread(
+    UmiStudioDebuggerService *service, const char *thread_id)
+{
+    return service != NULL
+        ? umi_debug_workspace_select_thread(service->workspace, thread_id)
+        : UMI_STATUS_INVALID_ARGUMENT;
+}
+
+UmiStatus umi_studio_debugger_service_select_frame(
+    UmiStudioDebuggerService *service, const char *frame_id)
+{
+    return service != NULL
+        ? umi_debug_workspace_select_frame(service->workspace, frame_id)
+        : UMI_STATUS_INVALID_ARGUMENT;
+}
+
+UmiStatus umi_studio_debugger_service_select_scope(
+    UmiStudioDebuggerService *service, const char *scope_id)
+{
+    return service != NULL
+        ? umi_debug_workspace_select_scope(service->workspace, scope_id)
+        : UMI_STATUS_INVALID_ARGUMENT;
+}
+
+UmiStatus umi_studio_debugger_service_clear_console(
+    UmiStudioDebuggerService *service)
+{
+    if (service == NULL) {
+        return UMI_STATUS_INVALID_ARGUMENT;
+    }
+    umi_debug_workspace_clear_console(service->workspace);
+    return UMI_STATUS_OK;
+}
+
 UmiStatus umi_studio_debugger_service_snapshot(
     const UmiStudioDebuggerService *service,
     UmiStudioDebuggerSnapshot *out_snapshot)
@@ -187,8 +305,8 @@ UmiStatus umi_studio_debugger_service_snapshot(
     stats = umi_protocol_transport_stats(service->transport);
     out_snapshot->client_state = umi_protocol_client_state(service->client);
     out_snapshot->initialized = service->dap.initialized;
-    out_snapshot->breakpoint_count =
-        umi_dap_breakpoint_count(service->breakpoints);
+    out_snapshot->breakpoint_count = umi_debug_breakpoint_registry_count(
+        umi_debug_service_breakpoint(service->model));
     out_snapshot->queued_messages = stats.queued;
     out_snapshot->sent_messages = stats.sent;
     out_snapshot->received_messages = stats.received;
@@ -209,8 +327,16 @@ UmiStatus umi_studio_debugger_service_snapshot(
                            sizeof(out_snapshot->controller_state), "%s",
                            umi_debug_controller_state_text(controller.state));
         }
+        (void)umi_debug_workspace_snapshot(service->workspace,
+                                           &out_snapshot->workspace);
     }
     return UMI_STATUS_OK;
+}
+
+UmiDebugWorkspace *umi_studio_debugger_service_workspace(
+    UmiStudioDebuggerService *service)
+{
+    return service != NULL ? service->workspace : NULL;
 }
 
 UmiDebugService *umi_studio_debugger_service_model(
