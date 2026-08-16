@@ -1,7 +1,7 @@
 {
   "schema": "umicom.version-lock.v1",
   "studio_version": "0.23.0",
-  "studio_parent_base_commit": "9579b0986517fce8f69851b110304d6091ccb982",
+  "studio_parent_base_commit": "72e8f1c33cf9d4a1303543a9f2d355f28ee55712",
   "framework_version": "0.9.0",
   "framework_commit": "9371008ba317186f843c7477a610f0bdb2df3bee",
   "authorengine_commit": "fc1ca481022b60eb6f6b52d7e95256e85192e09e",
