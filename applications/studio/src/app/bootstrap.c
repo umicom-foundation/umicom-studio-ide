@@ -15,6 +15,7 @@
 #include "umicom/studio/bootstrap.h"
 #include "umicom/studio/commands.h"
 #include "umicom/studio/federated_content.h"
+#include "umicom/studio/federated_interactions.h"
 #include "umicom/studio/services.h"
 #include "umicom/studio/ui.h"
 #include "umicom/studio/version.h"
@@ -157,6 +158,11 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
             bootstrap->services);
     }
     if (status == UMI_STATUS_OK) {
+        status = umi_studio_federated_interactions_register(
+            umi_master_controller_desktop_context_synchronizer(
+                bootstrap->master));
+    }
+    if (status == UMI_STATUS_OK) {
         status = umi_studio_ui_publish(
             bootstrap->ui,
             umi_master_controller_services(bootstrap->master)
@@ -201,6 +207,8 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
             "umicom.desktop.content",
             "umicom.desktop.component-host",
             "umicom.desktop.view-factories",
+            "umicom.desktop.component-drag-drop",
+            "umicom.desktop.context-synchronizer",
             NULL
         };
         static const char *optional_capabilities[] = {
@@ -375,5 +383,21 @@ UmiUiComponentHostService *umi_studio_bootstrap_component_host(
 {
     return bootstrap != NULL
         ? umi_master_controller_desktop_component_host(bootstrap->master)
+        : NULL;
+}
+
+UmiDesktopComponentDragDrop *umi_studio_bootstrap_component_drag_drop(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_desktop_component_drag_drop(bootstrap->master)
+        : NULL;
+}
+
+UmiDesktopContextSynchronizer *umi_studio_bootstrap_context_synchronizer(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_desktop_context_synchronizer(bootstrap->master)
         : NULL;
 }

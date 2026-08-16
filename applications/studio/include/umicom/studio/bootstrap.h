@@ -61,6 +61,10 @@ UmiDesktopContentRuntime *umi_studio_bootstrap_desktop_content(
     UmiStudioBootstrap *bootstrap);
 UmiUiComponentHostService *umi_studio_bootstrap_component_host(
     UmiStudioBootstrap *bootstrap);
+UmiDesktopComponentDragDrop *umi_studio_bootstrap_component_drag_drop(
+    UmiStudioBootstrap *bootstrap);
+UmiDesktopContextSynchronizer *umi_studio_bootstrap_context_synchronizer(
+    UmiStudioBootstrap *bootstrap);
 #ifdef __cplusplus
 }
 #endif

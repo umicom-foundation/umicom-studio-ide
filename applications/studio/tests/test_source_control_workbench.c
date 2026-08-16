@@ -3,16 +3,19 @@
  * Created by Sammy Hegab, Umicom Foundation. Licence: MIT.
  *---------------------------------------------------------------------------*/
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #include "umicom/studio/bootstrap.h"
 #include "umicom/studio/contributions.h"
 #include "umicom/ui/view_presentation.h"
 static void verify_kind(UmiUiWorkbench *workbench, const char *view_type, const char *pane_id, const char *expected)
 {
-    UmiUiViewPresentation presentation; UmiUiPropertySnapshot kind;
-    assert(umi_ui_view_presentation_build(umi_ui_workbench_view_factories(workbench), view_type, pane_id, &presentation) == UMI_STATUS_OK);
-    assert(umi_ui_view_presentation_find_property(&presentation, "umicom.view-kind", &kind) == UMI_STATUS_OK);
+    UmiUiViewPresentation *presentation = calloc(1U, sizeof(*presentation)); UmiUiPropertySnapshot kind;
+    assert(presentation != NULL);
+    assert(umi_ui_view_presentation_build(umi_ui_workbench_view_factories(workbench), view_type, pane_id, presentation) == UMI_STATUS_OK);
+    assert(umi_ui_view_presentation_find_property(presentation, "umicom.view-kind", &kind) == UMI_STATUS_OK);
     assert(kind.value.kind == UMI_UI_VALUE_STRING); assert(strcmp(kind.value.string_value, expected) == 0);
+    free(presentation);
 }
 int main(void)
 {

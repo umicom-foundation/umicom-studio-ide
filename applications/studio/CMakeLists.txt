@@ -23,6 +23,7 @@ set(UMICOM_STUDIO_VERSION "0.23.0")
 add_library(umicom_studio_core STATIC
     src/app/bootstrap.c
     src/app/federated_content.c
+    src/app/federated_interactions.c
     src/app/services.c
     src/app/trading.c
     src/app/version.c
@@ -1274,6 +1275,7 @@ if(BUILD_TESTING)
             application_authority
             desktop_shell
             federated_content
+            federated_interactions
             extension_centre
             product_centre_views)
         add_executable(umicom-studio-${UMICOM_STUDIO_UI_TEST}-test
@@ -1471,6 +1473,7 @@ if(BUILD_TESTING)
         studio.application_authority
         studio.desktop_shell
         studio.federated_content
+        studio.federated_interactions
         studio.extension_centre
         studio.product_centre_views
         studio.trading_service
