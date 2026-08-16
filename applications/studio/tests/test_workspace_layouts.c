@@ -7,10 +7,20 @@ int main(void)
     UmiStudioProfessionalWorkspace *workspace = umi_test_seeded_professional_workspace();
     UmiUiWorkspaceCustomisation *model = umi_studio_professional_workspace_model(workspace);
     UmiUiWorkspaceLayout *active;
-    assert(model->layout_count == 6U && model->library.count == 6U);
+    assert(model->layout_count == 16U && model->library.count == 16U);
     assert(umi_ui_layout_library_find(&model->library,"studio-focus") != NULL);
     assert(umi_ui_layout_library_find(&model->library,"studio-debug") != NULL);
     assert(umi_ui_layout_library_find(&model->library,"studio-trading") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-treasury") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-media") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-music") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-creator") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-knowledge") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-model-lab") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-games") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-cad") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-kitchen") != NULL);
+    assert(umi_ui_layout_library_find(&model->library,"studio-author") != NULL);
     assert(umi_studio_workspace_execute(
                workspace, UMI_STUDIO_WORKSPACE_COMMAND_ACTIVATE_TRADING) ==
            UMI_STATUS_OK);

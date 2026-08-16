@@ -116,6 +116,15 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         return status;
     }
 
+    status = umi_master_controller_install_desktop_authority(
+        bootstrap->master);
+    if (status != UMI_STATUS_OK) {
+        umi_master_controller_destroy(bootstrap->master);
+        umi_studio_services_destroy(bootstrap->services);
+        free(bootstrap);
+        return status;
+    }
+
     status = umi_studio_services_publish(bootstrap->services,
                                          bootstrap->master);
     if (status != UMI_STATUS_OK) {
@@ -178,6 +187,9 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
             "umicom.application.federation",
             "umicom.application.context",
             "umicom.application.resources",
+            "umicom.desktop",
+            "umicom.desktop.layouts",
+            "umicom.desktop.context",
             NULL
         };
         static const char *optional_capabilities[] = {
@@ -321,4 +333,12 @@ UmiHealthRegistry *umi_studio_bootstrap_health_registry(
 UmiStudioUi *umi_studio_bootstrap_ui(UmiStudioBootstrap *bootstrap)
 {
     return bootstrap != NULL ? bootstrap->ui : NULL;
+}
+
+UmiDesktopRuntime *umi_studio_bootstrap_desktop_runtime(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_desktop_runtime(bootstrap->master)
+        : NULL;
 }

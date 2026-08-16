@@ -34,6 +34,7 @@ int main(void)
     UmiUiViewModel *architecture = NULL;
     UmiUiViewModel *gtk4 = NULL;
     UmiUiValue value;
+    UmiDesktopSnapshot desktop_snapshot;
 
     assert(umi_studio_application_centre_snapshot(NULL, &snapshot) ==
            UMI_STATUS_OK);
@@ -48,6 +49,13 @@ int main(void)
     assert(strcmp(umi_studio_bootstrap_application_name(bootstrap),
                   "Umicom Studio IDE") == 0);
     assert(umi_studio_bootstrap_module_count(bootstrap) == 1U);
+    assert(umi_desktop_runtime_snapshot(
+        umi_studio_bootstrap_desktop_runtime(bootstrap), &desktop_snapshot) ==
+        UMI_STATUS_OK);
+    assert(desktop_snapshot.layout_count == 16U);
+    assert(desktop_snapshot.tab_count == 16U);
+    assert(desktop_snapshot.tab_placement == UMI_DESKTOP_LAYOUT_TABS_BOTTOM);
+    assert(strcmp(desktop_snapshot.active_layout_id, "develop") == 0);
     workbench = umi_studio_ui_workbench(umi_studio_bootstrap_ui(bootstrap));
     assert(umi_ui_view_factory_create_view(
         umi_ui_workbench_view_factories(workbench), "studio.application-hub",
