@@ -93,6 +93,7 @@ add_library(umicom_studio_core STATIC
     src/app/source_navigation_contribution.c
     src/app/navigation_view_contribution.c
     src/app/editor_intelligence_contribution.c
+    src/app/editor_assistance_contribution.c
     src/app/workspace_groups.c
     src/app/workspace_themes.c
     src/app/appearance_centre.c
@@ -1159,6 +1160,12 @@ if(BUILD_TESTING)
     umicom_apply_warnings(umicom-studio-editor-intelligence-contribution-test)
     umicom_apply_sanitizers(umicom-studio-editor-intelligence-contribution-test)
     add_test(NAME studio.editor_intelligence_contribution COMMAND umicom-studio-editor-intelligence-contribution-test)
+
+    add_executable(umicom-studio-editor-assistance-contribution-test tests/test_editor_assistance_contribution.c)
+    target_link_libraries(umicom-studio-editor-assistance-contribution-test PRIVATE Umicom::StudioCore)
+    umicom_apply_warnings(umicom-studio-editor-assistance-contribution-test)
+    umicom_apply_sanitizers(umicom-studio-editor-assistance-contribution-test)
+    add_test(NAME studio.editor_assistance_contribution COMMAND umicom-studio-editor-assistance-contribution-test)
 
     add_executable(umicom-studio-platform-contract-api-bounds-test tests/test_platform_contract_api_bounds.c)
     target_link_libraries(umicom-studio-platform-contract-api-bounds-test PRIVATE Umicom::StudioCore)
