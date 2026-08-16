@@ -1126,14 +1126,20 @@ UmiStatus umi_studio_workbench_views_register(
     UmiUiWorkbench *workbench,
     UmiStudioServices *services)
 {
-    UmiUiViewFactoryRegistry *registry;
-    size_t index;
-
     if (workbench == NULL || services == NULL) {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
+    return umi_studio_workbench_views_register_registry(
+        umi_ui_workbench_view_factories(workbench), services);
+}
 
-    registry = umi_ui_workbench_view_factories(workbench);
+UmiStatus umi_studio_workbench_views_register_registry(
+    UmiUiViewFactoryRegistry *registry,
+    UmiStudioServices *services)
+{
+    size_t index;
+    if (registry == NULL || services == NULL)
+        return UMI_STATUS_INVALID_ARGUMENT;
     for (index = 0U; index < sizeof(DEFINITIONS) / sizeof(DEFINITIONS[0]);
          ++index) {
         UmiUiViewFactoryDescriptor descriptor = {0};

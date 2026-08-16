@@ -14,6 +14,7 @@
  *---------------------------------------------------------------------------*/
 #include "umicom/studio/bootstrap.h"
 #include "umicom/studio/commands.h"
+#include "umicom/studio/federated_content.h"
 #include "umicom/studio/services.h"
 #include "umicom/studio/ui.h"
 #include "umicom/studio/version.h"
@@ -151,6 +152,11 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
         &bootstrap->ui
     );
     if (status == UMI_STATUS_OK) {
+        status = umi_studio_federated_content_register(
+            umi_master_controller_desktop_content(bootstrap->master),
+            bootstrap->services);
+    }
+    if (status == UMI_STATUS_OK) {
         status = umi_studio_ui_publish(
             bootstrap->ui,
             umi_master_controller_services(bootstrap->master)
@@ -192,6 +198,9 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
             "umicom.desktop.context",
             "umicom.desktop.shell",
             "umicom.desktop.designer",
+            "umicom.desktop.content",
+            "umicom.desktop.component-host",
+            "umicom.desktop.view-factories",
             NULL
         };
         static const char *optional_capabilities[] = {
@@ -350,5 +359,21 @@ UmiDesktopShellModel *umi_studio_bootstrap_desktop_shell(
 {
     return bootstrap != NULL
         ? umi_master_controller_desktop_shell(bootstrap->master)
+        : NULL;
+}
+
+UmiDesktopContentRuntime *umi_studio_bootstrap_desktop_content(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_desktop_content(bootstrap->master)
+        : NULL;
+}
+
+UmiUiComponentHostService *umi_studio_bootstrap_component_host(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_desktop_component_host(bootstrap->master)
         : NULL;
 }

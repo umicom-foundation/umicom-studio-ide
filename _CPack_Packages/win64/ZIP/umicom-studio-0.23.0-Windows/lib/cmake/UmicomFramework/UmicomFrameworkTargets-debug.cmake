@@ -435,6 +435,36 @@ set_target_properties(Umicom::product PROPERTIES
 list(APPEND _cmake_import_check_targets Umicom::product )
 list(APPEND _cmake_import_check_files_for_Umicom::product "${_IMPORT_PREFIX}/lib/libumicom_product.a" )
 
+# Import target "Umicom::application" for configuration "Debug"
+set_property(TARGET Umicom::application APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+set_target_properties(Umicom::application PROPERTIES
+  IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "C"
+  IMPORTED_LOCATION_DEBUG "${_IMPORT_PREFIX}/lib/libumicom_application.a"
+  )
+
+list(APPEND _cmake_import_check_targets Umicom::application )
+list(APPEND _cmake_import_check_files_for_Umicom::application "${_IMPORT_PREFIX}/lib/libumicom_application.a" )
+
+# Import target "Umicom::application_ui" for configuration "Debug"
+set_property(TARGET Umicom::application_ui APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+set_target_properties(Umicom::application_ui PROPERTIES
+  IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "C"
+  IMPORTED_LOCATION_DEBUG "${_IMPORT_PREFIX}/lib/libumicom_application_ui.a"
+  )
+
+list(APPEND _cmake_import_check_targets Umicom::application_ui )
+list(APPEND _cmake_import_check_files_for_Umicom::application_ui "${_IMPORT_PREFIX}/lib/libumicom_application_ui.a" )
+
+# Import target "Umicom::desktop" for configuration "Debug"
+set_property(TARGET Umicom::desktop APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+set_target_properties(Umicom::desktop PROPERTIES
+  IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "C"
+  IMPORTED_LOCATION_DEBUG "${_IMPORT_PREFIX}/lib/libumicom_desktop.a"
+  )
+
+list(APPEND _cmake_import_check_targets Umicom::desktop )
+list(APPEND _cmake_import_check_files_for_Umicom::desktop "${_IMPORT_PREFIX}/lib/libumicom_desktop.a" )
+
 # Import target "Umicom::distribution" for configuration "Debug"
 set_property(TARGET Umicom::distribution APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
 set_target_properties(Umicom::distribution PROPERTIES

@@ -32,6 +32,10 @@ UmiStatus umi_studio_workbench_views_register(
     UmiUiWorkbench *workbench,
     UmiStudioServices *services
 );
+UmiStatus umi_studio_workbench_views_register_registry(
+    UmiUiViewFactoryRegistry *registry,
+    UmiStudioServices *services
+);
 
 size_t umi_studio_workbench_view_definition_count(void);
 

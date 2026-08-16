@@ -19,7 +19,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set(_cmake_targets_defined "")
 set(_cmake_targets_not_defined "")
 set(_cmake_expected_targets "")
-foreach(_cmake_expected_target IN ITEMS Umicom::base Umicom::diagnostics Umicom::messaging Umicom::data Umicom::platform Umicom::security Umicom::runtime Umicom::integration Umicom::resilience Umicom::observability Umicom::toolchain Umicom::compiler Umicom::repository Umicom::plugin Umicom::plugin_ui Umicom::scaffold Umicom::ui Umicom::ui_components Umicom::ui_headless Umicom::build Umicom::build_ui Umicom::diagnostic_ui Umicom::testing Umicom::terminal Umicom::terminal_ui Umicom::protocol Umicom::editor Umicom::document Umicom::vcs Umicom::vcs_ui Umicom::declarative Umicom::designer Umicom::web Umicom::browser Umicom::chart Umicom::frontend Umicom::ai Umicom::ai_ui Umicom::helix Umicom::delivery Umicom::abi Umicom::sdk Umicom::product Umicom::distribution Umicom::distribution_ui Umicom::finance Umicom::trading Umicom::trading_ui Umicom::codeguard Umicom::project Umicom::language Umicom::debug Umicom::source_control Umicom::test_platform Umicom::test_ui Umicom::developer Umicom::Framework Umicom::ui_gtk4)
+foreach(_cmake_expected_target IN ITEMS Umicom::base Umicom::diagnostics Umicom::messaging Umicom::data Umicom::platform Umicom::security Umicom::runtime Umicom::integration Umicom::resilience Umicom::observability Umicom::toolchain Umicom::compiler Umicom::repository Umicom::plugin Umicom::plugin_ui Umicom::scaffold Umicom::ui Umicom::ui_components Umicom::ui_headless Umicom::build Umicom::build_ui Umicom::diagnostic_ui Umicom::testing Umicom::terminal Umicom::terminal_ui Umicom::protocol Umicom::editor Umicom::document Umicom::vcs Umicom::vcs_ui Umicom::declarative Umicom::designer Umicom::web Umicom::browser Umicom::chart Umicom::frontend Umicom::ai Umicom::ai_ui Umicom::helix Umicom::delivery Umicom::abi Umicom::sdk Umicom::product Umicom::application Umicom::application_ui Umicom::desktop Umicom::distribution Umicom::distribution_ui Umicom::finance Umicom::trading Umicom::trading_ui Umicom::codeguard Umicom::project Umicom::language Umicom::debug Umicom::source_control Umicom::test_platform Umicom::test_ui Umicom::developer Umicom::Framework Umicom::ui_gtk4)
   list(APPEND _cmake_expected_targets "${_cmake_expected_target}")
   if(TARGET "${_cmake_expected_target}")
     list(APPEND _cmake_targets_defined "${_cmake_expected_target}")
@@ -399,6 +399,30 @@ set_target_properties(Umicom::product PROPERTIES
   INTERFACE_LINK_LIBRARIES "Umicom::base;Umicom::runtime"
 )
 
+# Create imported target Umicom::application
+add_library(Umicom::application STATIC IMPORTED)
+
+set_target_properties(Umicom::application PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "Umicom::base;Umicom::integration;Umicom::runtime"
+)
+
+# Create imported target Umicom::application_ui
+add_library(Umicom::application_ui STATIC IMPORTED)
+
+set_target_properties(Umicom::application_ui PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "Umicom::application;Umicom::ui;Umicom::ui_components"
+)
+
+# Create imported target Umicom::desktop
+add_library(Umicom::desktop STATIC IMPORTED)
+
+set_target_properties(Umicom::desktop PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_LINK_LIBRARIES "Umicom::application;Umicom::runtime;Umicom::ui"
+)
+
 # Create imported target Umicom::distribution
 add_library(Umicom::distribution STATIC IMPORTED)
 
@@ -507,7 +531,7 @@ set_target_properties(Umicom::developer PROPERTIES
 add_library(Umicom::Framework INTERFACE IMPORTED)
 
 set_target_properties(Umicom::Framework PROPERTIES
-  INTERFACE_LINK_LIBRARIES "Umicom::base;Umicom::diagnostics;Umicom::messaging;Umicom::data;Umicom::platform;Umicom::security;Umicom::runtime;Umicom::integration;Umicom::resilience;Umicom::observability;Umicom::toolchain;Umicom::compiler;Umicom::repository;Umicom::plugin;Umicom::plugin_ui;Umicom::scaffold;Umicom::ui;Umicom::ui_components;Umicom::ui_headless;Umicom::build;Umicom::build_ui;Umicom::diagnostic_ui;Umicom::testing;Umicom::terminal;Umicom::terminal_ui;Umicom::protocol;Umicom::editor;Umicom::document;Umicom::vcs;Umicom::vcs_ui;Umicom::declarative;Umicom::designer;Umicom::web;Umicom::browser;Umicom::chart;Umicom::frontend;Umicom::ai;Umicom::ai_ui;Umicom::helix;Umicom::delivery;Umicom::abi;Umicom::sdk;Umicom::product;Umicom::distribution;Umicom::distribution_ui;Umicom::codeguard;Umicom::project;Umicom::language;Umicom::debug;Umicom::source_control;Umicom::test_platform;Umicom::test_ui;Umicom::developer;Umicom::finance;Umicom::trading;Umicom::trading_ui"
+  INTERFACE_LINK_LIBRARIES "Umicom::base;Umicom::diagnostics;Umicom::messaging;Umicom::data;Umicom::platform;Umicom::security;Umicom::runtime;Umicom::integration;Umicom::resilience;Umicom::observability;Umicom::toolchain;Umicom::compiler;Umicom::repository;Umicom::plugin;Umicom::plugin_ui;Umicom::scaffold;Umicom::ui;Umicom::ui_components;Umicom::ui_headless;Umicom::build;Umicom::build_ui;Umicom::diagnostic_ui;Umicom::testing;Umicom::terminal;Umicom::terminal_ui;Umicom::protocol;Umicom::editor;Umicom::document;Umicom::vcs;Umicom::vcs_ui;Umicom::declarative;Umicom::designer;Umicom::web;Umicom::browser;Umicom::chart;Umicom::frontend;Umicom::ai;Umicom::ai_ui;Umicom::helix;Umicom::delivery;Umicom::abi;Umicom::sdk;Umicom::product;Umicom::application;Umicom::application_ui;Umicom::desktop;Umicom::distribution;Umicom::distribution_ui;Umicom::codeguard;Umicom::project;Umicom::language;Umicom::debug;Umicom::source_control;Umicom::test_platform;Umicom::test_ui;Umicom::developer;Umicom::finance;Umicom::trading;Umicom::trading_ui"
 )
 
 # Create imported target Umicom::ui_gtk4
@@ -515,7 +539,7 @@ add_library(Umicom::ui_gtk4 STATIC IMPORTED)
 
 set_target_properties(Umicom::ui_gtk4 PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "Umicom::ui;Umicom::ui_components;PkgConfig::UMICOM_FRAMEWORK_GTK4;\$<LINK_ONLY:PkgConfig::UMICOM_FRAMEWORK_SOURCEVIEW5>;Umicom::diagnostic_ui;Umicom::terminal_ui;Umicom::vcs_ui"
+  INTERFACE_LINK_LIBRARIES "Umicom::ui;Umicom::ui_components;PkgConfig::UMICOM_FRAMEWORK_GTK4;\$<LINK_ONLY:PkgConfig::UMICOM_FRAMEWORK_SOURCEVIEW5>;Umicom::diagnostic_ui;Umicom::terminal_ui;Umicom::vcs_ui;Umicom::desktop"
 )
 
 # Load information for each installed configuration.

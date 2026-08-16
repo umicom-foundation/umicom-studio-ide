@@ -57,6 +57,10 @@ UmiDesktopRuntime *umi_studio_bootstrap_desktop_runtime(
     UmiStudioBootstrap *bootstrap);
 UmiDesktopShellModel *umi_studio_bootstrap_desktop_shell(
     UmiStudioBootstrap *bootstrap);
+UmiDesktopContentRuntime *umi_studio_bootstrap_desktop_content(
+    UmiStudioBootstrap *bootstrap);
+UmiUiComponentHostService *umi_studio_bootstrap_component_host(
+    UmiStudioBootstrap *bootstrap);
 #ifdef __cplusplus
 }
 #endif
