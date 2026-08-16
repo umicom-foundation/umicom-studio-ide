@@ -16,6 +16,7 @@
 #include "umicom/studio/commands.h"
 #include "umicom/studio/federated_content.h"
 #include "umicom/studio/federated_interactions.h"
+#include "umicom/studio/federated_workspace_session.h"
 #include "umicom/studio/services.h"
 #include "umicom/studio/ui.h"
 #include "umicom/studio/version.h"
@@ -209,6 +210,9 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
             "umicom.desktop.view-factories",
             "umicom.desktop.component-drag-drop",
             "umicom.desktop.context-synchronizer",
+            "umicom.desktop.layout-history",
+            "umicom.desktop.session-recovery",
+            "umicom.desktop.monitor-interaction",
             NULL
         };
         static const char *optional_capabilities[] = {
@@ -268,7 +272,16 @@ UmiStatus umi_studio_bootstrap_start(UmiStudioBootstrap *bootstrap)
     }
     status = umi_master_controller_start(bootstrap->master);
     if (status == UMI_STATUS_OK) {
-        bootstrap->started = 1;
+        status = umi_studio_federated_workspace_session_begin(
+            umi_master_controller_desktop_session_recovery(
+                bootstrap->master),
+            umi_master_controller_desktop_monitor_interaction(
+                bootstrap->master));
+        if (status == UMI_STATUS_OK) {
+            bootstrap->started = 1;
+        } else {
+            (void)umi_master_controller_stop(bootstrap->master);
+        }
     }
     return status;
 }
@@ -285,6 +298,9 @@ UmiStatus umi_studio_bootstrap_stop(UmiStudioBootstrap *bootstrap)
     status = umi_master_controller_stop(bootstrap->master);
     if (status == UMI_STATUS_OK) {
         bootstrap->started = 0;
+        status = umi_studio_federated_workspace_session_end(
+            umi_master_controller_desktop_session_recovery(
+                bootstrap->master));
     }
     return status;
 }
@@ -399,5 +415,29 @@ UmiDesktopContextSynchronizer *umi_studio_bootstrap_context_synchronizer(
 {
     return bootstrap != NULL
         ? umi_master_controller_desktop_context_synchronizer(bootstrap->master)
+        : NULL;
+}
+
+UmiDesktopLayoutHistory *umi_studio_bootstrap_layout_history(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_desktop_layout_history(bootstrap->master)
+        : NULL;
+}
+
+UmiDesktopSessionRecovery *umi_studio_bootstrap_session_recovery(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_desktop_session_recovery(bootstrap->master)
+        : NULL;
+}
+
+UmiDesktopMonitorInteraction *umi_studio_bootstrap_monitor_interaction(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_desktop_monitor_interaction(bootstrap->master)
         : NULL;
 }

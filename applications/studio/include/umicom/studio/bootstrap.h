@@ -65,6 +65,12 @@ UmiDesktopComponentDragDrop *umi_studio_bootstrap_component_drag_drop(
     UmiStudioBootstrap *bootstrap);
 UmiDesktopContextSynchronizer *umi_studio_bootstrap_context_synchronizer(
     UmiStudioBootstrap *bootstrap);
+UmiDesktopLayoutHistory *umi_studio_bootstrap_layout_history(
+    UmiStudioBootstrap *bootstrap);
+UmiDesktopSessionRecovery *umi_studio_bootstrap_session_recovery(
+    UmiStudioBootstrap *bootstrap);
+UmiDesktopMonitorInteraction *umi_studio_bootstrap_monitor_interaction(
+    UmiStudioBootstrap *bootstrap);
 #ifdef __cplusplus
 }
 #endif
