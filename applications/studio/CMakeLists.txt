@@ -1753,6 +1753,7 @@ foreach(UMICOM_STUDIO_WORKSPACE_TEST
         workspace_themes
         appearance_centre
         appearance_session
+        editor_theme_integration
         workspace_persistence
         workspace_views_commands)
     string(REPLACE "_" "-" UMICOM_STUDIO_WORKSPACE_TEST_TARGET
