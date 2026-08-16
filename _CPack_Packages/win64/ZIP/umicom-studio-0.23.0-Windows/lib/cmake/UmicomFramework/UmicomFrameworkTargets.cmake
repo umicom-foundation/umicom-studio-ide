@@ -539,7 +539,7 @@ add_library(Umicom::ui_gtk4 STATIC IMPORTED)
 
 set_target_properties(Umicom::ui_gtk4 PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "Umicom::ui;Umicom::ui_components;PkgConfig::UMICOM_FRAMEWORK_GTK4;\$<LINK_ONLY:PkgConfig::UMICOM_FRAMEWORK_SOURCEVIEW5>;Umicom::diagnostic_ui;Umicom::terminal_ui;Umicom::vcs_ui;Umicom::desktop"
+  INTERFACE_LINK_LIBRARIES "Umicom::ui;Umicom::ui_components;PkgConfig::UMICOM_FRAMEWORK_GTK4;\$<LINK_ONLY:Umicom::editor>;\$<LINK_ONLY:PkgConfig::UMICOM_FRAMEWORK_SOURCEVIEW5>;Umicom::diagnostic_ui;Umicom::terminal_ui;Umicom::vcs_ui;Umicom::desktop"
 )
 
 # Load information for each installed configuration.

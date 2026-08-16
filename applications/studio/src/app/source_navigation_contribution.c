@@ -33,7 +33,17 @@ static const UmiStudioSourceNavigationContribution CONTRIBUTIONS[] = {
     CONTRIBUTION("editor.navigate.document-symbols", "Navigate", "search", 200),
     CONTRIBUTION("editor.navigate.workspace-symbols", "Navigate", "search", 210),
     CONTRIBUTION("editor.navigate.focus-breadcrumbs", "View", "navigation", 100),
-    CONTRIBUTION("editor.navigate.toggle-outline", "View", "navigation", 110)
+    CONTRIBUTION("editor.navigate.toggle-outline", "View", "navigation", 110),
+    CONTRIBUTION("editor.navigate.call-hierarchy", "Navigate", "hierarchy", 300),
+    CONTRIBUTION("editor.navigate.incoming-calls", "Navigate", "hierarchy", 310),
+    CONTRIBUTION("editor.navigate.outgoing-calls", "Navigate", "hierarchy", 320),
+    CONTRIBUTION("editor.navigate.type-hierarchy", "Navigate", "hierarchy", 330),
+    CONTRIBUTION("editor.navigate.supertypes", "Navigate", "hierarchy", 340),
+    CONTRIBUTION("editor.navigate.subtypes", "Navigate", "hierarchy", 350),
+    CONTRIBUTION("editor.navigate.peek-next", "Navigate", "peek", 400),
+    CONTRIBUTION("editor.navigate.peek-previous", "Navigate", "peek", 410),
+    CONTRIBUTION("editor.navigate.peek-pin", "Navigate", "peek", 420),
+    CONTRIBUTION("editor.navigate.peek-close", "Navigate", "peek", 430)
 };
 
 #undef CONTRIBUTION
