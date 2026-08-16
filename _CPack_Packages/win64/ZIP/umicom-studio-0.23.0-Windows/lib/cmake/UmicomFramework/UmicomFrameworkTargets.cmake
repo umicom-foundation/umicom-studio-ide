@@ -420,7 +420,7 @@ add_library(Umicom::desktop STATIC IMPORTED)
 
 set_target_properties(Umicom::desktop PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "Umicom::application;Umicom::runtime;Umicom::ui"
+  INTERFACE_LINK_LIBRARIES "Umicom::application;Umicom::runtime;Umicom::ui;Umicom::ui_components"
 )
 
 # Create imported target Umicom::distribution
@@ -524,7 +524,7 @@ add_library(Umicom::developer STATIC IMPORTED)
 
 set_target_properties(Umicom::developer PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "Umicom::base;Umicom::platform;Umicom::ui;Umicom::project;Umicom::language;Umicom::debug;Umicom::source_control;Umicom::test_platform"
+  INTERFACE_LINK_LIBRARIES "Umicom::base;Umicom::platform;Umicom::ui;Umicom::project;Umicom::language;Umicom::debug;Umicom::source_control;Umicom::test_platform;Umicom::toolchain"
 )
 
 # Create imported target Umicom::Framework

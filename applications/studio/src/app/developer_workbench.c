@@ -19,6 +19,14 @@ UmiStatus umi_studio_developer_workbench_snapshot(UmiStudioDeveloperWorkbench*p,
 A(umi_studio_developer_workbench_projects,UmiStudioProjectCentre,projects) A(umi_studio_developer_workbench_language,UmiStudioLanguageIntelligenceCentre,language) A(umi_studio_developer_workbench_debug,UmiStudioDebugCentre,debug) A(umi_studio_developer_workbench_source_control,UmiStudioSourceControlCentre,source_control) A(umi_studio_developer_workbench_tests,UmiStudioTestExplorerCentre,tests) A(umi_studio_developer_workbench_services,UmiUiWorkbenchServices,services) A(umi_studio_developer_workbench_runtime,UmiDeveloperRuntime,runtime) A(umi_studio_developer_workbench_pipeline,UmiStudioDeveloperPipelineCentre,pipeline) A(umi_studio_developer_workbench_task_centre,UmiStudioDeveloperTaskCentre,task_centre) A(umi_studio_developer_workbench_run_centre,UmiStudioDeveloperRunCentre,run_centre) A(umi_studio_developer_workbench_workspace_state,UmiStudioDeveloperWorkspaceStateCentre,workspace_state) A(umi_studio_developer_workbench_session,UmiStudioDeveloperSession,session)
 #undef A
 
+UmiDeveloperUniversalModel *umi_studio_developer_workbench_universal_model(
+    UmiStudioDeveloperWorkbench *workbench)
+{
+    return workbench != NULL
+        ? umi_developer_runtime_universal_model(workbench->runtime)
+        : NULL;
+}
+
 static void copy_selection_text(char *destination,size_t capacity,const char *source)
 {
     size_t length;

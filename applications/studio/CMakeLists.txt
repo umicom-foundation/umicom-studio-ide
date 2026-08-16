@@ -1310,7 +1310,8 @@ if(BUILD_TESTING)
             source_control_workspace
             trading_service
             trading_workspace_views
-            developer_platform)
+            developer_platform
+            universal_development)
         string(REPLACE "_" "-" UMICOM_STUDIO_DEVELOPER_TEST_TARGET
             "${UMICOM_STUDIO_DEVELOPER_TEST}")
         add_executable(umicom-studio-${UMICOM_STUDIO_DEVELOPER_TEST_TARGET}-test
