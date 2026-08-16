@@ -142,6 +142,7 @@ static void on_framework_workbench_activate(GtkApplication *application,
     status = umi_studio_gtk_workbench_create(
         application,
         umi_studio_bootstrap_ui(run->bootstrap),
+        umi_studio_bootstrap_desktop_shell(run->bootstrap),
         &run->workbench);
     if (status != UMI_STATUS_OK) {
         (void)fprintf(stderr,

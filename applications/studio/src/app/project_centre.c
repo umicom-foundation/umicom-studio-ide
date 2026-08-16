@@ -304,17 +304,17 @@ UmiStatus umi_studio_project_centre_import_directory(
     const UmiProjectWorkspaceImportRequest *request,
     UmiProjectWorkspaceImportSnapshot *out_snapshot)
 {
-    UmiProjectWorkspaceImportSnapshot imported;
     UmiProjectWorkspaceRootSnapshot root;
     UmiProjectWorkspaceMemberSnapshot member;
     UmiStatus status;
     size_t root_index;
     int reused_root = 0;
 
-    if (centre == NULL || request == NULL) {
+    if (centre == NULL || request == NULL || out_snapshot == NULL) {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
 
+#define imported (*out_snapshot)
     status = umi_project_workspace_import_directory(
         centre->service, request, &imported);
     if (status != UMI_STATUS_OK) {
@@ -375,8 +375,6 @@ UmiStatus umi_studio_project_centre_import_directory(
     centre->has_selection = 1;
     centre->has_refresh_plan = 0;
     centre->revision += 1U;
-    if (out_snapshot != NULL) {
-        *out_snapshot = imported;
-    }
+#undef imported
     return UMI_STATUS_OK;
 }

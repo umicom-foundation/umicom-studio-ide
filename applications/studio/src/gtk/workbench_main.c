@@ -28,6 +28,7 @@ static void on_activate(GtkApplication *application, gpointer user_data)
     if (status == UMI_STATUS_OK) {
         status = umi_studio_gtk_workbench_create(application,
                                                   umi_studio_bootstrap_ui(GLOBAL_BOOTSTRAP),
+                                                  umi_studio_bootstrap_desktop_shell(GLOBAL_BOOTSTRAP),
                                                   &GLOBAL_WORKBENCH);
     }
     if (status != UMI_STATUS_OK) {

@@ -12,6 +12,7 @@
  *---------------------------------------------------------------------------*/
 
 #include "umicom/umicom.h"
+#include "umicom/studio/appearance_centre.h"
 #include "umicom/studio/workbench.h"
 #include "umicom/studio/workspace_profiles.h"
 
@@ -38,6 +39,8 @@ int main(void)
            UMI_STATUS_OK);
     assert(umi_studio_workspace_profiles_register(first) == UMI_STATUS_OK);
     assert(umi_studio_workspace_profiles_register(second) == UMI_STATUS_OK);
+    assert(umi_studio_appearance_register(first) == UMI_STATUS_OK);
+    assert(umi_studio_appearance_register(second) == UMI_STATUS_OK);
 
     assert(umi_ui_workbench_state_snapshot(first, &state) == UMI_STATUS_OK);
     state.sidebar_size = 314;

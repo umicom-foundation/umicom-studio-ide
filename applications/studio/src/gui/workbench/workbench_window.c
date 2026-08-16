@@ -23,16 +23,22 @@ struct UmiStudioGtkWorkbench {
 
 UmiStatus umi_studio_gtk_workbench_create(GtkApplication *application,
                                           UmiStudioUi *ui,
+                                          UmiDesktopShellModel *desktop_shell,
                                           UmiStudioGtkWorkbench **out_workbench)
 {
     UmiStudioGtkWorkbench *workbench;
     UmiStatus status;
-    if (application == NULL || ui == NULL || out_workbench == NULL) return UMI_STATUS_INVALID_ARGUMENT;
+    if (application == NULL || ui == NULL || desktop_shell == NULL ||
+        out_workbench == NULL) return UMI_STATUS_INVALID_ARGUMENT;
     *out_workbench = NULL;
     workbench = (UmiStudioGtkWorkbench *)calloc(1U, sizeof(*workbench));
     if (workbench == NULL) return UMI_STATUS_OUT_OF_MEMORY;
     workbench->ui = ui;
     status = umi_gtk4_adapter_create(application, &workbench->adapter);
+    if (status == UMI_STATUS_OK) {
+        status = umi_gtk4_adapter_bind_desktop_shell(
+            workbench->adapter, desktop_shell);
+    }
     if (status == UMI_STATUS_OK) status = umi_gtk4_adapter_present(workbench->adapter, umi_studio_ui_shell(ui));
     if (status != UMI_STATUS_OK) {
         umi_studio_gtk_workbench_destroy(workbench);

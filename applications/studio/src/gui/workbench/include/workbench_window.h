@@ -19,6 +19,7 @@
 typedef struct UmiStudioGtkWorkbench UmiStudioGtkWorkbench;
 UmiStatus umi_studio_gtk_workbench_create(GtkApplication *application,
                                           UmiStudioUi *ui,
+                                          UmiDesktopShellModel *desktop_shell,
                                           UmiStudioGtkWorkbench **out_workbench);
 void umi_studio_gtk_workbench_destroy(UmiStudioGtkWorkbench *workbench);
 GtkWindow *umi_studio_gtk_workbench_window(UmiStudioGtkWorkbench *workbench);

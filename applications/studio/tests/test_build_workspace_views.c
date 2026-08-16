@@ -21,17 +21,18 @@
 
 static void add_evidence(UmiStudioBuildService *build)
 {
-    UmiBuildResult result;
+    UmiBuildResult *result = NULL;
     UmiBuildArtifactSnapshot artifact = {0};
 
-    umi_build_result_init(&result, 75U, UMI_BUILD_PHASE_BUILD,
+    assert(umi_build_result_create(&result) == UMI_STATUS_OK);
+    umi_build_result_init(result, 75U, UMI_BUILD_PHASE_BUILD,
                           "studio.development");
-    (void)strcpy(result.command,
+    (void)strcpy(result->command,
                  "cmake --build build/windows-ucrt64-debug --parallel 2");
-    (void)strcpy(result.output, "Build completed successfully");
-    umi_build_result_finish(&result, UMI_STATUS_OK, 0, 250U);
+    (void)strcpy(result->output, "Build completed successfully");
+    umi_build_result_finish(result, UMI_STATUS_OK, 0, 250U);
     assert(umi_build_history_append(
-               umi_studio_build_service_history(build), &result) ==
+               umi_studio_build_service_history(build), result) ==
            UMI_STATUS_OK);
 
     artifact.operation_id = 75U;
@@ -43,6 +44,7 @@ static void add_evidence(UmiStudioBuildService *build)
     artifact.size_bytes = 8192U;
     assert(umi_studio_build_service_record_artifact(build, &artifact) ==
            UMI_STATUS_OK);
+    umi_build_result_destroy(result);
 }
 
 static void verify_view(UmiUiWorkbench *workbench, const char *view_type,

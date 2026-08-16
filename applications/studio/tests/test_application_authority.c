@@ -35,6 +35,7 @@ int main(void)
     UmiUiViewModel *gtk4 = NULL;
     UmiUiValue value;
     UmiDesktopSnapshot desktop_snapshot;
+    UmiDesktopShellSnapshot shell_snapshot;
 
     assert(umi_studio_application_centre_snapshot(NULL, &snapshot) ==
            UMI_STATUS_OK);
@@ -56,6 +57,12 @@ int main(void)
     assert(desktop_snapshot.tab_count == 16U);
     assert(desktop_snapshot.tab_placement == UMI_DESKTOP_LAYOUT_TABS_BOTTOM);
     assert(strcmp(desktop_snapshot.active_layout_id, "develop") == 0);
+    assert(umi_desktop_shell_model_snapshot(
+        umi_studio_bootstrap_desktop_shell(bootstrap), &shell_snapshot) ==
+        UMI_STATUS_OK);
+    assert(shell_snapshot.tab_count == 16U);
+    assert(shell_snapshot.monitor_count == 1U);
+    assert(strcmp(shell_snapshot.active_layout_name, "Develop") == 0);
     workbench = umi_studio_ui_workbench(umi_studio_bootstrap_ui(bootstrap));
     assert(umi_ui_view_factory_create_view(
         umi_ui_workbench_view_factories(workbench), "studio.application-hub",

@@ -132,15 +132,15 @@ UmiStatus umi_studio_developer_workbench_import_project(
     const UmiDeveloperProjectBootstrapRequest *request,
     UmiDeveloperProjectBootstrapSnapshot *out_snapshot)
 {
-    UmiDeveloperProjectBootstrapSnapshot snapshot;
     UmiProjectWorkspaceSelectionRequest selection_request;
     UmiDeveloperProjectWorkflowRequest workflow_request;
     UmiStatus status;
 
-    if (workbench == NULL || request == NULL) {
+    if (workbench == NULL || request == NULL || out_snapshot == NULL) {
         return UMI_STATUS_INVALID_ARGUMENT;
     }
 
+#define snapshot (*out_snapshot)
     memset(&snapshot, 0, sizeof(snapshot));
     snapshot.struct_size = (uint32_t)sizeof(snapshot);
     snapshot.api_version = UMI_DEVELOPER_PROJECT_BOOTSTRAP_API_VERSION;
@@ -259,8 +259,6 @@ UmiStatus umi_studio_developer_workbench_import_project(
     if (status != UMI_STATUS_OK) return status;
 
     workbench->revision += 1U;
-    if (out_snapshot != NULL) {
-        *out_snapshot = snapshot;
-    }
+#undef snapshot
     return UMI_STATUS_OK;
 }

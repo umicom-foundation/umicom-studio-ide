@@ -24,7 +24,36 @@ static void copy_text(char*d,size_t c,const char*s){size_t n;if(d==NULL||c==0U)r
 UmiStatus umi_studio_test_explorer_centre_create(UmiStudioTestExplorerCentre **out){UmiStudioTestExplorerCentre*p;UmiStatus s;if(out==NULL)return UMI_STATUS_INVALID_ARGUMENT;*out=NULL;p=calloc(1U,sizeof(*p));if(p==NULL)return UMI_STATUS_OUT_OF_MEMORY;s=umi_test_platform_service_create(&p->service);if(s==UMI_STATUS_OK){p->owns_service=1;s=umi_test_workspace_create(p->service,&p->workspace);}if(s!=UMI_STATUS_OK){umi_studio_test_explorer_centre_destroy(p);return s;}p->owns_workspace=1;p->revision=1U;*out=p;return UMI_STATUS_OK;}
 UmiStatus umi_studio_test_explorer_centre_create_bound(UmiStudioTestService *tests,UmiStudioTestExplorerCentre **out){UmiStudioTestExplorerCentre*p;if(tests==NULL||out==NULL)return UMI_STATUS_INVALID_ARGUMENT;*out=NULL;p=calloc(1U,sizeof(*p));if(p==NULL)return UMI_STATUS_OUT_OF_MEMORY;p->test_service=tests;p->service=umi_studio_test_service_platform(tests);p->workspace=umi_studio_test_service_workspace(tests);if(p->service==NULL||p->workspace==NULL){free(p);return UMI_STATUS_INVALID_STATE;}p->revision=1U;*out=p;return UMI_STATUS_OK;}
 void umi_studio_test_explorer_centre_destroy(UmiStudioTestExplorerCentre*p){if(p==NULL)return;if(p->owns_workspace)umi_test_workspace_destroy(p->workspace);if(p->owns_service)umi_test_platform_service_destroy(p->service);free(p);}
-UmiStatus umi_studio_test_explorer_centre_snapshot(UmiStudioTestExplorerCentre*p,UmiStudioTestExplorerCentreSnapshot*o){UmiStatus s;if(p==NULL||o==NULL)return UMI_STATUS_INVALID_ARGUMENT;memset(o,0,sizeof(*o));o->struct_size=(uint32_t)sizeof(*o);o->api_version=3U;copy_text(o->area_id,sizeof(o->area_id),"studio.test-explorer-centre");copy_text(o->title,sizeof(o->title),"Test Explorer Centre");copy_text(o->summary,sizeof(o->summary),"CTest metadata, professional selection and filters, selected/all/repeat/rerun operations, retained results, output, coverage and run history.");s=umi_test_platform_service_snapshot(p->service,&o->service);if(s!=UMI_STATUS_OK)return s;s=umi_test_workspace_snapshot(p->workspace,&o->workspace);if(s!=UMI_STATUS_OK)return s;if(p->test_service!=NULL){UmiTestPlatformHierarchyNode nodes[UMI_TEST_PLATFORM_SELECTION_CAPACITY];s=umi_studio_test_service_explorer_state(p->test_service,&o->explorer);if(s!=UMI_STATUS_OK)return s;s=umi_studio_test_service_hierarchy(p->test_service,nodes,UMI_TEST_PLATFORM_SELECTION_CAPACITY,&o->hierarchy_count);if(s!=UMI_STATUS_OK)return s;}o->selected_count=o->workspace.visible_item_count;o->operation_running=o->service.operation_running;o->revision=p->revision>o->workspace.revision?p->revision:o->workspace.revision;o->available=1;return UMI_STATUS_OK;}
+UmiStatus umi_studio_test_explorer_centre_snapshot(UmiStudioTestExplorerCentre*p,UmiStudioTestExplorerCentreSnapshot*o){
+    UmiStatus s;
+    if(p==NULL||o==NULL)return UMI_STATUS_INVALID_ARGUMENT;
+    memset(o,0,sizeof(*o));
+    o->struct_size=(uint32_t)sizeof(*o);
+    o->api_version=3U;
+    copy_text(o->area_id,sizeof(o->area_id),"studio.test-explorer-centre");
+    copy_text(o->title,sizeof(o->title),"Test Explorer Centre");
+    copy_text(o->summary,sizeof(o->summary),"CTest metadata, professional selection and filters, selected/all/repeat/rerun operations, retained results, output, coverage and run history.");
+    s=umi_test_platform_service_snapshot(p->service,&o->service);
+    if(s!=UMI_STATUS_OK)return s;
+    s=umi_test_workspace_snapshot(p->workspace,&o->workspace);
+    if(s!=UMI_STATUS_OK)return s;
+    if(p->test_service!=NULL){
+        UmiTestPlatformHierarchyNode *nodes=(UmiTestPlatformHierarchyNode *)calloc(
+            UMI_TEST_PLATFORM_SELECTION_CAPACITY,sizeof(*nodes));
+        if(nodes==NULL)return UMI_STATUS_OUT_OF_MEMORY;
+        s=umi_studio_test_service_explorer_state(p->test_service,&o->explorer);
+        if(s==UMI_STATUS_OK)s=umi_studio_test_service_hierarchy(
+            p->test_service,nodes,UMI_TEST_PLATFORM_SELECTION_CAPACITY,
+            &o->hierarchy_count);
+        free(nodes);
+        if(s!=UMI_STATUS_OK)return s;
+    }
+    o->selected_count=o->workspace.visible_item_count;
+    o->operation_running=o->service.operation_running;
+    o->revision=p->revision>o->workspace.revision?p->revision:o->workspace.revision;
+    o->available=1;
+    return UMI_STATUS_OK;
+}
 UmiTestPlatformService *umi_studio_test_explorer_centre_service(UmiStudioTestExplorerCentre*p){return p!=NULL?p->service:NULL;}
 UmiTestWorkspace *umi_studio_test_explorer_centre_workspace(UmiStudioTestExplorerCentre*p){return p!=NULL?p->workspace:NULL;}
 UmiStatus umi_studio_test_explorer_centre_set_workspace(UmiStudioTestExplorerCentre*p,const char*root,const char*project,uint64_t revision){UmiStatus s;if(p==NULL||p->test_service==NULL)return UMI_STATUS_INVALID_STATE;s=umi_studio_test_service_set_workspace(p->test_service,root,project,revision);if(s==UMI_STATUS_OK)p->revision+=1U;return s;}

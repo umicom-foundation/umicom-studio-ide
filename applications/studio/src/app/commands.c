@@ -408,11 +408,14 @@ static UmiStatus build_phase_handler(UmiStudioServices *services,
                                      char *out_message,
                                      size_t message_capacity)
 {
-    UmiBuildResult result;
-    UmiStatus status = umi_studio_build_service_run(
-        umi_studio_services_build(services), phase, &result);
-    UmiStatus diagnostic_status =
-        umi_studio_diagnostics_ingest_build_result(services, &result);
+    UmiBuildResult *result = NULL;
+    UmiStatus status = umi_build_result_create(&result);
+    UmiStatus diagnostic_status;
+    if (status != UMI_STATUS_OK) return status;
+    status = umi_studio_build_service_run(
+        umi_studio_services_build(services), phase, result);
+    diagnostic_status =
+        umi_studio_diagnostics_ingest_build_result(services, result);
     if (status == UMI_STATUS_OK && diagnostic_status != UMI_STATUS_OK) {
         status = diagnostic_status;
     }
@@ -422,9 +425,10 @@ static UmiStatus build_phase_handler(UmiStudioServices *services,
                        "%s: %s (exit %d, %zu diagnostic(s))",
                        umi_build_phase_text(phase),
                        umi_status_text(status),
-                       result.exit_code,
-                       result.diagnostics.count);
+                       result->exit_code,
+                       result->diagnostics.count);
     }
+    umi_build_result_destroy(result);
     return status;
 }
 
@@ -593,7 +597,7 @@ static UmiStatus build_filter_handler(void *user_data,
     if (out_message != NULL && message_capacity > 0U) {
         if (status == UMI_STATUS_OK) {
             (void)snprintf(out_message, message_capacity,
-                           "Build filter selected %zu node(s)",
+                           "Build filter selected %zu build node(s)",
                            snapshot.visible_node_count);
         } else {
             (void)snprintf(out_message, message_capacity, "Build filter: %s",
@@ -673,16 +677,17 @@ static UmiStatus build_run_next_handler(void *user_data,
                                         size_t message_capacity)
 {
     UmiStudioServices *services = (UmiStudioServices *)user_data;
-    UmiBuildResult result;
+    UmiBuildResult *result = NULL;
     UmiStatus status;
     (void)argument;
 
-    memset(&result, 0, sizeof(result));
+    status = umi_build_result_create(&result);
+    if (status != UMI_STATUS_OK) return status;
     status = umi_studio_build_service_execute_next(
-        umi_studio_services_build(services), &result);
+        umi_studio_services_build(services), result);
     if (status != UMI_STATUS_NOT_FOUND) {
         UmiStatus diagnostic_status =
-            umi_studio_diagnostics_ingest_build_result(services, &result);
+            umi_studio_diagnostics_ingest_build_result(services, result);
         if (status == UMI_STATUS_OK && diagnostic_status != UMI_STATUS_OK)
             status = diagnostic_status;
     }
@@ -693,9 +698,10 @@ static UmiStatus build_run_next_handler(void *user_data,
         } else {
             (void)snprintf(out_message, message_capacity,
                            "Build operation #%" PRIu64 ": %s",
-                           result.operation_id, umi_status_text(status));
+                           result->operation_id, umi_status_text(status));
         }
     }
+    umi_build_result_destroy(result);
     return status;
 }
 
@@ -721,16 +727,18 @@ static UmiStatus build_run_all_handler(void *user_data,
     status = umi_studio_build_service_execute_all(
         service, (size_t)maximum_nodes, &executed);
     if (executed > 0U) {
-        UmiBuildResult latest;
-        if (umi_build_history_latest(
-                umi_studio_build_service_history(service), &latest) ==
-            UMI_STATUS_OK) {
+        UmiBuildResult *latest = NULL;
+        if (umi_build_result_create(&latest) == UMI_STATUS_OK &&
+            umi_build_history_latest(
+                umi_studio_build_service_history(service), latest) ==
+                UMI_STATUS_OK) {
             UmiStatus diagnostic_status =
                 umi_studio_diagnostics_ingest_build_result(
-                    (UmiStudioServices *)user_data, &latest);
+                    (UmiStudioServices *)user_data, latest);
             if (status == UMI_STATUS_OK && diagnostic_status != UMI_STATUS_OK)
                 status = diagnostic_status;
         }
+        umi_build_result_destroy(latest);
     }
     if (out_message != NULL && message_capacity > 0U)
         (void)snprintf(out_message, message_capacity,

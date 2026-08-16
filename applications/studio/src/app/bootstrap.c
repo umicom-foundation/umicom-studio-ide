@@ -190,6 +190,8 @@ UmiStatus umi_studio_bootstrap_create(UmiStudioBootstrap **out_bootstrap)
             "umicom.desktop",
             "umicom.desktop.layouts",
             "umicom.desktop.context",
+            "umicom.desktop.shell",
+            "umicom.desktop.designer",
             NULL
         };
         static const char *optional_capabilities[] = {
@@ -340,5 +342,13 @@ UmiDesktopRuntime *umi_studio_bootstrap_desktop_runtime(
 {
     return bootstrap != NULL
         ? umi_master_controller_desktop_runtime(bootstrap->master)
+        : NULL;
+}
+
+UmiDesktopShellModel *umi_studio_bootstrap_desktop_shell(
+    UmiStudioBootstrap *bootstrap)
+{
+    return bootstrap != NULL
+        ? umi_master_controller_desktop_shell(bootstrap->master)
         : NULL;
 }

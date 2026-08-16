@@ -17,7 +17,6 @@
 #include <stddef.h>
 
 #include "umicom/umicom.h"
-#include "umicom/application/supervisor.h"
 #include "umicom/studio/services.h"
 #include "umicom/studio/ui.h"
 
@@ -56,9 +55,8 @@ UmiHealthRegistry *umi_studio_bootstrap_health_registry(
 UmiStudioUi *umi_studio_bootstrap_ui(UmiStudioBootstrap *bootstrap);
 UmiDesktopRuntime *umi_studio_bootstrap_desktop_runtime(
     UmiStudioBootstrap *bootstrap);
-UmiApplicationSupervisor *umi_studio_bootstrap_application_supervisor(
+UmiDesktopShellModel *umi_studio_bootstrap_desktop_shell(
     UmiStudioBootstrap *bootstrap);
-
 #ifdef __cplusplus
 }
 #endif

@@ -15,6 +15,7 @@
  * engines stay in Framework so the same mechanisms can serve future products.
  */
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include "umicom/platform/filesystem.h"
 #include "umicom/platform/path.h"
@@ -77,7 +78,7 @@ static int populate_project(UmiStudioPlatformShell *shell)
 static int import_project(UmiStudioPlatformShell *shell, char *root, size_t capacity)
 {
     UmiDeveloperProjectBootstrapRequest request={0};
-    UmiDeveloperProjectBootstrapSnapshot bootstrap;
+    UmiDeveloperProjectBootstrapSnapshot *bootstrap=NULL;
     char temp_directory[UMI_PATH_CAPACITY];
     char cmake_file[UMI_PATH_CAPACITY];
     char source_file[UMI_PATH_CAPACITY];
@@ -103,10 +104,13 @@ static int import_project(UmiStudioPlatformShell *shell, char *root, size_t capa
     request.workflow_id="shell.import.test";
     request.prepare_workflow=1;
     request.include_configure=1;
+    bootstrap=(UmiDeveloperProjectBootstrapSnapshot *)calloc(1U,sizeof(*bootstrap));
+    if(bootstrap==NULL)return 8;
     if(umi_studio_platform_shell_import_project(
-        shell,&request,&bootstrap)!=UMI_STATUS_OK)return 8;
-    if(!bootstrap.workflow_prepared||bootstrap.workflow.workflow.operation_count!=3U||
-       strcmp(bootstrap.context.project_id,"shell-import")!=0)return 9;
+        shell,&request,bootstrap)!=UMI_STATUS_OK){free(bootstrap);return 8;}
+    if(!bootstrap->workflow_prepared||bootstrap->workflow.workflow.operation_count!=3U||
+       strcmp(bootstrap->context.project_id,"shell-import")!=0){free(bootstrap);return 9;}
+    free(bootstrap);
     return 0;
 }
 
@@ -114,7 +118,7 @@ int main(void)
 {
     UmiStudioServices *services=NULL;
     UmiStudioPlatformShell *p=NULL;
-    UmiStudioPlatformShellSnapshot a;
+    UmiStudioPlatformShellSnapshot *a=NULL;
     UmiUiListModelSnapshot item={0};
     UmiStudioCommandCentreSnapshot b;
     UmiStudioResourceExplorerSnapshot c;
@@ -168,11 +172,14 @@ int main(void)
     result=import_project(p,imported_root,sizeof(imported_root));
     if(result!=0)return 40+result;
 
-    if(umi_studio_platform_shell_snapshot(p,&a)!=UMI_STATUS_OK||
-       a.workbench.list_items!=1U||!a.developer.available||
-       !a.developer.projects.has_selection||
-       strcmp(a.developer.projects.selection.project.id,"shell-import")!=0||
-       !a.developer.pipeline.has_project_workflow)return 50;
+    a=(UmiStudioPlatformShellSnapshot *)calloc(1U,sizeof(*a));
+    if(a==NULL)return 50;
+    if(umi_studio_platform_shell_snapshot(p,a)!=UMI_STATUS_OK||
+       a->workbench.list_items!=1U||!a->developer.available||
+       !a->developer.projects.has_selection||
+       strcmp(a->developer.projects.selection.project.id,"shell-import")!=0||
+       !a->developer.pipeline.has_project_workflow){free(a);return 50;}
+    free(a);
 
     /*
      * Existing platform-centre smoke coverage remains intact.
