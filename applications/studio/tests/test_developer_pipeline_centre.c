@@ -57,6 +57,43 @@ static void add_project(UmiStudioDeveloperWorkbench *workbench)
         umi_project_workspace_task(workspace),&build)==UMI_STATUS_OK);
 }
 
+static void verify_delivery_contributions(void)
+{
+    size_t index;
+    size_t comparison;
+    assert(umi_studio_build_delivery_command_contribution_count() ==
+           umi_build_delivery_command_count());
+    assert(umi_studio_build_delivery_view_contribution_count() ==
+           umi_build_delivery_view_count());
+    for (index = 0U;
+         index < umi_studio_build_delivery_command_contribution_count();
+         ++index) {
+        const UmiStudioBuildDeliveryCommandContribution *contribution =
+            umi_studio_build_delivery_command_contribution_at(index);
+        assert(contribution != NULL);
+        assert(umi_build_delivery_command_find(
+                   contribution->framework_command_id) != NULL);
+        for (comparison = index + 1U;
+             comparison <
+                 umi_studio_build_delivery_command_contribution_count();
+             ++comparison) {
+            assert(strcmp(
+                       contribution->framework_command_id,
+                       umi_studio_build_delivery_command_contribution_at(
+                           comparison)->framework_command_id) != 0);
+        }
+    }
+    for (index = 0U;
+         index < umi_studio_build_delivery_view_contribution_count();
+         ++index) {
+        const UmiStudioBuildDeliveryViewContribution *contribution =
+            umi_studio_build_delivery_view_contribution_at(index);
+        assert(contribution != NULL);
+        assert(umi_build_delivery_view_find(
+                   contribution->framework_view_id) != NULL);
+    }
+}
+
 int main(void)
 {
     UmiStudioDeveloperWorkbench *workbench = NULL;
@@ -68,9 +105,11 @@ int main(void)
     UmiDeveloperProjectWorkflowSnapshot project_workflow;
 
     assert(umi_studio_developer_workbench_create(&workbench) == UMI_STATUS_OK);
-
     centre = umi_studio_developer_workbench_pipeline(workbench);
     assert(centre != NULL);
+    assert(umi_studio_developer_pipeline_centre_delivery(centre) != NULL);
+    assert(umi_studio_developer_pipeline_centre_delivery_tasks(centre) != NULL);
+    assert(umi_studio_developer_pipeline_centre_deployment_targets(centre) != NULL);
 
     memset(&request, 0, sizeof(request));
     request.struct_size = (uint32_t)sizeof(request);
@@ -88,7 +127,6 @@ int main(void)
     assert(umi_studio_developer_pipeline_centre_prepare_cmake(
         centre, &request, &plan) == UMI_STATUS_OK);
     assert(plan.operation_count == 3U);
-
     assert(umi_studio_developer_pipeline_centre_snapshot(
         centre, &snapshot) == UMI_STATUS_OK);
     assert(snapshot.available == 1);
@@ -96,6 +134,10 @@ int main(void)
     assert(snapshot.pipeline.dependency_count == 2U);
     assert(snapshot.pipeline.ready_count == 1U);
     assert(snapshot.item_count >= 3U);
+    assert(snapshot.delivery.available != 0);
+    assert(snapshot.delivery_command_count == 36U);
+    assert(snapshot.delivery_view_count == 8U);
+    verify_delivery_contributions();
 
     /*
      * A second workbench keeps the project-aware preset independent of the
@@ -117,12 +159,12 @@ int main(void)
     assert(project_workflow.validation.valid!=0);
     assert(project_workflow.workflow.operation_count==1U);
     assert(project_workflow.task_count==1U);
-
     assert(umi_studio_developer_pipeline_centre_snapshot(
         centre,&snapshot)==UMI_STATUS_OK);
     assert(snapshot.has_project_workflow!=0);
     assert(snapshot.last_project_workflow.preset==
            UMI_DEVELOPER_PROJECT_WORKFLOW_BUILD);
+    assert(snapshot.delivery.available != 0);
 
     umi_studio_developer_workbench_destroy(workbench);
     return 0;
