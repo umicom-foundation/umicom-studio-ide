@@ -29,7 +29,17 @@ static const UmiStudioNavigationViewContribution CONTRIBUTIONS[] = {
     VIEW("studio.navigation.call-hierarchy", "Call Hierarchy",
          "umicom.editor.call-hierarchy", "secondary-sidebar", 30),
     VIEW("studio.navigation.type-hierarchy", "Type Hierarchy",
-         "umicom.editor.type-hierarchy", "secondary-sidebar", 40)
+         "umicom.editor.type-hierarchy", "secondary-sidebar", 40),
+    VIEW("studio.navigation.document-outline", "Document Outline",
+         "umicom.editor.symbol-navigation-session.document",
+         "secondary-sidebar", 50),
+    VIEW("studio.navigation.workspace-symbols", "Workspace Symbols",
+         "umicom.editor.symbol-navigation-session.workspace",
+         "secondary-sidebar", 60),
+    VIEW("studio.navigation.source-preview", "Navigation Source Preview",
+         "umicom.editor.navigation-source-preview", "editor-overlay", 70),
+    VIEW("studio.navigation.providers", "Navigation Providers",
+         "umicom.editor.navigation-experience", "secondary-sidebar", 80)
 };
 
 #undef VIEW

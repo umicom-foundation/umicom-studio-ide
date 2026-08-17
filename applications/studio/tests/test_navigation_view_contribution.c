@@ -10,7 +10,7 @@
 int main(void)
 {
     size_t index;
-    assert(umi_studio_navigation_view_contribution_count() == 4U);
+    assert(umi_studio_navigation_view_contribution_count() == 8U);
     for (index = 0U;
          index < umi_studio_navigation_view_contribution_count();
          ++index) {
@@ -38,6 +38,10 @@ int main(void)
     }
     assert(umi_studio_navigation_view_contribution_find(
                "studio.navigation.references") != NULL);
+    assert(umi_studio_navigation_view_contribution_find(
+               "studio.navigation.document-outline") != NULL);
+    assert(umi_studio_navigation_view_contribution_find(
+               "studio.navigation.providers") != NULL);
     assert(umi_studio_navigation_view_contribution_find(
                "studio.navigation.missing") == NULL);
     return 0;

@@ -43,7 +43,23 @@ static const UmiStudioSourceNavigationContribution CONTRIBUTIONS[] = {
     CONTRIBUTION("editor.navigate.peek-next", "Navigate", "peek", 400),
     CONTRIBUTION("editor.navigate.peek-previous", "Navigate", "peek", 410),
     CONTRIBUTION("editor.navigate.peek-pin", "Navigate", "peek", 420),
-    CONTRIBUTION("editor.navigate.peek-close", "Navigate", "peek", 430)
+    CONTRIBUTION("editor.navigate.peek-close", "Navigate", "peek", 430),
+    CONTRIBUTION("editor.navigate.refresh", "Navigate", "session", 500),
+    CONTRIBUTION("editor.navigate.cancel", "Navigate", "session", 510),
+    CONTRIBUTION("editor.navigate.open-to-side", "Navigate", "open", 600),
+    CONTRIBUTION("editor.navigate.open-in-new-window", "Navigate", "open", 610),
+    CONTRIBUTION("editor.navigate.copy-location", "Navigate", "copy", 700),
+    CONTRIBUTION("editor.navigate.copy-qualified-name", "Navigate", "copy", 710),
+    CONTRIBUTION("editor.navigate.reference-next", "Navigate", "references", 800),
+    CONTRIBUTION("editor.navigate.reference-previous", "Navigate", "references", 810),
+    CONTRIBUTION("editor.navigate.reference-focus-filter", "Navigate", "references", 820),
+    CONTRIBUTION("editor.navigate.reference-toggle-declaration", "View", "references", 830),
+    CONTRIBUTION("editor.navigate.hierarchy-refresh", "Navigate", "hierarchy-session", 900),
+    CONTRIBUTION("editor.navigate.hierarchy-expand-all", "Navigate", "hierarchy-session", 910),
+    CONTRIBUTION("editor.navigate.hierarchy-collapse-all", "Navigate", "hierarchy-session", 920),
+    CONTRIBUTION("editor.navigate.outline-follow-cursor", "View", "navigation", 120),
+    CONTRIBUTION("editor.navigate.breadcrumb-select-sibling", "Navigate", "breadcrumbs", 1000),
+    CONTRIBUTION("editor.navigate.provider-diagnostics", "View", "navigation", 130)
 };
 
 #undef CONTRIBUTION
