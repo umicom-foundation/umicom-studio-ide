@@ -1,6 +1,11 @@
 /*-----------------------------------------------------------------------------
  * Umicom Studio IDE
  * File: applications/studio/tests/test_editor_intelligence_contribution.c
+ *
+ * PURPOSE:
+ *   Verify that Studio contributes every Framework editor-intelligence,
+ *   workspace-search, completion and inline-suggestion command exactly once.
+ *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
  * Licence: MIT
@@ -10,13 +15,36 @@
 
 #include "umicom/studio/editor_intelligence_contribution.h"
 
+static int framework_command_exists(
+    const UmiStudioEditorIntelligenceCommandContribution *contribution)
+{
+    switch (contribution->domain) {
+        case UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE:
+            return umi_editor_intelligence_command_find(
+                       contribution->framework_command_id) != NULL;
+        case UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH:
+            return umi_editor_workspace_search_command_find(
+                       contribution->framework_command_id) != NULL;
+        case UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION:
+            return umi_editor_completion_command_find(
+                       contribution->framework_command_id) != NULL;
+        default:
+            return 0;
+    }
+}
+
 int main(void)
 {
+    const size_t expected_commands =
+        umi_editor_intelligence_command_count() +
+        umi_editor_workspace_search_command_count() +
+        umi_editor_completion_command_count();
     size_t index;
     size_t comparison;
+    size_t completion_commands = 0U;
 
     assert(umi_studio_editor_intelligence_command_contribution_count() ==
-           umi_editor_intelligence_command_count());
+           expected_commands);
     for (index = 0U;
          index < umi_studio_editor_intelligence_command_contribution_count();
          ++index) {
@@ -26,11 +54,13 @@ int main(void)
         assert(contribution->struct_size == (uint32_t)sizeof(*contribution));
         assert(contribution->api_version ==
                UMI_STUDIO_EDITOR_INTELLIGENCE_CONTRIBUTION_API_VERSION);
-        assert(umi_editor_intelligence_command_find(
-                   contribution->framework_command_id) != NULL);
+        assert(framework_command_exists(contribution));
         assert(contribution->menu_id[0] != '\0');
         assert(contribution->menu_group[0] != '\0');
         assert(contribution->show_in_command_centre);
+        if (contribution->domain == UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION) {
+            ++completion_commands;
+        }
         for (comparison = index + 1U;
              comparison <
                  umi_studio_editor_intelligence_command_contribution_count();
@@ -41,7 +71,8 @@ int main(void)
                            comparison)->framework_command_id) != 0);
         }
     }
-    assert(umi_studio_editor_intelligence_view_contribution_count() == 2U);
+    assert(completion_commands == umi_editor_completion_command_count());
+    assert(umi_studio_editor_intelligence_view_contribution_count() == 10U);
     for (index = 0U;
          index < umi_studio_editor_intelligence_view_contribution_count();
          ++index) {
@@ -54,10 +85,16 @@ int main(void)
         assert(view->default_region[0] != '\0');
         assert(view->closable);
         assert(view->movable);
+        assert(view->domain >= UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE);
+        assert(view->domain <= UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION);
     }
     assert(umi_studio_editor_intelligence_view_contribution_find(
-               "studio.editor.rename-preview") != NULL);
+               "studio.editor.completion-providers") != NULL);
+    assert(umi_studio_editor_intelligence_view_contribution_find(
+               "studio.editor.inline-suggestion-status") != NULL);
     assert(umi_studio_editor_intelligence_command_contribution_find(
-               "editor.intelligence.rename") != NULL);
+               "editor.completion.trigger") != NULL);
+    assert(umi_studio_editor_intelligence_command_contribution_find(
+               "replace.workspace.apply") != NULL);
     return 0;
 }

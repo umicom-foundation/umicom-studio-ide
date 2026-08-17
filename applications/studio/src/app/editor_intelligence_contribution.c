@@ -3,8 +3,9 @@
  * File: applications/studio/src/app/editor_intelligence_contribution.c
  *
  * PURPOSE:
- *   Place Framework editor-intelligence commands and views in Studio while
- *   all reusable state, validation and operations remain Framework-owned.
+ *   Place Framework editor-intelligence, workspace-search, completion and
+ *   inline-suggestion contracts in Studio. All operational behaviour remains
+ *   authoritative in Umicom Framework.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -14,42 +15,174 @@
 
 #include <string.h>
 
-#define COMMAND(command, menu, group, position)                              \
-    {                                                                         \
-        (uint32_t)sizeof(UmiStudioEditorIntelligenceCommandContribution),     \
-        UMI_STUDIO_EDITOR_INTELLIGENCE_CONTRIBUTION_API_VERSION,              \
-        command, menu, group, position, 1                                     \
+#define COMMAND(domain_value, command, menu, group, position)                 \
+    {                                                                          \
+        (uint32_t)sizeof(UmiStudioEditorIntelligenceCommandContribution),      \
+        UMI_STUDIO_EDITOR_INTELLIGENCE_CONTRIBUTION_API_VERSION,               \
+        command, menu, group, position, 1, domain_value                        \
     }
 
 static const UmiStudioEditorIntelligenceCommandContribution COMMANDS[] = {
-    COMMAND("editor.intelligence.rename", "Edit", "refactor", 300),
-    COMMAND("editor.intelligence.rename-preview", "Edit", "refactor", 310),
-    COMMAND("editor.intelligence.rename-apply", "Edit", "refactor", 320),
-    COMMAND("editor.intelligence.rename-cancel", "Edit", "refactor", 330),
-    COMMAND("editor.intelligence.code-lens.toggle", "View", "editor", 300),
-    COMMAND("editor.intelligence.code-lens.refresh", "View", "editor", 310),
-    COMMAND("editor.intelligence.code-lens.execute", "Navigate", "symbol", 70),
-    COMMAND("editor.intelligence.inlay-hints.toggle", "View", "editor", 320),
-    COMMAND("editor.intelligence.inlay-hints.refresh", "View", "editor", 330),
-    COMMAND("editor.intelligence.semantic.toggle", "View", "editor", 340),
-    COMMAND("editor.intelligence.semantic.refresh", "View", "editor", 350),
-    COMMAND("editor.intelligence.semantic.inspect", "Navigate", "symbol", 80)
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.rename", "Edit", "refactor", 300),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.rename-preview", "Edit", "refactor", 310),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.rename-apply", "Edit", "refactor", 320),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.rename-cancel", "Edit", "refactor", 330),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.code-lens.toggle", "View", "editor", 300),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.code-lens.refresh", "View", "editor", 310),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.code-lens.execute", "Navigate", "symbol", 70),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.inlay-hints.toggle", "View", "editor", 320),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.inlay-hints.refresh", "View", "editor", 330),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.semantic.toggle", "View", "editor", 340),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.semantic.refresh", "View", "editor", 350),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+            "editor.intelligence.semantic.inspect", "Navigate", "symbol", 80),
+
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.open", "Edit", "find", 100),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.execute", "Edit", "find", 110),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.refresh-index", "Edit", "find", 120),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.next-result", "Edit", "navigation", 200),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.previous-result", "Edit", "navigation", 210),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.toggle-case", "Edit", "search-options", 300),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.toggle-regex", "Edit", "search-options", 310),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.toggle-whole-word", "Edit", "search-options", 320),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.toggle-multiline", "Edit", "search-options", 330),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.toggle-overlap", "Edit", "search-options", 340),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.add-include", "Edit", "search-policy", 400),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.add-exclude", "Edit", "search-policy", 410),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.clear-results", "Edit", "search-results", 500),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.copy-results", "Edit", "search-results", 510),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "search.workspace.export-results", "File", "export", 520),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "replace.workspace.open", "Edit", "replace", 600),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "replace.workspace.build-preview", "Edit", "replace", 610),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "replace.workspace.select-all", "Edit", "replace-selection", 700),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "replace.workspace.clear-selection", "Edit", "replace-selection", 710),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "replace.workspace.prepare", "Edit", "replace-transaction", 800),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "replace.workspace.apply", "Edit", "replace-transaction", 810),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+            "replace.workspace.cancel", "Edit", "replace-transaction", 820),
+
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.trigger", "Edit", "completion", 100),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.trigger-suggest", "Edit", "completion", 110),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.hide", "Edit", "completion", 120),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.select-next", "Navigate", "completion", 100),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.select-previous", "Navigate", "completion", 110),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.select-next-page", "Navigate", "completion", 120),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.select-previous-page", "Navigate", "completion", 130),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.accept", "Edit", "completion-accept", 200),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.accept-enter", "Edit", "completion-accept", 210),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.resolve-details", "View", "completion", 300),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.toggle-details", "View", "completion", 310),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.filter-kind", "View", "completion", 320),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.completion.provider-diagnostics", "View", "completion", 330),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.trigger", "Edit", "inline-suggestion", 400),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.next", "Navigate", "inline-suggestion", 400),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.previous", "Navigate", "inline-suggestion", 410),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.accept", "Edit", "inline-suggestion", 420),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.accept-word", "Edit", "inline-suggestion", 430),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.accept-line", "Edit", "inline-suggestion", 440),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.reject", "Edit", "inline-suggestion", 450),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.toggle", "View", "inline-suggestion", 460),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.pause", "View", "inline-suggestion", 470),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.ai-enable", "Tools", "ai-suggestions", 500),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+            "editor.inline-suggestion.ai-disable", "Tools", "ai-suggestions", 510)
 };
 
 #undef COMMAND
 
-#define VIEW(view, label, contract, region, position)                        \
-    {                                                                         \
-        (uint32_t)sizeof(UmiStudioEditorIntelligenceViewContribution),        \
-        UMI_STUDIO_EDITOR_INTELLIGENCE_CONTRIBUTION_API_VERSION,              \
-        view, label, contract, region, position, 1, 1                         \
+#define VIEW(domain_value, view, label, contract, region, position)           \
+    {                                                                          \
+        (uint32_t)sizeof(UmiStudioEditorIntelligenceViewContribution),         \
+        UMI_STUDIO_EDITOR_INTELLIGENCE_CONTRIBUTION_API_VERSION,               \
+        view, label, contract, region, position, 1, 1, domain_value            \
     }
 
 static const UmiStudioEditorIntelligenceViewContribution VIEWS[] = {
-    VIEW("studio.editor.rename-preview", "Rename Preview",
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+         "studio.editor.rename-preview", "Rename Preview",
          "umicom.editor.rename-symbol", "secondary-sidebar", 50),
-    VIEW("studio.editor.semantic-token-inspector", "Semantic Token Inspector",
-         "umicom.editor.semantic-highlighting", "bottom-panel", 60)
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE,
+         "studio.editor.semantic-token-inspector", "Semantic Token Inspector",
+         "umicom.editor.semantic-highlighting", "bottom-panel", 60),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+         "studio.search.workspace-results", "Workspace Search",
+         "umicom.editor.workspace-search-query", "left-sidebar", 110),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+         "studio.search.exclusions", "Search Exclusions",
+         "umicom.editor.workspace-search-exclusion", "left-sidebar", 120),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+         "studio.replace.preview", "Replace Preview",
+         "umicom.editor.workspace-replacement-preview", "bottom-panel", 150),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH,
+         "studio.replace.transaction", "Replace Transaction",
+         "umicom.editor.workspace-replace-transaction", "bottom-panel", 160),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+         "studio.editor.completion-details", "Completion Details",
+         "umicom.editor.completion-session", "secondary-sidebar", 170),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+         "studio.editor.completion-providers", "Completion Providers",
+         "umicom.editor.completion-orchestration", "bottom-panel", 180),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+         "studio.editor.inline-suggestion-status", "Inline Suggestion Status",
+         "umicom.editor.inline-suggestion-session", "bottom-panel", 190),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
+         "studio.editor.ai-suggestion-policy", "AI Suggestion Policy",
+         "umicom.editor.inline-suggestion-provider", "secondary-sidebar", 200)
 };
 
 #undef VIEW
@@ -62,8 +195,7 @@ size_t umi_studio_editor_intelligence_command_contribution_count(void)
 const UmiStudioEditorIntelligenceCommandContribution *
 umi_studio_editor_intelligence_command_contribution_at(size_t index)
 {
-    return index <
-            umi_studio_editor_intelligence_command_contribution_count()
+    return index < umi_studio_editor_intelligence_command_contribution_count()
         ? &COMMANDS[index]
         : NULL;
 }

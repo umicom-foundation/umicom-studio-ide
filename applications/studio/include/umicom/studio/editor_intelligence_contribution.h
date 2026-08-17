@@ -3,8 +3,9 @@
  * File: applications/studio/include/umicom/studio/editor_intelligence_contribution.h
  *
  * PURPOSE:
- *   Define Studio menu and workbench placement for Framework-owned editor
- *   intelligence commands and models without duplicating their behaviour.
+ *   Define Studio placement for Framework-owned editor intelligence, workspace
+ *   search, completion and inline-suggestion commands and views without
+ *   duplicating reusable implementation in the application.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -16,13 +17,21 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "umicom/editor/completion_command.h"
 #include "umicom/editor/intelligence_command.h"
+#include "umicom/editor/workspace_search_command.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define UMI_STUDIO_EDITOR_INTELLIGENCE_CONTRIBUTION_API_VERSION 1U
+#define UMI_STUDIO_EDITOR_INTELLIGENCE_CONTRIBUTION_API_VERSION 2U
+
+typedef enum UmiStudioEditorContributionDomain {
+    UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE = 1,
+    UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH = 2,
+    UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION = 3
+} UmiStudioEditorContributionDomain;
 
 typedef struct UmiStudioEditorIntelligenceCommandContribution {
     uint32_t struct_size;
@@ -32,6 +41,7 @@ typedef struct UmiStudioEditorIntelligenceCommandContribution {
     const char *menu_group;
     int32_t order;
     int show_in_command_centre;
+    UmiStudioEditorContributionDomain domain;
 } UmiStudioEditorIntelligenceCommandContribution;
 
 typedef struct UmiStudioEditorIntelligenceViewContribution {
@@ -44,6 +54,7 @@ typedef struct UmiStudioEditorIntelligenceViewContribution {
     int32_t order;
     int closable;
     int movable;
+    UmiStudioEditorContributionDomain domain;
 } UmiStudioEditorIntelligenceViewContribution;
 
 size_t umi_studio_editor_intelligence_command_contribution_count(void);
