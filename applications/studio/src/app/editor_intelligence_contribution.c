@@ -3,8 +3,9 @@
  * File: applications/studio/src/app/editor_intelligence_contribution.c
  *
  * PURPOSE:
- *   Place Framework editor-intelligence, workspace-search, completion and
- *   inline-suggestion contracts in Studio. All operational behaviour remains
+ *   Place Framework editor-intelligence, workspace-search, completion, inline-
+ *   suggestion and professional diagnostics contracts in Studio. All
+ *   operational behaviour remains
  *   authoritative in Umicom Framework.
  *
  * Created by: Sammy Hegab
@@ -140,7 +141,60 @@ static const UmiStudioEditorIntelligenceCommandContribution COMMANDS[] = {
     COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
             "editor.inline-suggestion.ai-enable", "Tools", "ai-suggestions", 500),
     COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
-            "editor.inline-suggestion.ai-disable", "Tools", "ai-suggestions", 510)
+            "editor.inline-suggestion.ai-disable", "Tools", "ai-suggestions", 510),
+
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.open", "View", "problems", 100),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.refresh", "View", "problems", 110),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.clear", "View", "problems", 120),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.next", "Navigate", "problems", 500),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.previous", "Navigate", "problems", 510),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.group-file", "View", "problem-grouping", 200),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.group-provider", "View", "problem-grouping", 210),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.group-severity", "View", "problem-grouping", 220),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.filter-errors", "View", "problem-filter", 300),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.filter-warnings", "View", "problem-filter", 310),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.filter-new", "View", "problem-filter", 320),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.filter-suppressed", "View", "problem-filter", 330),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problem.open-details", "View", "problem", 400),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problem.copy-message", "Edit", "problem", 400),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problems.copy-all", "Edit", "problem", 410),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problem.open-fix", "Edit", "quick-fix", 500),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problem.apply-fix", "Edit", "quick-fix", 510),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problem.suppress", "Edit", "suppression", 600),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.problem.unsuppress", "Edit", "suppression", 610),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.suppressions.manage", "Tools", "diagnostics", 600),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.severity-policy.manage", "Tools", "diagnostics", 610),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.baseline.capture", "Tools", "diagnostics", 620),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.baseline.compare", "Tools", "diagnostics", 630),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.sarif.import", "File", "import", 600),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.sarif.export", "File", "export", 610),
+    COMMAND(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+            "diagnostics.provider.open-details", "View", "problems", 130)
 };
 
 #undef COMMAND
@@ -182,7 +236,26 @@ static const UmiStudioEditorIntelligenceViewContribution VIEWS[] = {
          "umicom.editor.inline-suggestion-session", "bottom-panel", 190),
     VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION,
          "studio.editor.ai-suggestion-policy", "AI Suggestion Policy",
-         "umicom.editor.inline-suggestion-provider", "secondary-sidebar", 200)
+         "umicom.editor.inline-suggestion-provider", "secondary-sidebar", 200),
+
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+         "studio.diagnostics.problems", "Problems",
+         "umicom.diagnostics.problem-model", "bottom-panel", 210),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+         "studio.diagnostics.problem-details", "Problem Details",
+         "umicom.diagnostics.provider-finding", "secondary-sidebar", 220),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+         "studio.diagnostics.suppressions", "Diagnostic Suppressions",
+         "umicom.diagnostics.suppression", "secondary-sidebar", 230),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+         "studio.diagnostics.severity-policy", "Severity Policy",
+         "umicom.diagnostics.severity-policy", "secondary-sidebar", 240),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+         "studio.diagnostics.baseline", "Diagnostic Baseline",
+         "umicom.diagnostics.baseline", "bottom-panel", 250),
+    VIEW(UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS,
+         "studio.diagnostics.sarif", "SARIF Interchange",
+         "umicom.diagnostics.sarif", "bottom-panel", 260)
 };
 
 #undef VIEW

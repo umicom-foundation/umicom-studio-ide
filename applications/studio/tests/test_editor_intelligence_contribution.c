@@ -4,7 +4,8 @@
  *
  * PURPOSE:
  *   Verify that Studio contributes every Framework editor-intelligence,
- *   workspace-search, completion and inline-suggestion command exactly once.
+ *   workspace-search, completion, inline-suggestion and diagnostics command
+ *   exactly once.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -28,6 +29,9 @@ static int framework_command_exists(
         case UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION:
             return umi_editor_completion_command_find(
                        contribution->framework_command_id) != NULL;
+        case UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS:
+            return umi_diagnostic_command_find(
+                       contribution->framework_command_id) != NULL;
         default:
             return 0;
     }
@@ -38,10 +42,12 @@ int main(void)
     const size_t expected_commands =
         umi_editor_intelligence_command_count() +
         umi_editor_workspace_search_command_count() +
-        umi_editor_completion_command_count();
+        umi_editor_completion_command_count() +
+        umi_diagnostic_command_count();
     size_t index;
     size_t comparison;
     size_t completion_commands = 0U;
+    size_t diagnostic_commands = 0U;
 
     assert(umi_studio_editor_intelligence_command_contribution_count() ==
            expected_commands);
@@ -60,6 +66,9 @@ int main(void)
         assert(contribution->show_in_command_centre);
         if (contribution->domain == UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION) {
             ++completion_commands;
+        } else if (contribution->domain ==
+                   UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS) {
+            ++diagnostic_commands;
         }
         for (comparison = index + 1U;
              comparison <
@@ -72,7 +81,8 @@ int main(void)
         }
     }
     assert(completion_commands == umi_editor_completion_command_count());
-    assert(umi_studio_editor_intelligence_view_contribution_count() == 10U);
+    assert(diagnostic_commands == umi_diagnostic_command_count());
+    assert(umi_studio_editor_intelligence_view_contribution_count() == 16U);
     for (index = 0U;
          index < umi_studio_editor_intelligence_view_contribution_count();
          ++index) {
@@ -86,7 +96,7 @@ int main(void)
         assert(view->closable);
         assert(view->movable);
         assert(view->domain >= UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE);
-        assert(view->domain <= UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION);
+        assert(view->domain <= UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS);
     }
     assert(umi_studio_editor_intelligence_view_contribution_find(
                "studio.editor.completion-providers") != NULL);
@@ -96,5 +106,11 @@ int main(void)
                "editor.completion.trigger") != NULL);
     assert(umi_studio_editor_intelligence_command_contribution_find(
                "replace.workspace.apply") != NULL);
+    assert(umi_studio_editor_intelligence_command_contribution_find(
+               "diagnostics.sarif.export") != NULL);
+    assert(umi_studio_editor_intelligence_view_contribution_find(
+               "studio.diagnostics.problems") != NULL);
+    assert(umi_studio_editor_intelligence_view_contribution_find(
+               "studio.diagnostics.severity-policy") != NULL);
     return 0;
 }

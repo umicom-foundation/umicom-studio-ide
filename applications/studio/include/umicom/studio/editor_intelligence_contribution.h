@@ -4,7 +4,7 @@
  *
  * PURPOSE:
  *   Define Studio placement for Framework-owned editor intelligence, workspace
- *   search, completion and inline-suggestion commands and views without
+ *   search, completion, inline suggestions and professional diagnostics without
  *   duplicating reusable implementation in the application.
  *
  * Created by: Sammy Hegab
@@ -20,17 +20,19 @@
 #include "umicom/editor/completion_command.h"
 #include "umicom/editor/intelligence_command.h"
 #include "umicom/editor/workspace_search_command.h"
+#include "umicom/diagnostics/command.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define UMI_STUDIO_EDITOR_INTELLIGENCE_CONTRIBUTION_API_VERSION 2U
+#define UMI_STUDIO_EDITOR_INTELLIGENCE_CONTRIBUTION_API_VERSION 3U
 
 typedef enum UmiStudioEditorContributionDomain {
     UMI_STUDIO_EDITOR_CONTRIBUTION_INTELLIGENCE = 1,
     UMI_STUDIO_EDITOR_CONTRIBUTION_WORKSPACE_SEARCH = 2,
-    UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION = 3
+    UMI_STUDIO_EDITOR_CONTRIBUTION_COMPLETION = 3,
+    UMI_STUDIO_EDITOR_CONTRIBUTION_DIAGNOSTICS = 4
 } UmiStudioEditorContributionDomain;
 
 typedef struct UmiStudioEditorIntelligenceCommandContribution {
