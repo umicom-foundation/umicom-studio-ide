@@ -1,9 +1,9 @@
 {
   "schema": "umicom.version-lock.v1",
   "studio_version": "0.23.0",
-  "studio_parent_base_commit": "d6feac3891f347e0fee385505e4689b33dc5f2ad",
+  "studio_parent_base_commit": "3625b8d91ff504f828be7edca120e3ae2941699c",
   "framework_version": "0.9.0",
-  "framework_commit": "7fdff9ce06cf1c776c53134e15c08445c88b979d",
+  "framework_commit": "7284bd6166e2876208857d22d301e64aa2ad3f66",
   "authorengine_commit": "fc1ca481022b60eb6f6b52d7e95256e85192e09e",
   "llama_cpp_commit": "a4a0aa5ea2a88e4858996199fefd5439f17b481c"
 }

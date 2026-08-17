@@ -4,7 +4,8 @@
  *
  * PURPOSE:
  *   Place Framework debugger contracts in Studio menus and workbench regions.
- *   All operational behaviour remains inside Umicom Framework.
+ *   All configuration, breakpoint, thread, register, memory, disassembly and
+ *   adapter behaviour remains authoritative inside Umicom Framework.
  *
  * Created by: Sammy Hegab
  * Organisation: Umicom Foundation
@@ -47,7 +48,31 @@ static const UmiStudioDebugCommandContribution COMMANDS[] = {
     COMMAND("debug.console.clear", "Run", "console", 610),
     COMMAND("debug.call-stack.copy", "Run", "inspection", 700),
     COMMAND("debug.disassembly.open", "View", "debug", 710),
-    COMMAND("debug.memory.open", "View", "debug", 720)
+    COMMAND("debug.memory.open", "View", "debug", 720),
+    COMMAND("debug.breakpoint.add-function", "Run", "advanced-breakpoints", 500),
+    COMMAND("debug.breakpoint.add-data", "Run", "advanced-breakpoints", 510),
+    COMMAND("debug.breakpoint.add-instruction", "Run", "advanced-breakpoints", 520),
+    COMMAND("debug.breakpoint.configure-exceptions", "Run", "advanced-breakpoints", 530),
+    COMMAND("debug.breakpoints.open-advanced", "View", "debug", 730),
+    COMMAND("debug.threads.open", "View", "debug", 740),
+    COMMAND("debug.thread.select", "Run", "inspection", 710),
+    COMMAND("debug.frame.select", "Run", "inspection", 720),
+    COMMAND("debug.threads.refresh", "Run", "inspection", 730),
+    COMMAND("debug.variables.refresh", "Run", "variables", 740),
+    COMMAND("debug.variable.set", "Run", "variables", 750),
+    COMMAND("debug.expression.set", "Run", "variables", 760),
+    COMMAND("debug.step-back", "Run", "reverse", 360),
+    COMMAND("debug.reverse-continue", "Run", "reverse", 370),
+    COMMAND("debug.frame.restart", "Run", "reverse", 380),
+    COMMAND("debug.modules.open", "View", "debug", 750),
+    COMMAND("debug.registers.open", "View", "debug", 760),
+    COMMAND("debug.registers.refresh", "Run", "inspection", 770),
+    COMMAND("debug.memory.refresh", "Run", "inspection", 780),
+    COMMAND("debug.memory.write", "Run", "inspection", 790),
+    COMMAND("debug.disassembly.refresh", "Run", "inspection", 800),
+    COMMAND("debug.breakpoint.toggle-instruction", "Run", "advanced-breakpoints", 540),
+    COMMAND("debug.adapters.open", "Tools", "debugging", 900),
+    COMMAND("debug.memory.copy-address", "Edit", "debugging", 900)
 };
 
 #undef COMMAND
@@ -67,7 +92,23 @@ static const UmiStudioDebugViewContribution VIEWS[] = {
     VIEW("studio.debug.query-filters", "Debug Filters",
          "umicom.debug.breakpoint-watch-console-query", "bottom-panel", 120),
     VIEW("studio.debug.session-orchestration", "Debug Session",
-         "umicom.debug.orchestration", "bottom-panel", 130)
+         "umicom.debug.orchestration", "bottom-panel", 130),
+    VIEW("studio.debug.advanced-breakpoints", "Advanced Breakpoints",
+         "umicom.debug.advanced-breakpoint", "left-sidebar", 100),
+    VIEW("studio.debug.threads", "Threads and Call Stack",
+         "umicom.debug.thread-inspector", "left-sidebar", 110),
+    VIEW("studio.debug.registers", "Registers",
+         "umicom.debug.register-bank", "bottom-panel", 140),
+    VIEW("studio.debug.memory", "Memory",
+         "umicom.debug.memory-view", "editor-area", 150),
+    VIEW("studio.debug.disassembly", "Disassembly",
+         "umicom.debug.disassembly-view", "editor-area", 160),
+    VIEW("studio.debug.modules", "Modules",
+         "umicom.debug.module-registry", "bottom-panel", 170),
+    VIEW("studio.debug.adapter-centre", "Debugger Adapters",
+         "umicom.debug.adapter-contract", "secondary-sidebar", 180),
+    VIEW("studio.debug.inspection-session", "Advanced Debug Inspection",
+         "umicom.debug.inspection-session", "bottom-panel", 190)
 };
 
 #undef VIEW
